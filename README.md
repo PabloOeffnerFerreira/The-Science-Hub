@@ -138,7 +138,7 @@ This launches the main window, from which all tools and features are accessible.
   * 5 Toolkits: Chemistry, Physics, Biology, Geology and Maths.
   * These Toolkits contain multiple tools, mainly calculator, but also plotters, visualisers and explainers.
 
-Tools
+## Tools
 General & Math:
 Simple Calculator
 Function Plotter

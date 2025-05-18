@@ -2,7 +2,7 @@
 
 A versatile, cross-discipline tool for learning, experimenting, and doing science with Python.
 
-![MainImage](images/main.png)    
+![MainImage](images/Main.png)    
 
 ---
 

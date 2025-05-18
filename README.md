@@ -138,55 +138,63 @@ This launches the main window, from which all tools and features are accessible.
   * 5 Toolkits: Chemistry, Physics, Biology, Geology and Maths.
   * These Toolkits contain multiple tools, mainly calculator, but also plotters, visualisers and explainers.
 
-### Tools
+Tools
+General & Math:
+Simple Calculator
+Function Plotter
+Quadratic Solver
+Triangle Solver
 
-**General & Math:**  
-Simple Calculator  
-Function Plotter  
-Quadratic Solver  
-Triangle Solver  
+Physics:
+Unit Converter
+Terminal Velocity Calculator
+Projectile Motion Tool
+Ohm's Law Calculator
+Lens & Mirror Equation
+Speed Calculator
+Drag Force Calculator
+Acceleration Calculator
+Force Calculator
+Kinetic Energy Calculator
 
-**Physics:**  
-Unit Converter  
-Terminal Velocity Calculator  
-Projectile Motion Tool  
-Ohm's Law Calculator  
-Lens & Mirror Equation  
-Speed Calculator  
-Drag Force Calculator  
-Acceleration Calculator  
-Force Calculator  
-Kinetic Energy Calculator  
+Chemistry:
+Mass Calculator
+Shell Visualizer
+Property Grapher
+Isotope Tool
+Phase Predictor
+Comparator
+Unit Multiplier
+Element Viewer
+Molecule Assembler
 
-**Chemistry:**  
-Mass Calculator  
-Shell Visualizer  
-Property Grapher  
-Isotope Tool  
-Phase Predictor  
-Comparator  
-Unit Multiplier  
-Element Viewer  
-Molecule Assembler  
+Biology:
+DNA Transcription Tool
+Codon Lookup Tool
+Osmosis Tool
+Molecular Weight Calculator
+pH Calculator
+Population Growth Calculator
+Reverse Complement Tool
+DNA to Protein Tool
+GC Content Tool
+Sequence File Parser
+Pairwise Alignment Tool
 
-**Biology:**  
-DNA Transcription Tool  
-Codon Lookup Tool  
-Osmosis Tool  
-Molecular Weight Calculator  
-pH Calculator  
-Population Growth Calculator  
-
-**Geology:**  
-Mineral Id Tool  
-Radioactive Dating Tool  
-Plate Boundary Tool  
-Mineral Explorer  
+Geology:
+Mineral Id Tool
+Radioactive Dating Tool
+Plate Boundary Tool
+Mineral Explorer
 Plate Velocity Calculator
 Geology Model Tool:
-*  Currently work-in-progress due to instability in the GemPy API.
-*  Will be re-added once a robust workflow for custom models is confirmed.
+  * Currently work-in-progress due to instability in the GemPy API.
+  * Will be re-added once a robust workflow for custom models is confirmed.
 
+**Note on the Geology Model Tool (WIP):**
+The file for the Geology Model Tool (geo_model_WIP.py) is included for transparency, but the tool is not currently functional due to unresolved incompatibilities with the latest GemPy API. The relevant functions to open this tool are commented out in hub.py.
+You can safely delete geo_model_WIP.py from your project with no effect on the rest of the Science Hub.
+If anyone is interested in repairing or updating this tool to work with a modern GemPy version, contributions or pull requests are welcome.
 ### Results
 
 * Tools that generate plots or images (like chemistry visualizers or data charts) store their outputs in `/results`.

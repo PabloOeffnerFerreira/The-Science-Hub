@@ -217,6 +217,7 @@ Want to add a new tool?
 3. Each tool can use the window management and theme system provided.
 4. Store outputs to the results or images folder for seamless Gallery integration.
 
+Feel free to share the new tool!
 ---
 
 ## Screenshots

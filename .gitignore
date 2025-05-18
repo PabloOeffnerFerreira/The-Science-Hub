@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv
+*.sqlite3
+*.log
+*.db
+.DS_Store
+*.png
+*.jpg
+*.jpeg
+*.bmp
+results/
+rdkit-env/

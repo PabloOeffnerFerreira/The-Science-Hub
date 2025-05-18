@@ -1,258 +1,156 @@
 # The Science Hub
 
-A versatile, cross-discipline tool for learning, experimenting, and doing science with Python.
+A versatile, cross-discipline tool for learning, experimenting, and doing science with Python—now with an optional offline AI assistant.
 
-![MainImage](images/Main.png)    
+![MainImage](images/Main.png)
 
 ---
 
 ## What is The Science Hub?
 
 **The Science Hub** is a modular, self-built desktop application designed to collect, organize, and extend a set of scientific tools under one easy interface.  
-It began as a personal learning project in Python and has grown into a flexible platform for chemistry, biology, math, physics, and more.  
-Whether you want to calculate, visualize, or simply manage your results and formulas, The Science Hub is for you.
+Originally a personal project for independent learning, it has grown into a powerful platform for chemistry, biology, math, physics, geology, and now, AI-powered study and exploration.
+
+Whether you want to calculate, visualize, manage results, or ask questions to an AI—**The Science Hub adapts to your workflow.**
 
 ---
 
 ## Features
 
-- **Science Library**  
-  Organize, search, and filter your own formulas, scientific concepts, notes, and references. Attach images to entries and link them to experiment results.
+- **Science Library:**  
+  Organize, search, and filter your own formulas, concepts, notes, and references. Attach images and link entries to experiments.
 
-- **Gallery**  
-  Asset manager for all scientific images (plots, diagrams, experiment photos). Features drag-and-drop import, tagging, filtering, renaming, and favorites.
+- **Gallery:**  
+  Asset manager for all scientific images (plots, diagrams, experiment photos). Drag-and-drop, tagging, favorites, renaming.
 
-- **Tool Launcher**  
-  Instantly access a growing suite of calculators and utilities: chemistry (e.g., molar mass, molecular visualizer), math (Pythagoras, unit converter), physics, biology, geology, and more.
+- **Tool Launcher:**  
+  Instant access to a growing suite of calculators and utilities: chemistry (molar mass, molecular visualizer), math, physics, biology, geology, and more.
 
-- **Result Storage**  
-  Store generated plots and outputs for easy reference and retrieval. Connect gallery images to library entries and vice versa.
+- **Result Storage:**  
+  Store and organize generated plots and outputs for reference. Easily connect images to library entries.
 
-- **Batch Import/Export**  
-  Import or export multiple entries and images for backup, sharing, or migration.
+- **Batch Import/Export:**  
+  Import/export multiple entries and images for backup, sharing, or migration.
 
-- **Customizable and Extensible**  
-  Built to be modular. Add new tools as Python scripts with minimal setup.
+- **Customizable & Extensible:**  
+  Modular design—add new tools as Python scripts with minimal setup.
+
+- **Integrated Offline AI Assistant (NEW!):**  
+  Powered by [Ollama](https://ollama.com/), Science Hub now includes an optional AI assistant that runs entirely on your machine, with no cloud or account needed. The assistant can answer questions, check your work, explain solutions, or simply provide quick facts—with full privacy and customizable modes.
+
+---
+
+## NEW: AI Assistant (Ollama Integration)
+
+> **Note:** The AI features are fully optional. They only use system resources (RAM/VRAM) when active, and do not replace learning—they support it.
+
+### What can the AI do?
+
+- Answer science questions in natural language.
+- Summarize your experiment logs or data.
+- Explain concepts or formulas step by step (“Learn” mode).
+- Give direct answers for fast lookups (“Use” mode).
+- Chat naturally and help brainstorm ideas (“Casual” mode).
+- Review your work or provide hints (not just solutions).
+
+### Hardware requirements
+
+- **Recommended:**  
+  12–16 GB RAM, 8+ GB VRAM (for mid-size models like Gemma 4B/12B or Qwen3).
+- **Minimum:**  
+  8 GB RAM, 4 GB VRAM (use lighter models, fewer features).
+- Runs best on systems with modern CPUs and GPUs (NVIDIA or AMD with recent drivers).
+
+### How to enable AI assistant
+
+1. **Install Ollama:**  
+   [Download Ollama](https://ollama.com/download) and install it (Windows, Mac, or Linux).
+2. **Pull a model:**  
+   In your terminal, run  
+```
+
+ollama pull gemma3:4b
+
+````
+(or try other models: `qwen3:14b`, `mistral-small3.1`, etc.)
+3. **Set up Science Hub as usual.**
+4. **Launch the AI Assistant from the main window.**
+5. **Choose your model and mode** (Learn, Use, Casual) in the chatbox.
+6. **Ask questions, get explanations, and explore science with LLMs running 100% locally.**
+
+*If you run into issues (missing models, not enough VRAM, etc.), just use a smaller model or disable the AI features.*
 
 ---
 
 ## Quick Start
 
-### Prerequisites
+_**See above for AI-specific setup.**_
 
-- Python 3.8+
-- [Pillow](https://pypi.org/project/Pillow/)
-- [tkinterDnD2](https://pypi.org/project/tkinterDnD2/)
-- [rdkit](https://www.rdkit.org/) (optional, for chemistry tools)
-- See `requirements.txt`
-
-Install dependencies with:
-
-```sh
-pip install Pillow tkinterdnd2
-# (and optionally)
-pip install rdkit
-````
-(Tip: Use Anaconda and their "conda install -c conda.forge (Dependency)" install, it is better)
-
-### Installation
-
-Clone the repository:
-
+1. **Clone the repository:**
 ```sh
 git clone https://github.com/PabloOeffnerFerreira/The-Science-Hub.git
 cd The-Science-Hub
-```
+````
 
-(Optional) Set up a virtual environment:
+2. **(Optional) Create a virtual environment:**
 
-```sh
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-pip install -r requirements.txt  # if present
-```
+   ```sh
+   python -m venv venv
+   source venv/bin/activate  # or venv\Scripts\activate on Windows
+   pip install -r requirements.txt
+   ```
 
-### Running The Science Hub
+3. **Install dependencies:**
 
-```sh
-python hub.py
-```
+   ```sh
+   pip install Pillow tkinterdnd2
+   # and (optional for chemistry) conda install -c conda-forge rdkit
+   ```
 
-This launches the main window, from which all tools and features are accessible.
+4. **Run the app:**
+
+   ```sh
+   python hub.py
+   ```
 
 ---
 
-## Tutorial: Using The Science Hub
+## Toolkits & Modules
 
-### The Main Window & Tool Launcher
-
-* **Opening Tools:**
-  Use the side or top panel to launch calculators, visualizers, and converters. You can pin your favorites for quick access.
-  Tools range from chemistry helpers to general math, biology, and geology.
-
-* **Chain Mode:**
-  If you want to combine outputs from multiple tools, activate Chain Mode for multi-step calculations.
-
-### Science Library
-
-* **Add/Edit Entries:**
-
-  * Click “Add Entry” to start a new record.
-  * Fill in a title, formula, tags, description, and (optionally) attach an image.
-  * For the image, click "Pick from Gallery" to visually select from all imported images, or type the relative filename.
-  * Tags are comma-separated for easy filtering later.
-
-* **Searching and Filtering:**
-  Use the search bar and tag field to quickly narrow down to the entry you need.
-
-* **Recent and Favorite Entries:**
-  Mark important entries as Favorites, and view recently accessed items for faster workflow.
-
-* **Exporting/Importing:**
-  Use the buttons at the top to backup your entries or migrate them to another system.
-
-### Gallery
-
-* **Importing Images:**
-
-  * **Drag and Drop:** Drag any supported image file into the Gallery window.
-  * **Import Image Button:** Use the button to select files from disk.
-  * Images are copied into your `/images` folder for use everywhere in the hub.
-
-* **Organizing:**
-
-  * Rename images, add tags, favorite/unfavorite, or delete as needed.
-  * Filter images by tag, favorite status, or filename.
-
-* **Connecting to Library:**
-
-  * When editing a Library entry, use the Gallery picker to choose the right image for documentation or visual reference.
-  * Images from both `/images` and `/results` folders are accessible.
-
-### Fixers
-
-  This Folder contains two scripts, that have assisted me in updating the code in the past. It is not needed, but could help someone in creating a script to fix their code.
-
-### Toolkits
-
-  * 5 Toolkits: Chemistry, Physics, Biology, Geology and Maths.
-  * These Toolkits contain multiple tools, mainly calculator, but also plotters, visualisers and explainers.
-
-## Tools
-**General & Math:**
-* Simple Calculator
-* Function Plotter
-* Quadratic Solver
-* Triangle Solver
-
-**Physics:**
-* Unit Converter
-* Terminal Velocity Calculator
-* Projectile Motion Tool
-* Ohm's Law Calculator
-* Lens & Mirror Equation
-* Speed Calculator
-* Drag Force Calculator
-* Acceleration Calculator
-* Force Calculator
-* Kinetic Energy Calculator
-
-**Chemistry:**
-* Mass Calculator
-* Shell Visualizer
-* Property Grapher
-* Isotope Tool
-* Phase Predictor
-* Comparator
-* Unit Multiplier
-* Element Viewer
-* Molecule Assembler
-
-**Biology:**
-* DNA Transcription Tool
-* Codon Lookup Tool
-* Osmosis Tool
-* Molecular Weight Calculator
-* pH Calculator
-* Population Growth Calculator
-* Reverse Complement Tool
-* DNA to Protein Tool
-* GC Content Tool
-* Sequence File Parser
-* Pairwise Alignment Tool
-
-**Geology:**
-* Mineral Id Tool
-* Radioactive Dating Tool
-* Plate Boundary Tool
-* Mineral Explorer
-* Plate Velocity Calculator
-* Geology Model Tool (WIP):
-  * Currently work-in-progress due to instability in the GemPy API.
-  * Will be re-added once a robust workflow for custom models is confirmed.
-
-**Note on the Geology Model Tool (WIP):**
-The file for the Geology Model Tool (geo_model_WIP.py) is included for transparency, but the tool is not currently functional due to unresolved incompatibilities with the latest GemPy API. The relevant functions to open this tool are commented out in hub.py.
-You can safely delete geo_model_WIP.py from your project with no effect on the rest of the Science Hub.
-If anyone is interested in repairing or updating this tool to work with a modern GemPy version, contributions or pull requests are welcome.
-### Results
-
-* Tools that generate plots or images (like chemistry visualizers or data charts) store their outputs in `/results`.
-* These images automatically appear in the Gallery and can be attached to Science Library entries.
-
-### Batch Operations
-
-* **Import/Export:**
-  Backup or transfer your whole Library as a JSON file.
-  This is useful for sharing with collaborators or just keeping your data safe.
+* **Chemistry Toolkit:** Molar mass calculator, shell visualizer, isotope tools, and more.
+* **Physics Toolkit:** Unit converter, kinematics calculators, energy tools.
+* **Biology Toolkit:** DNA/RNA tools, molecular weight, pH calculator.
+* **Geology Toolkit:** Mineral explorer, plate tectonics calculators.
+* **Math Toolkit:** Function plotter, equation solvers.
 
 ---
 
 ## Extending The Science Hub
 
-Want to add a new tool?
+* Add new Python tools/scripts.
+* Register in `hub.py`.
+* Outputs and images integrate with Gallery and Results folders.
 
-1. Create a new Python script for your tool (e.g., `myphysics_tool.py`).
-2. Register it in the tool launcher or utility panel in `hub.py`.
-3. Each tool can use the window management and theme system provided.
-4. Store outputs to the results or images folder for seamless Gallery integration.
-
-Feel free to share the new tool!
 ---
 
 ## Screenshots
 
-* ![Main window](screenshots/main_window.png)
-* ![Gallery](screenshots/screenshot_gallery.png)
-* ![Science Library](screenshots/screenshot_library.png)
-
----
-
-## Contributing
-
-Pull requests are welcome! If you have a feature idea, bug report, or new tool to contribute:
-
-1. Fork this repository
-2. Create a new branch (`git checkout -b feature-YourFeature`)
-3. Commit your changes
-4. Push to your branch
-5. Open a pull request
-
-**Feel free to file issues or suggestions if you’re not ready to code.**
+![Main window](screenshots/main_window.png)
+![Gallery](screenshots/screenshot_gallery.png)
+![Science Library](screenshots/screenshot_library.png)
 
 ---
 
 ## License
 
-This project is licensed under the MIT License.
-See [LICENSE](LICENSE) for details.
+MIT License. See [LICENSE](LICENSE) for details.
 
 ---
 
-## Support & Feedback
+## Support
 
-If you run into bugs, want to request a feature, or need help using The Science Hub, open an issue on [GitHub](https://github.com/PabloOeffnerFerreira/The-Science-Hub/issues).
+Open issues or suggestions on [GitHub](https://github.com/PabloOeffnerFerreira/The-Science-Hub/issues).
 
 ---
 
-*Enjoy exploring, calculating, and organizing with The Science Hub!*
+*Enjoy building, learning, and exploring—with or without AI. Science Hub adapts to your curiosity.*

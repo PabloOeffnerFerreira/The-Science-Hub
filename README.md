@@ -53,6 +53,7 @@ pip install Pillow tkinterdnd2
 # (and optionally)
 pip install rdkit
 ````
+(Tip: Use Anaconda and their "conda install -c conda.forge (Dependency)" install, it is better)
 
 ### Installation
 

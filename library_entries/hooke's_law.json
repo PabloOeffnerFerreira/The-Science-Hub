@@ -1,0 +1,12 @@
+{
+  "title": "Hooke's Law",
+  "formula": "F = -kx",
+  "tags": [
+    "physics",
+    "springs",
+    "mechanics"
+  ],
+  "favorite": false,
+  "description": "Hooke\u2019s Law relates the force needed to extend or compress a spring to the distance it is stretched or compressed.",
+  "image": ""
+}

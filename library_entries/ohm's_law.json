@@ -1,0 +1,12 @@
+{
+  "title": "Ohm's Law",
+  "formula": "V = IR",
+  "tags": [
+    "physics",
+    "electricity",
+    "circuits"
+  ],
+  "description": "Ohm's Law relates voltage, current, and resistance in an electrical circuit. Increasing resistance decreases current if voltage stays constant.",
+  "favorite": false,
+  "image": ""
+}

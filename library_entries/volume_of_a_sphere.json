@@ -1,0 +1,12 @@
+{
+  "title": "Volume of a Sphere",
+  "formula": "V = \u2074\u2044\u2083\u03c0r\u00b3",
+  "tags": [
+    "math",
+    "geometry",
+    "volume"
+  ],
+  "description": "This formula calculates the volume of a sphere using its radius.",
+  "favorite": false,
+  "image": ""
+}

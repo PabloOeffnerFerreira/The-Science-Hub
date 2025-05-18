@@ -1,0 +1,141 @@
+from utils import register_window  # [AUTO-REFRACTORED]
+import tkinter as tk
+from tkinter import ttk
+from utils import log_event
+
+CODON_TABLE = {
+    'UUU': 'Phe', 'UUC': 'Phe', 'UUA': 'Leu', 'UUG': 'Leu',
+    'CUU': 'Leu', 'CUC': 'Leu', 'CUA': 'Leu', 'CUG': 'Leu',
+    'AUU': 'Ile', 'AUC': 'Ile', 'AUA': 'Ile', 'AUG': 'Met',
+    'GUU': 'Val', 'GUC': 'Val', 'GUA': 'Val', 'GUG': 'Val',
+    'UCU': 'Ser', 'UCC': 'Ser', 'UCA': 'Ser', 'UCG': 'Ser',
+    'CCU': 'Pro', 'CCC': 'Pro', 'CCA': 'Pro', 'CCG': 'Pro',
+    'ACU': 'Thr', 'ACC': 'Thr', 'ACA': 'Thr', 'ACG': 'Thr',
+    'GCU': 'Ala', 'GCC': 'Ala', 'GCA': 'Ala', 'GCG': 'Ala',
+    'UAU': 'Tyr', 'UAC': 'Tyr', 'UAA': 'STOP', 'UAG': 'STOP',
+    'CAU': 'His', 'CAC': 'His', 'CAA': 'Gln', 'CAG': 'Gln',
+    'AAU': 'Asn', 'AAC': 'Asn', 'AAA': 'Lys', 'AAG': 'Lys',
+    'GAU': 'Asp', 'GAC': 'Asp', 'GAA': 'Glu', 'GAG': 'Glu',
+    'UGU': 'Cys', 'UGC': 'Cys', 'UGA': 'STOP', 'UGG': 'Trp',
+    'CGU': 'Arg', 'CGC': 'Arg', 'CGA': 'Arg', 'CGG': 'Arg',
+    'AGU': 'Ser', 'AGC': 'Ser', 'AGA': 'Arg', 'AGG': 'Arg',
+    'GGU': 'Gly', 'GGC': 'Gly', 'GGA': 'Gly', 'GGG': 'Gly'
+}
+
+def open_transcription_tool():
+    def create_window():
+        window = tk.Toplevel()
+        window.title("DNA Transcription & Translation")
+    
+        tk.Label(window, text="Enter DNA sequence:").pack(pady=5)
+        entry = tk.Entry(window, width=60)
+        entry.pack(pady=5)
+    
+        output = tk.Text(window, width=70, height=10)
+        output.pack(pady=5)
+    
+        def transcribe():
+            dna = entry.get().upper().replace("T", "U")
+            protein = []
+            for i in range(0, len(dna) - 2, 3):
+                codon = dna[i:i + 3]
+                amino = CODON_TABLE.get(codon, '?')
+                protein.append(amino)
+            mrna_line = f"mRNA: {dna}"
+            protein_line = f"Protein: {'-'.join(protein)}"
+            output.delete('1.0', tk.END)
+            output.insert(tk.END, mrna_line + "\n")
+            output.insert(tk.END, protein_line)
+            log_event("DNA Transcription", dna, protein_line)
+    
+        tk.Button(window, text="Translate", command=transcribe).pack(pady=5)
+    
+        return win
+    register_window("Transcription Tool", create_window)
+def open_codon_lookup_tool():
+    def create_window():
+        window = tk.Toplevel()
+        window.title("Codon Lookup")
+    
+        tk.Label(window, text="Enter RNA Codon (e.g. AUG):").pack(pady=5)
+        entry = tk.Entry(window, width=10)
+        entry.pack(pady=5)
+    
+        result = tk.Label(window, text="")
+        result.pack(pady=5)
+    
+        def lookup():
+            codon = entry.get().upper()
+            amino = CODON_TABLE.get(codon, 'Invalid')
+            result.config(text=f"Amino Acid: {amino}")
+            log_event("Codon Lookup", codon, amino)
+    
+        tk.Button(window, text="Lookup", command=lookup).pack(pady=5)
+    
+        return win
+    register_window("Codon Lookup Tool", create_window)
+def open_osmosis_tool():
+    def create_window():
+        window = tk.Toplevel()
+        window.title("Osmosis & Tonicity")
+    
+        tk.Label(window, text="Enter internal concentration (mM):").pack(pady=2)
+        int_entry = tk.Entry(window)
+        int_entry.pack(pady=2)
+    
+        tk.Label(window, text="Enter external concentration (mM):").pack(pady=2)
+        ext_entry = tk.Entry(window)
+        ext_entry.pack(pady=2)
+    
+        result = tk.Label(window, text="")
+        result.pack(pady=5)
+    
+        def assess():
+            try:
+                inside = float(int_entry.get())
+                outside = float(ext_entry.get())
+                if inside > outside:
+                    status = "Hypertonic inside: Water leaves the cell"
+                elif inside < outside:
+                    status = "Hypotonic inside: Water enters the cell"
+                else:
+                    status = "Isotonic: No net water movement"
+                result.config(text=status)
+                log_event("Osmosis Tool", f"in={inside} mM, out={outside} mM", status)
+            except ValueError:
+                status = "Invalid input."
+                result.config(text=status)
+                log_event("Osmosis Tool", f"in={int_entry.get()}, out={ext_entry.get()}", status)
+    
+        tk.Button(window, text="Assess", command=assess).pack(pady=5)
+    
+        return win
+    register_window("Osmosis Tool", create_window)
+def open_bio_tools_hub():
+    def create_window():
+        bio = tk.Toplevel()
+        bio.title("Biology Tools")
+    
+        tk.Label(bio, text="Choose a Biology Tool:").pack(pady=10)
+        choices = [
+            "DNA Transcription & Translation",
+            "Codon Lookup",
+            "Osmosis & Tonicity"
+        ]
+        var = tk.StringVar()
+        box = ttk.Combobox(bio, textvariable=var, values=choices, state="readonly")
+        box.pack(pady=5)
+        box.set("Select a Tool")
+    
+        def launch():
+            selection = var.get()
+            if selection == "DNA Transcription & Translation":
+                open_transcription_tool()
+            elif selection == "Codon Lookup":
+                open_codon_lookup_tool()
+            elif selection == "Osmosis & Tonicity":
+                open_osmosis_tool()
+    
+        tk.Button(bio, text="Open", command=launch).pack(pady=10)
+        return win
+    register_window("Bio Tools Hub", create_window)

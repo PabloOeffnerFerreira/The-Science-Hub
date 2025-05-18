@@ -1,0 +1,487 @@
+import tkinter as tk
+from tkinter import ttk
+import os, json, math
+import matplotlib.pyplot as plt
+import re
+import datetime
+from utils import register_window
+
+def log_event(tool_name, entry, result):
+    with open("calchub_log.txt", "a", encoding="utf-8") as f:
+        f.write(f"[{datetime.datetime.now()}] {tool_name} | Input: {entry} | Output: {result}\n")
+
+def load_element_data():
+    path = os.path.join(os.path.dirname(__file__), "PeriodicTableJSON.json")
+    with open(path, "r", encoding="utf-8") as f:
+        return {el["symbol"]: el for el in json.load(f)["elements"]}
+
+def parse_formula(formula):
+    """
+    Parses a chemical formula string and returns a dict of element counts.
+    Supports nested parentheses like Fe2(SO4)3 → {'Fe':2, 'S':3, 'O':12}
+    """
+    def multiply_counts(counts, factor):
+        return {el: val * factor for el, val in counts.items()}
+
+    def parse_chunk(s, i=0):
+        elements = {}
+        while i < len(s):
+            if s[i] == '(':
+                sub_counts, i = parse_chunk(s, i + 1)
+                match = re.match(r'\d+', s[i:])
+                mult = int(match.group()) if match else 1
+                i += len(match.group()) if match else 0
+                for el, count in multiply_counts(sub_counts, mult).items():
+                    elements[el] = elements.get(el, 0) + count
+            elif s[i] == ')':
+                return elements, i + 1
+            else:
+                match = re.match(r'([A-Z][a-z]?)(\d*)', s[i:])
+                if not match:
+                    raise ValueError(f"Invalid element symbol at: {s[i:]}")
+                symbol = match.group(1)
+                count = int(match.group(2)) if match.group(2) else 1
+                elements[symbol] = elements.get(symbol, 0) + count
+                i += len(match.group(0))
+        return elements, i
+
+    return parse_chunk(formula)[0]
+
+def open_mass_calculator():
+    data = load_element_data()
+    window = tk.Toplevel()
+    window.title("Molecular Weight Calculator")
+
+    tk.Label(window, text="Enter Formula:").pack(pady=5)
+    entry = tk.Entry(window, width=30)
+    entry.pack(pady=5)
+
+    result_box = tk.Text(window, width=50, height=10)
+    result_box.pack(pady=5)
+
+    def calculate():
+        formula = entry.get().strip()
+        try:
+            counts = parse_formula(formula)
+            total = 0
+            result_box.delete('1.0', tk.END)
+            log_lines = []
+
+            for el, count in counts.items():
+                if el in data and "AtomicMass" in data[el]:
+                    mass = data[el]["AtomicMass"]
+                elif el in data and "atomic_mass" in data[el]:
+                    mass = data[el]["atomic_mass"]
+                else:
+                    result_box.insert(tk.END, f"{el}: unknown\\n")
+                    log_lines.append(f"{el}: unknown")
+                    continue
+                subtotal = count * mass
+                line = f"{el} × {count} = {subtotal:.3f} g/mol"
+                result_box.insert(tk.END, line + "\n")
+                log_lines.append(line)
+                total += subtotal
+
+            total_line = f"\nTotal = {total:.3f} g/mol"
+            result_box.insert(tk.END, total_line)
+            log_lines.append(total_line.strip())
+            log_event("Mass Calculator", formula, total_line.strip())
+
+        except Exception as e:
+            error_msg = f"Error: {e}"
+            result_box.delete('1.0', tk.END)
+            result_box.insert(tk.END, error_msg)
+            log_event("Mass Calculator", formula, error_msg)
+
+    tk.Button(window, text="Calculate", command=calculate).pack(pady=5)
+
+# 1. Isotopic Notation Tool
+def open_isotope_tool():
+    data = load_element_data()
+    win = tk.Toplevel()
+    win.title("Isotopic Notation")
+
+    tk.Label(win, text="Element Symbol:").pack()
+    symbol_entry = tk.Entry(win)
+    symbol_entry.pack()
+
+    tk.Label(win, text="Mass Number:").pack()
+    mass_entry = tk.Entry(win)
+    mass_entry.pack()
+
+    result = tk.Label(win, text="")
+    result.pack(pady=10)
+
+    def calculate():
+        sym = symbol_entry.get().strip()
+        try:
+            mass = int(mass_entry.get())
+            Z = data[sym]["AtomicNumber"] if sym in data else data[sym]["number"]
+            neutrons = mass - Z
+            output = f"Notation: {mass}{sym}\nProtons: {Z}\nNeutrons: {neutrons}"
+            result.config(text=output)
+            log_event("Isotopic Notation", f"{sym}, mass={mass}", output)
+        except Exception as e:
+            error_msg = "Invalid input or element not found."
+            result.config(text=error_msg)
+            log_event("Isotopic Notation", f"{sym}, mass={mass_entry.get()}", error_msg)
+
+    tk.Button(win, text="Calculate", command=calculate).pack()
+
+# 2. Electron Shell Visualizer
+def open_shell_visualizer():
+    def create_window():
+        data = load_element_data()
+        win = tk.Toplevel()
+        win.title("Shell Visualizer")
+
+        tk.Label(win, text="Element Symbol:").pack()
+        entry = tk.Entry(win)
+        entry.pack()
+
+        canvas = tk.Canvas(win, width=300, height=300, bg="white")
+        canvas.pack()
+
+        def draw():
+            canvas.delete("all")
+            sym = entry.get().strip()
+            if sym not in data or "shells" not in data[sym]:
+                return
+            shells = data[sym]["shells"]
+            cx, cy = 150, 150
+            for i, count in enumerate(shells):
+                r = 30 + i * 30
+                canvas.create_oval(cx - r, cy - r, cx + r, cy + r)
+                for j in range(count):
+                    angle = 2 * math.pi * j / count
+                    ex = cx + r * math.cos(angle)
+                    ey = cy + r * math.sin(angle)
+                    canvas.create_oval(ex - 3, ey - 3, ex + 3, ey + 3, fill="black")
+            canvas.create_text(cx, cy, text=sym, font=("Arial", 12, "bold"))
+
+            log_event("Shell Visualizer", sym, f"Shells: {shells}")
+
+        tk.Button(win, text="Draw", command=draw).pack()
+        return win
+
+    register_window("Shell Visualizer", create_window)
+
+# 3. Phase at Room Temp Tool
+def open_phase_predictor():
+    data = load_element_data()
+    win = tk.Toplevel()
+    win.title("Phase at 25°C")
+
+    tk.Label(win, text="Element Symbol:").pack()
+    entry = tk.Entry(win)
+    entry.pack()
+    result = tk.Label(win, text="")
+    result.pack(pady=10)
+
+    def predict():
+        sym = entry.get().strip()
+        try:
+            el = data[sym]
+            melt = el.get("MeltingPoint") or el.get("melt")
+            boil = el.get("BoilingPoint") or el.get("boil")
+            if melt is None or boil is None:
+                msg = "No data available."
+                result.config(text=msg)
+                log_event("Phase Predictor", sym, msg)
+                return
+            if 25 < melt:
+                phase = "solid"
+            elif melt <= 25 < boil:
+                phase = "liquid"
+            else:
+                phase = "gas"
+            msg = f"Predicted phase: {phase}"
+            result.config(text=msg)
+            log_event("Phase Predictor", sym, msg)
+        except Exception as e:
+            msg = "Invalid input or element not found."
+            result.config(text=msg)
+            log_event("Phase Predictor", sym, msg)
+
+    tk.Button(win, text="Check Phase", command=predict).pack()
+
+# 4. Element Comparator
+def open_comparator():
+    data = load_element_data()
+    win = tk.Toplevel()
+    win.title("Compare Elements")
+
+    tk.Label(win, text="Element A:").grid(row=0, column=0)
+    a_var = tk.StringVar()
+    a_drop = ttk.Combobox(win, textvariable=a_var, values=sorted(data.keys()), state='readonly')
+    a_drop.grid(row=0, column=1)
+
+    tk.Label(win, text="Element B:").grid(row=1, column=0)
+    b_var = tk.StringVar()
+    b_drop = ttk.Combobox(win, textvariable=b_var, values=sorted(data.keys()), state='readonly')
+    b_drop.grid(row=1, column=1)
+
+    output = tk.Text(win, width=50, height=12)
+    output.grid(row=2, column=0, columnspan=2, pady=10)
+
+    def compare():
+        a, b = a_var.get(), b_var.get()
+        if a not in data or b not in data:
+            msg = "Invalid element selection."
+            output.delete('1.0', tk.END)
+            output.insert(tk.END, msg)
+            log_event("Element Comparator", f"{a} vs {b}", msg)
+            return
+        keys = ["AtomicNumber", "AtomicMass", "Electronegativity", "BoilingPoint", "MeltingPoint", "Type"]
+        output.delete('1.0', tk.END)
+        log_lines = []
+        for key in keys:
+            a_val = data[a].get(key)
+            b_val = data[b].get(key)
+            line = f"{key}: {a} = {a_val}, {b} = {b_val}"
+            output.insert(tk.END, line + "\n")
+            log_lines.append(line)
+        summary = f"Compared {a} and {b}"
+        log_event("Element Comparator", f"{a} vs {b}", summary + " | " + " | ".join(log_lines))
+
+    tk.Button(win, text="Compare", command=compare).grid(row=3, column=0, columnspan=2)
+    
+# 5. Mole-Mass-Volume Tool
+def open_unit_multiplier():
+    win = tk.Toplevel()
+    win.title("Mole-Mass Calculator")
+
+    tk.Label(win, text="Moles:").pack()
+    mol_entry = tk.Entry(win)
+    mol_entry.pack()
+
+    tk.Label(win, text="Molar Mass (g/mol):").pack()
+    mass_entry = tk.Entry(win)
+    mass_entry.pack()
+
+    result = tk.Label(win, text="")
+    result.pack(pady=10)
+
+    def calc():
+        try:
+            mol = float(mol_entry.get())
+            mm = float(mass_entry.get())
+            mass = mol * mm
+            volume = mol * 22.4
+            output = f"Mass: {mass:.2f} g\nVolume (STP): {volume:.2f} L"
+            result.config(text=output)
+            log_event("Mole-Mass Calculator", f"mol={mol}, mm={mm}", output.replace('\n', ' | '))
+        except Exception as e:
+            error_msg = "Invalid input."
+            result.config(text=error_msg)
+            log_event("Mole-Mass Calculator", f"mol={mol_entry.get()}, mm={mass_entry.get()}", error_msg)
+
+    tk.Button(win, text="Calculate", command=calc).pack()
+
+#6. Element Reactor
+def react_elements(symbol1, symbol2, data):
+    if symbol1 not in data or symbol2 not in data:
+        return "One or both elements not found."
+
+    el1 = data[symbol1]
+    el2 = data[symbol2]
+
+    ox1 = el1.get("oxidation_states", [])
+    ox2 = el2.get("oxidation_states", [])
+
+    if not ox1 or not ox2:
+        return "No oxidation state info available."
+
+    # Find opposite-sign oxidation states (ionic bond behavior)
+    for val1 in ox1:
+        for val2 in ox2:
+            if val1 * val2 < 0:
+                cation, anion = (symbol1, symbol2) if val1 > 0 else (symbol2, symbol1)
+                c_charge = abs(val1 if val1 > 0 else val2)
+                a_charge = abs(val2 if val2 < 0 else val1)
+
+                # Balance the charges
+                n1 = a_charge
+                n2 = c_charge
+
+                part1 = f"{cation}{n1 if n1 > 1 else ''}"
+                part2 = f"{anion}{n2 if n2 > 1 else ''}"
+                formula = f"{part1}{part2}"
+
+                info = (
+                    f"Compound formed: {formula}\n"
+                    f"Ion charges: {cation}⁺{c_charge}, {anion}⁻{a_charge}\n"
+                    f"IUPAC-style name: {el1['name']} {el2['name'].lower()}\n"
+                    f"Bond type: Ionic (based on oxidation states)"
+                )
+                return info
+
+    return "No stable ionic bond possible."
+
+def open_element_reactor():
+    data = load_element_data()
+    if not data:
+        return
+
+    tool = tk.Toplevel()
+    tool.title("Element Reactor")
+
+    tk.Label(tool, text="Select Element A:").grid(row=0, column=0, padx=5, pady=5)
+    element1_var = tk.StringVar()
+    dropdown1 = ttk.Combobox(tool, textvariable=element1_var, values=sorted(data.keys()), state='readonly')
+    dropdown1.grid(row=0, column=1, padx=5, pady=5)
+
+    tk.Label(tool, text="Select Element B:").grid(row=1, column=0, padx=5, pady=5)
+    element2_var = tk.StringVar()
+    dropdown2 = ttk.Combobox(tool, textvariable=element2_var, values=sorted(data.keys()), state='readonly')
+    dropdown2.grid(row=1, column=1, padx=5, pady=5)
+
+    result_label = tk.Label(tool, text="", font=("Arial", 10), wraplength=400, justify="left")
+    result_label.grid(row=3, column=0, columnspan=2, pady=10)
+
+    def run_reaction():
+        symbol1 = element1_var.get()
+        symbol2 = element2_var.get()
+        result = react_elements(symbol1, symbol2, data)
+        result_label.config(text=result)
+        log_event("Element Reactor", f"{symbol1} + {symbol2}", result.replace("\n", " | "))
+
+    tk.Button(tool, text="React", command=run_reaction).grid(row=2, column=0, columnspan=2, pady=10)
+
+
+# 7. Element Viewer
+def open_element_viewer():
+    data = load_element_data()
+    if not data:
+        return
+
+    tool = tk.Toplevel()
+    tool.title("Element Viewer")
+
+    tk.Label(tool, text="Select an Element:").grid(row=0, column=0, padx=5, pady=5)
+    element_var = tk.StringVar()
+    dropdown = ttk.Combobox(tool, textvariable=element_var, values=sorted(data.keys()), state='readonly')
+    dropdown.grid(row=0, column=1, padx=5, pady=5)
+
+    info_text = tk.Text(tool, width=120, height=45, wrap='word')
+    info_text.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+
+    def show_info(*args):
+        symbol = element_var.get()
+        el = data.get(symbol)
+        if el:
+            info_text.delete('1.0', tk.END)
+            lines = []
+            for key, value in el.items():
+                line = f"{key}: {value}"
+                info_text.insert(tk.END, line + "\n")
+                lines.append(line)
+            log_event("Element Viewer", symbol, f"Viewed properties ({len(lines)} lines)")
+
+    dropdown.bind('<<ComboboxSelected>>', show_info)
+
+#8. Graphs
+def open_property_grapher():
+    import matplotlib.pyplot as plt
+    import os
+    import datetime
+    data = load_element_data()
+    root = tk.Toplevel()
+    root.title("Element Property Grapher")
+
+    tk.Label(root, text="Select Property to Graph:").pack(pady=5)
+    prop_var = tk.StringVar()
+    dropdown = ttk.Combobox(root, textvariable=prop_var, state="readonly")
+    dropdown["values"] = [
+        "AtomicMass", "Electronegativity", "BoilingPoint", "MeltingPoint",
+        "Density", "FirstIonization", "AtomicRadius", "NumberofValence"
+    ]
+    dropdown.pack(pady=5)
+    dropdown.set("Electronegativity")
+
+    def plot():
+        prop = prop_var.get()
+        symbols, xs, ys = [], [], []
+        for el in data.values():
+            x = el.get("AtomicNumber") or el.get("number")
+            y = el.get(prop)
+            if x is not None and y is not None:
+                xs.append(x)
+                ys.append(y)
+                symbols.append(el["symbol"])
+
+        if not xs or not ys:
+            log_event("Property Grapher", prop, "No data points available")
+            return
+
+        points = sorted(zip(xs, ys, symbols), key=lambda p: p[0])
+        xs_sorted, ys_sorted, symbols_sorted = zip(*points)
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        ax.plot(xs_sorted, ys_sorted, linestyle='-', marker='o')
+        for i, symbol in enumerate(symbols_sorted):
+            ax.text(xs_sorted[i], ys_sorted[i], symbol, fontsize=8, ha='center')
+        ax.set_xlabel("Atomic Number")
+        ax.set_ylabel(prop)
+        ax.set_title(f"{prop} vs Atomic Number")
+        ax.grid(True)
+        fig.tight_layout()
+
+        # Save image
+        if not os.path.exists("results"):
+            os.makedirs("results")
+        filename = f"results/{prop}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+        fig.savefig(filename)
+
+        # Show plot
+        plt.show()
+
+        summary = f"Plotted {len(xs_sorted)} elements ({symbols_sorted[0]} to {symbols_sorted[-1]})"
+        log_event("Property Grapher", prop, f"{summary} [IMG:{filename}]")
+
+    tk.Button(root, text="Plot", command=plot).pack(pady=10)
+# Open Tools
+def open_chemistry_tools_hub():
+    win = tk.Toplevel()
+    win.title("Chemistry Tools")
+
+    tk.Label(win, text="Choose a Chemistry Tool:").pack(pady=10)
+    tools = [
+        "Element Viewer",
+        "Mass Calculator",
+        "Property Grapher",
+        "Element Reactor",
+        "Isotopic Notation",
+        "Shell Visualizer",
+        "Phase at 25°C",
+        "Element Comparator",
+        "Mole-Mass-Volume Calculator"
+    ]
+
+    var = tk.StringVar()
+    box = ttk.Combobox(win, textvariable=var, values=tools, state="readonly")
+    box.pack(pady=5)
+    box.set("Select Tool")
+
+    def launch():
+        sel = var.get()
+        if sel == "Element Viewer":
+            open_element_viewer()
+        elif sel == "Mass Calculator":
+            open_mass_calculator()
+        elif sel == "Property Grapher":
+            open_property_grapher()
+        elif sel == "Element Reactor":
+            open_element_reactor()
+        elif sel == "Isotopic Notation":
+            open_isotope_tool()
+        elif sel == "Shell Visualizer":
+            open_shell_visualizer()
+        elif sel == "Phase at 25°C":
+            open_phase_predictor()
+        elif sel == "Element Comparator":
+            open_comparator()
+        elif sel == "Mole-Mass-Volume Calculator":
+            open_unit_multiplier()
+
+    tk.Button(win, text="Open", command=launch).pack(pady=10)

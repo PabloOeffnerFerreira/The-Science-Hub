@@ -1,0 +1,12 @@
+{
+  "title": "Ideal Gas Law",
+  "formula": "PV = nRT",
+  "tags": [
+    "chemistry",
+    "gas laws",
+    "thermodynamics"
+  ],
+  "description": "The Ideal Gas Law relates pressure, volume, amount, and temperature for an ideal gas. It combines Boyle\u2019s, Charles\u2019s, and Avogadro\u2019s laws.",
+  "favorite": false,
+  "image": ""
+}

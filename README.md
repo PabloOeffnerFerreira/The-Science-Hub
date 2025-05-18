@@ -2,7 +2,7 @@
 
 A versatile, cross-discipline tool for learning, experimenting, and doing science with Python.
 
-![MainImage](images/main.png)    
+![MainImage](images/Main.png)    
 
 ---
 
@@ -44,7 +44,7 @@ Whether you want to calculate, visualize, or simply manage your results and form
 - [Pillow](https://pypi.org/project/Pillow/)
 - [tkinterDnD2](https://pypi.org/project/tkinterDnD2/)
 - [rdkit](https://www.rdkit.org/) (optional, for chemistry tools)
-- See `requirements.txt` for a complete list if present
+- See `requirements.txt`
 
 Install dependencies with:
 
@@ -53,6 +53,7 @@ pip install Pillow tkinterdnd2
 # (and optionally)
 pip install rdkit
 ````
+(Tip: Use Anaconda and their "conda install -c conda.forge (Dependency)" install, it is better)
 
 ### Installation
 
@@ -127,6 +128,64 @@ This launches the main window, from which all tools and features are accessible.
 
   * When editing a Library entry, use the Gallery picker to choose the right image for documentation or visual reference.
   * Images from both `/images` and `/results` folders are accessible.
+
+### Fixers
+
+  This Folder contains two scripts, that have assisted me in updating the code in the past. It is not needed, but could help someone in creating a script to fix their code.
+
+### Toolkits
+
+  * 5 Toolkits: Chemistry, Physics, Biology, Geology and Maths.
+  * These Toolkits contain multiple tools, mainly calculator, but also plotters, visualisers and explainers.
+
+### Tools
+
+**General & Math:**  
+Simple Calculator  
+Function Plotter  
+Quadratic Solver  
+Triangle Solver  
+
+**Physics:**  
+Unit Converter  
+Terminal Velocity Calculator  
+Projectile Motion Tool  
+Ohm's Law Calculator  
+Lens & Mirror Equation  
+Speed Calculator  
+Drag Force Calculator  
+Acceleration Calculator  
+Force Calculator  
+Kinetic Energy Calculator  
+
+**Chemistry:**  
+Mass Calculator  
+Shell Visualizer  
+Property Grapher  
+Isotope Tool  
+Phase Predictor  
+Comparator  
+Unit Multiplier  
+Element Viewer  
+Molecule Assembler  
+
+**Biology:**  
+DNA Transcription Tool  
+Codon Lookup Tool  
+Osmosis Tool  
+Molecular Weight Calculator  
+pH Calculator  
+Population Growth Calculator  
+
+**Geology:**  
+Mineral Id Tool  
+Radioactive Dating Tool  
+Plate Boundary Tool  
+Mineral Explorer  
+Plate Velocity Calculator
+Geology Model Tool:
+*  Currently work-in-progress due to instability in the GemPy API.
+*  Will be re-added once a robust workflow for custom models is confirmed.
 
 ### Results
 

@@ -182,6 +182,9 @@ Radioactive Dating Tool
 Plate Boundary Tool  
 Mineral Explorer  
 Plate Velocity Calculator
+Geology Model Tool:
+*  Currently work-in-progress due to instability in the GemPy API.
+*  Will be re-added once a robust workflow for custom models is confirmed.
 
 ### Results
 

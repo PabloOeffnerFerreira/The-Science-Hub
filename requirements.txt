@@ -1,0 +1,23 @@
+# Image handling
+Pillow
+
+# Drag and drop (Gallery)
+tkinterdnd2
+
+# Chemistry tools
+rdkit
+
+# Math and plotting
+numpy
+matplotlib
+sympy
+
+# Data handling
+pandas
+
+# PDF export (Library, optional)
+reportlab
+
+#Biology tools
+
+biopython

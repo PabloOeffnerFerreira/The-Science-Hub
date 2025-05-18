@@ -44,7 +44,7 @@ Whether you want to calculate, visualize, or simply manage your results and form
 - [Pillow](https://pypi.org/project/Pillow/)
 - [tkinterDnD2](https://pypi.org/project/tkinterDnD2/)
 - [rdkit](https://www.rdkit.org/) (optional, for chemistry tools)
-- See `requirements.txt` for a complete list if present
+- See `requirements.txt`
 
 Install dependencies with:
 

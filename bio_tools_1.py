@@ -3,6 +3,14 @@ import tkinter as tk
 from tkinter import ttk
 from utils import log_event
 
+from bio_tools_2 import (
+    open_reverse_complement_tool,
+    open_translate_dna_tool,
+    open_gc_content_tool,
+    open_seq_file_parser_tool,
+    open_pairwise_align_tool,
+)
+
 CODON_TABLE = {
     'UUU': 'Phe', 'UUC': 'Phe', 'UUA': 'Leu', 'UUG': 'Leu',
     'CUU': 'Leu', 'CUC': 'Leu', 'CUA': 'Leu', 'CUG': 'Leu',
@@ -275,7 +283,13 @@ def open_bio_tools_hub(preload=None):
             "Molecular Weight Calculator",
             "pH Calculator",
             "Population Growth Calculator",
+            "Reverse Complement Tool",
+            "DNA to Protein Tool",
+            "GC Content Tool",
+            "Sequence File Parser",
+            "Pairwise Alignment Tool"
         ]
+
         var = tk.StringVar()
         box = ttk.Combobox(bio, textvariable=var, values=choices, state="readonly")
         box.pack(pady=5)
@@ -295,6 +309,17 @@ def open_bio_tools_hub(preload=None):
                 open_ph_calculator()
             elif selection == "Population Growth Calculator":
                 open_population_growth_calculator()
+            elif selection == "Reverse Complement Tool":
+                open_reverse_complement_tool()
+            elif selection == "DNA to Protein Tool":
+                open_translate_dna_tool()
+            elif selection == "GC Content Tool":
+                open_gc_content_tool()
+            elif selection == "Sequence File Parser":
+                open_seq_file_parser_tool()
+            elif selection == "Pairwise Alignment Tool":
+                open_pairwise_align_tool()
+
 
         tk.Button(bio, text="Open", command=launch).pack(pady=10)
         return bio

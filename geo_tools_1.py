@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 import json
 from utils import log_event
+#from geo_model import open_geo_model_tool <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
 
 # Load mineral database
 minerals_df = pd.read_csv("Minerals_Database.csv")
@@ -292,7 +293,8 @@ def open_geology_tools_hub():
                 "Radioactive Dating",
                 "Plate Boundary Types",
                 "Mineral Explorer",
-                "Plate Velocity Calculator"
+                "Plate Velocity Calculator",
+                #"Geology Model Tool" <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
             ]
             var = tk.StringVar()
             dropdown = ttk.Combobox(geo, textvariable=var, values=options, state="readonly")
@@ -311,6 +313,8 @@ def open_geology_tools_hub():
                     open_mineral_explorer()
                 elif sel == "Plate Velocity Calculator":
                     open_plate_velocity_calculator()
+                #elif sel == "Geology Model Tool": <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
+                #    open_geo_model_tool(geo)      <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
         
         
             tk.Button(geo, text="Open", command=open_selected).pack(pady=10)

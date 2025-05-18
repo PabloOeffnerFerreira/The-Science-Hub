@@ -56,13 +56,21 @@ from bio_tools_1 import (
     open_population_growth_calculator,
 )
 
+from bio_tools_2 import (
+    open_reverse_complement_tool,
+    open_translate_dna_tool,
+    open_gc_content_tool,
+    open_seq_file_parser_tool,
+    open_pairwise_align_tool,
+)
 
 from geo_tools_1 import (
     open_mineral_id_tool,
     open_radioactive_dating_tool,
     open_plate_boundary_tool,
     open_mineral_explorer,
-    open_plate_velocity_calculator
+    open_plate_velocity_calculator,
+    #open_geo_model_tool <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
 )
 from utils import register_window
 from utils import open_windows
@@ -456,6 +464,13 @@ chainable_tools = {
     "pH Calculator": open_ph_calculator,
     "Population Growth Calculator": open_population_growth_calculator,
     "Plate Velocity Calculator": open_plate_velocity_calculator,
+    #"Geology Model Tool": open_geo_model_tool <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
+    "Reverse Complement Tool": open_reverse_complement_tool,
+    "DNA to Protein Tool": open_translate_dna_tool,
+    "GC Content Tool": open_gc_content_tool,
+    "Sequence File Parser": open_seq_file_parser_tool,
+    "Pairwise Alignment Tool": open_pairwise_align_tool,
+
 }
 
     # ----------------- MAIN WINDOW -----------------
@@ -638,8 +653,14 @@ tool_registry = {
     "Population Growth Calculator": open_population_growth_calculator,
     "Plate Velocity Calculator": open_plate_velocity_calculator,
     "Gallery": lambda: GalleryTool(root),
-    "Library": lambda: ScienceLibrary(root)
-}
+    "Library": lambda: ScienceLibrary(root),
+    #"Geology Model Tool": open_geo_model_tool <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
+    "Reverse Complement Tool": open_reverse_complement_tool,
+    "DNA to Protein Tool": open_translate_dna_tool,
+    "GC Content Tool": open_gc_content_tool,
+    "Sequence File Parser": open_seq_file_parser_tool,
+    "Pairwise Alignment Tool": open_pairwise_align_tool,
+} 
  
 root.bind("<Control-k>", lambda e: open_global_launcher(root, tool_registry))
 update_counter_label()

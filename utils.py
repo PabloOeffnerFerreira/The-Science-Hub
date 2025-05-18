@@ -79,16 +79,15 @@ def open_global_launcher(root, tool_registry):
     entry.bind("<KeyRelease>", select_first)
 
     def on_close():
+        global global_launcher
         nonlocal trace_id
         if global_launcher and global_launcher.winfo_exists():
             # Remove trace callback before destroying window
             search_var.trace_remove("write", trace_id)
             global_launcher.destroy()
         global_launcher = None
-
-    global_launcher.protocol("WM_DELETE_WINDOW", on_close)
-
-
+    
+        global_launcher.protocol("WM_DELETE_WINDOW", on_close)
 # Universal Helper
 
 open_windows = {}

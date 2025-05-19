@@ -1,9 +1,10 @@
-from utils import register_window  # [AUTO-REFRACTORED]
-import tkinter as tk
-from tkinter import ttk
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
+)
+from data_utils import log_event, _open_dialogs
 import math
-from utils import log_event
 
+# ---- Unit Converter Data ----
 conversion_data = {
     "Length": {"m": 1, "cm": 100, "mm": 1000, "km": 0.001},
     "Mass": {"kg": 1, "g": 1000, "mg": 1e6},
@@ -11,116 +12,67 @@ conversion_data = {
     "Temperature": {"C": 1, "F": 0, "K": 0}
 }
 
-# 1. Physics Tools Hub (menu only, no preload)
-def open_physics_tools_hub(preload=None):
-    def create_window():
-        phys = tk.Toplevel()
-        phys.title("Physics Tools")
+# ---- Physics Tools ----
 
-        tk.Label(phys, text="Choose a Physics Tool:").pack(pady=10)
-        tools = [
-            "Unit Converter",
-            "Terminal Velocity Calculator",
-            "Projectile Motion",
-            "Ohm's Law Calculator",
-            "Lens & Mirror Equation",
-            "Speed Calculator",
-            "Drag Force Calculator",
-            "Acceleration Calculator",
-            "Force Calculator",
-            "Kinetic Energy Calculator"
-        ]
-        var = tk.StringVar()
-        dropdown = ttk.Combobox(phys, textvariable=var, values=tools, state="readonly")
-        dropdown.pack(pady=5)
-        dropdown.set("Select Tool")
+def open_unit_converter():
+    class UnitConverterDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Unit Converter")
+            layout = QVBoxLayout(self)
 
-        def launch():
-            sel = var.get()
-            if sel == "Unit Converter":
-                open_unit_converter()
-            elif sel == "Terminal Velocity Calculator":
-                open_terminal_velocity_calculator()
-            elif sel == "Projectile Motion":
-                open_projectile_motion_tool()
-            elif sel == "Ohm's Law Calculator":
-                open_ohms_law_tool()
-            elif sel == "Lens & Mirror Equation":
-                open_lens_calculator()
-            elif sel == "Speed Calculator":
-                open_speed_calculator()
-            elif sel == "Drag Force Calculator":
-                open_drag_force_calculator()
-            elif sel == "Acceleration Calculator":
-                open_acceleration_calculator()
-            elif sel == "Force Calculator":
-                open_force_calculator()
-            elif sel == "Kinetic Energy Calculator":
-                open_kinetic_energy_calculator()
+            # Category selection
+            row = QHBoxLayout()
+            row.addWidget(QLabel("Category:"))
+            self.category = QComboBox()
+            self.category.addItems(conversion_data.keys())
+            row.addWidget(self.category)
+            layout.addLayout(row)
 
-        tk.Button(phys, text="Open", command=launch).pack(pady=10)
-        return phys
+            # From/To unit
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("From:"))
+            self.from_unit = QComboBox()
+            row2.addWidget(self.from_unit)
+            layout.addLayout(row2)
+            row3 = QHBoxLayout()
+            row3.addWidget(QLabel("To:"))
+            self.to_unit = QComboBox()
+            row3.addWidget(self.to_unit)
+            layout.addLayout(row3)
 
-    return create_window()
+            self.value_edit = QLineEdit()
+            row4 = QHBoxLayout()
+            row4.addWidget(QLabel("Value:"))
+            row4.addWidget(self.value_edit)
+            layout.addLayout(row4)
 
-    register_window("Physics Tools Hub", create_window)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Convert")
+            btn.clicked.connect(self.convert)
+            layout.addWidget(btn)
 
+            self.category.currentTextChanged.connect(self.update_units)
+            self.update_units()
 
-# 2. Unit Converter Tool
-def open_unit_converter(preload=None):
-    def create_window():
-        tool = tk.Toplevel()
-        tool.title("Unit Converter")
-
-        tk.Label(tool, text="Select Category:").grid(row=0, column=0, padx=5, pady=5)
-        category_var = tk.StringVar(value="Length")
-        category_menu = ttk.Combobox(tool, textvariable=category_var, values=list(conversion_data.keys()), state='readonly')
-        category_menu.grid(row=0, column=1, padx=5, pady=5)
-
-        tk.Label(tool, text="From Unit:").grid(row=1, column=0, padx=5, pady=5)
-        from_var = tk.StringVar()
-        from_menu = ttk.Combobox(tool, textvariable=from_var, state='readonly')
-        from_menu.grid(row=1, column=1, padx=5, pady=5)
-
-        tk.Label(tool, text="To Unit:").grid(row=2, column=0, padx=5, pady=5)
-        to_var = tk.StringVar()
-        to_menu = ttk.Combobox(tool, textvariable=to_var, state='readonly')
-        to_menu.grid(row=2, column=1, padx=5, pady=5)
-
-        tk.Label(tool, text="Enter Value:").grid(row=3, column=0, padx=5, pady=5)
-        entry_value = tk.Entry(tool)
-        entry_value.grid(row=3, column=1, padx=5, pady=5)
-
-        result_label = tk.Label(tool, text='', font=("Arial", 10))
-        result_label.grid(row=5, column=0, columnspan=2, pady=5)
-
-        def update_units(*args):
-            cat = category_var.get()
-            if cat not in conversion_data:
-                return  # Invalid category, skip
+        def update_units(self):
+            cat = self.category.currentText()
             units = list(conversion_data[cat].keys())
-            from_menu['values'] = units
-            to_menu['values'] = units
-            from_var.set(units[0])
-            to_var.set(units[1])
+            self.from_unit.clear()
+            self.from_unit.addItems(units)
+            self.to_unit.clear()
+            self.to_unit.addItems(units)
+            if len(units) > 1:
+                self.from_unit.setCurrentIndex(0)
+                self.to_unit.setCurrentIndex(1)
 
-        category_var.trace_add('write', update_units)
-        update_units()
-
-        if preload and isinstance(preload, tuple) and len(preload) == 4:
-            category_var.set(preload[0])
-            from_var.set(preload[1])
-            to_var.set(preload[2])
-            entry_value.insert(0, str(preload[3]))
-            log_event("Unit Converter (Chain)", str(preload), "Waiting for conversion")
-
-        def convert():
+        def convert(self):
             try:
-                val = float(entry_value.get())
-                cat = category_var.get()
-                from_unit = from_var.get()
-                to_unit = to_var.get()
-
+                val = float(self.value_edit.text())
+                cat = self.category.currentText()
+                from_unit = self.from_unit.currentText()
+                to_unit = self.to_unit.currentText()
                 if cat == "Temperature":
                     if from_unit == "F":
                         val_c = (val - 32) * 5 / 9
@@ -130,10 +82,9 @@ def open_unit_converter(preload=None):
                         val_c = val
                     else:
                         msg = f"Invalid 'from' unit: {from_unit}"
-                        result_label.config(text=msg)
+                        self.result.setText(msg)
                         log_event("Unit Converter", f"Temperature from={from_unit}", msg)
                         return
-
                     if to_unit == "F":
                         converted = (val_c * 9 / 5) + 32
                     elif to_unit == "K":
@@ -142,176 +93,158 @@ def open_unit_converter(preload=None):
                         converted = val_c
                     else:
                         msg = f"Invalid 'to' unit: {to_unit}"
-                        result_label.config(text=msg)
+                        self.result.setText(msg)
                         log_event("Unit Converter", f"Temperature to={to_unit}", msg)
                         return
-
                 else:
-                    # SAFEGUARD checks
                     if cat not in conversion_data:
                         msg = f"Invalid category: {cat}"
-                        result_label.config(text=msg)
+                        self.result.setText(msg)
                         log_event("Unit Converter", f"Category={cat}", msg)
                         return
                     if from_unit not in conversion_data[cat] or to_unit not in conversion_data[cat]:
                         msg = f"Invalid units: {from_unit} to {to_unit}"
-                        result_label.config(text=msg)
+                        self.result.setText(msg)
                         log_event("Unit Converter", f"{from_unit} to {to_unit}", msg)
                         return
-
-                    # Proceed with safe base conversion
                     base = val * conversion_data[cat][from_unit]
                     converted = base / conversion_data[cat][to_unit]
-
-
                 msg = f"{val:.2f} {from_unit} = {converted:.4f} {to_unit}"
-                result_label.config(text=msg)
+                self.result.setText(msg)
                 log_event("Unit Converter", f"{val} {from_unit} to {to_unit}", msg)
-            except ValueError:
+            except Exception:
                 msg = "Invalid input value."
-                result_label.config(text=msg)
-                log_event("Unit Converter", entry_value.get(), msg)
+                self.result.setText(msg)
+                log_event("Unit Converter", self.value_edit.text(), msg)
 
-        tk.Button(tool, text='Convert', command=convert).grid(row=4, column=0, columnspan=2, pady=5)
+    dlg = UnitConverterDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        return tool
 
-    register_window("Unit Converter", create_window)
-# 3. Terminal Velocity Calculator
-def open_terminal_velocity_calculator(preload=None):
-    def create_window():
-        tool = tk.Toplevel()
-        tool.title("Fall Time & Terminal Velocity")
-
-        fields = [
-            ("Enter mass in kg:", "1.0"),
-            ("Enter Cross-Sectional Area in m²:", "0.5"),
-            ("Enter height in m:", "100"),
-            ("Enter drag coefficient:", "1.0"),
-        ]
-        entries = []
-
-        for i, (label, default) in enumerate(fields):
-            tk.Label(tool, text=label).grid(row=i, column=0, padx=5, pady=3, sticky='e')
-            entry = tk.Entry(tool)
-            entry.insert(0, default)
-            entry.grid(row=i, column=1, padx=5, pady=3)
-            entries.append(entry)
-
-        result_label = tk.Label(tool, text='', font=("Arial", 10))
-        result_label.grid(row=len(fields)+1, column=0, columnspan=2, pady=5)
-
-        if preload and isinstance(preload, tuple) and len(preload) == 4:
-            for e, val in zip(entries, preload):
-                e.delete(0, tk.END)
-                e.insert(0, str(val))
-            log_event("Terminal Velocity (Chain)", str(preload), "Waiting for calculation")
-
-        def calculate():
+def open_terminal_velocity_calculator():
+    class TerminalDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Terminal Velocity Calculator")
+            layout = QVBoxLayout(self)
+            self.mass = QLineEdit("1.0")
+            self.area = QLineEdit("0.5")
+            self.height = QLineEdit("100")
+            self.cd = QLineEdit("1.0")
+            for label, edit in [
+                ("Mass (kg):", self.mass),
+                ("Cross-sectional Area (m²):", self.area),
+                ("Height (m):", self.height),
+                ("Drag Coefficient:", self.cd)
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(edit)
+                layout.addLayout(row)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.calculate)
+            layout.addWidget(btn)
+            self.setMinimumWidth(320)
+        def calculate(self):
             try:
-                mass = float(entries[0].get())
-                area = float(entries[1].get())
-                height = float(entries[2].get())
-                Cd = float(entries[3].get())
+                mass = float(self.mass.text())
+                area = float(self.area.text())
+                height = float(self.height.text())
+                Cd = float(self.cd.text())
                 g = 9.81
                 rho = 1.225
                 v_terminal = math.sqrt((2 * mass * g) / (rho * area * Cd))
                 t = math.sqrt((2 * height) / g)
                 msg = f"Terminal Velocity ≈ {v_terminal:.2f} m/s\nFall Time ≈ {t:.2f} s (without drag)"
-                result_label.config(text=msg)
+                self.result.setText(msg)
                 log_event("Terminal Velocity", f"mass={mass}, area={area}, height={height}, Cd={Cd}", msg.replace('\n', ' | '))
             except ValueError:
                 msg = "Please enter valid numbers."
-                result_label.config(text=msg)
+                self.result.setText(msg)
                 log_event("Terminal Velocity", "invalid", msg)
+    dlg = TerminalDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(tool, text='Calculate', command=calculate).grid(row=len(fields), column=0, columnspan=2, pady=5)
-        return tool
 
-    register_window("Terminal Velocity Calculator", create_window)
-
-
-# 4. Projectile Motion
-def open_projectile_motion_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Projectile Motion")
-
-        fields = [
-            ("Initial velocity (m/s):", "20"),
-            ("Angle (degrees):", "45")
-        ]
-        entries = []
-        for label, default in fields:
-            tk.Label(win, text=label).pack()
-            e = tk.Entry(win)
-            e.insert(0, default)
-            e.pack()
-            entries.append(e)
-
-        if preload and isinstance(preload, tuple) and len(preload) == 2:
-            entries[0].delete(0, tk.END)
-            entries[1].delete(0, tk.END)
-            entries[0].insert(0, str(preload[0]))
-            entries[1].insert(0, str(preload[1]))
-            log_event("Projectile Motion (Chain)", str(preload), "Waiting for calculation")
-
-        result = tk.Label(win, text="")
-        result.pack(pady=5)
-
-        def calculate():
+def open_projectile_motion_tool():
+    class ProjectileDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Projectile Motion")
+            layout = QVBoxLayout(self)
+            self.v = QLineEdit("20")
+            self.angle = QLineEdit("45")
+            for label, edit in [
+                ("Initial Velocity (m/s):", self.v),
+                ("Angle (degrees):", self.angle)
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(edit)
+                layout.addLayout(row)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.calculate)
+            layout.addWidget(btn)
+            self.setMinimumWidth(300)
+        def calculate(self):
             try:
-                v = float(entries[0].get())
-                angle = math.radians(float(entries[1].get()))
+                v = float(self.v.text())
+                angle = math.radians(float(self.angle.text()))
                 g = 9.81
                 range_ = (v ** 2) * math.sin(2 * angle) / g
                 height = (v ** 2) * (math.sin(angle) ** 2) / (2 * g)
                 time = 2 * v * math.sin(angle) / g
                 msg = f"Range: {range_:.2f} m\nMax Height: {height:.2f} m\nFlight Time: {time:.2f} s"
-                result.config(text=msg)
+                self.result.setText(msg)
                 log_event("Projectile Motion", f"v={v}, angle={math.degrees(angle)}°", msg.replace('\n', ' | '))
             except Exception:
                 msg = "Invalid input."
-                result.config(text=msg)
-                log_event("Projectile Motion", f"v={entries[0].get()}, angle={entries[1].get()}", msg)
+                self.result.setText(msg)
+                log_event("Projectile Motion", f"v={self.v.text()}, angle={self.angle.text()}", msg)
+    dlg = ProjectileDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate", command=calculate).pack(pady=5)
-        return win
 
-    register_window("Projectile Motion Tool", create_window)
-
-
-# 5. Ohm's Law Calculator
-def open_ohms_law_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Ohm's Law Calculator")
-
-        tk.Label(win, text="Enter two known values (leave one blank):").pack()
-        tk.Label(win, text="Voltage (V):").pack()
-        voltage_entry = tk.Entry(win)
-        voltage_entry.pack()
-        tk.Label(win, text="Current (A):").pack()
-        current_entry = tk.Entry(win)
-        current_entry.pack()
-        tk.Label(win, text="Resistance (Ω):").pack()
-        resistance_entry = tk.Entry(win)
-        resistance_entry.pack()
-
-        if preload and isinstance(preload, tuple) and len(preload) == 3:
-            voltage_entry.insert(0, str(preload[0]) if preload[0] is not None else '')
-            current_entry.insert(0, str(preload[1]) if preload[1] is not None else '')
-            resistance_entry.insert(0, str(preload[2]) if preload[2] is not None else '')
-            log_event("Ohm's Law (Chain)", str(preload), "Waiting for solve")
-
-        result = tk.Label(win, text="")
-        result.pack(pady=5)
-
-        def solve():
+def open_ohms_law_tool():
+    class OhmDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Ohm's Law Calculator")
+            layout = QVBoxLayout(self)
+            self.voltage = QLineEdit()
+            self.current = QLineEdit()
+            self.resistance = QLineEdit()
+            layout.addWidget(QLabel("Enter two known values (leave one blank):"))
+            for label, edit in [
+                ("Voltage (V):", self.voltage),
+                ("Current (A):", self.current),
+                ("Resistance (Ω):", self.resistance)
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(edit)
+                layout.addLayout(row)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Solve")
+            btn.clicked.connect(self.solve)
+            layout.addWidget(btn)
+            self.setMinimumWidth(320)
+        def solve(self):
             try:
-                V = voltage_entry.get()
-                I = current_entry.get()
-                R = resistance_entry.get()
+                V = self.voltage.text()
+                I = self.current.text()
+                R = self.resistance.text()
                 if V == '':
                     V = float(I) * float(R)
                     msg = f"Voltage = {V:.2f} V"
@@ -323,50 +256,48 @@ def open_ohms_law_tool(preload=None):
                     msg = f"Resistance = {R:.2f} Ω"
                 else:
                     msg = "Leave one field empty."
-                result.config(text=msg)
-                log_event("Ohm's Law", f"V={voltage_entry.get()}, I={current_entry.get()}, R={resistance_entry.get()}", msg)
+                self.result.setText(msg)
+                log_event("Ohm's Law", f"V={self.voltage.text()}, I={self.current.text()}, R={self.resistance.text()}", msg)
             except Exception:
                 msg = "Invalid input."
-                result.config(text=msg)
-                log_event("Ohm's Law", f"V={voltage_entry.get()}, I={current_entry.get()}, R={resistance_entry.get()}", msg)
+                self.result.setText(msg)
+                log_event("Ohm's Law", f"V={self.voltage.text()}, I={self.current.text()}, R={self.resistance.text()}", msg)
+    dlg = OhmDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Solve", command=solve).pack(pady=5)
-        return win
 
-    register_window("Ohms Law Tool", create_window)
-
-
-# 6. Lens Calculator
-def open_lens_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Lens & Mirror Equation")
-
-        tk.Label(win, text="Enter two of the three values (leave one blank):").pack()
-        tk.Label(win, text="Focal length (f):").pack()
-        f_entry = tk.Entry(win)
-        f_entry.pack()
-        tk.Label(win, text="Object distance (do):").pack()
-        do_entry = tk.Entry(win)
-        do_entry.pack()
-        tk.Label(win, text="Image distance (di):").pack()
-        di_entry = tk.Entry(win)
-        di_entry.pack()
-
-        if preload and isinstance(preload, tuple) and len(preload) == 3:
-            f_entry.insert(0, str(preload[0]) if preload[0] is not None else '')
-            do_entry.insert(0, str(preload[1]) if preload[1] is not None else '')
-            di_entry.insert(0, str(preload[2]) if preload[2] is not None else '')
-            log_event("Lens Calculator (Chain)", str(preload), "Waiting for solve")
-
-        result = tk.Label(win, text="")
-        result.pack(pady=5)
-
-        def calculate():
+def open_lens_calculator():
+    class LensDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Lens & Mirror Equation")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter two of the three values (leave one blank):"))
+            self.f = QLineEdit()
+            self.do = QLineEdit()
+            self.di = QLineEdit()
+            for label, edit in [
+                ("Focal length (f):", self.f),
+                ("Object distance (do):", self.do),
+                ("Image distance (di):", self.di)
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(edit)
+                layout.addLayout(row)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.calculate)
+            layout.addWidget(btn)
+            self.setMinimumWidth(320)
+        def calculate(self):
             try:
-                f = f_entry.get()
-                do = do_entry.get()
-                di = di_entry.get()
+                f = self.f.text()
+                do = self.do.text()
+                di = self.di.text()
                 if f == '':
                     f_val = 1 / (1/float(do) + 1/float(di))
                     msg = f"Focal length = {f_val:.2f}"
@@ -378,204 +309,208 @@ def open_lens_calculator(preload=None):
                     msg = f"Image distance = {di_val:.2f}"
                 else:
                     msg = "Leave one field empty."
-                result.config(text=msg)
+                self.result.setText(msg)
                 log_event("Lens Calculator", f"f={f}, do={do}, di={di}", msg)
             except Exception:
                 msg = "Invalid input."
-                result.config(text=msg)
-                log_event("Lens Calculator", f"f={f_entry.get()}, do={do_entry.get()}, di={di_entry.get()}", msg)
+                self.result.setText(msg)
+                log_event("Lens Calculator", f"f={self.f.text()}, do={self.do.text()}, di={self.di.text()}", msg)
+    dlg = LensDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate", command=calculate).pack(pady=5)
-        return win
 
-    register_window("Lens & Mirror Equation", create_window)
-
-import tkinter as tk
-from utils import register_window, log_event
-
-# 7. Speed Calc
-
-def open_speed_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Speed Calculator")
-
-        tk.Label(win, text="Enter Distance (m):").pack()
-        dist_entry = tk.Entry(win, width=20)
-        dist_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Time (s):").pack()
-        time_entry = tk.Entry(win, width=20)
-        time_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+def open_speed_calculator():
+    class SpeedDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Speed Calculator")
+            layout = QVBoxLayout(self)
+            self.dist = QLineEdit()
+            self.time = QLineEdit()
+            row1 = QHBoxLayout()
+            row1.addWidget(QLabel("Distance (m):"))
+            row1.addWidget(self.dist)
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("Time (s):"))
+            row2.addWidget(self.time)
+            layout.addLayout(row1)
+            layout.addLayout(row2)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate Speed")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(300)
+        def compute(self):
             try:
-                dist = float(dist_entry.get())
-                time = float(time_entry.get())
+                dist = float(self.dist.text())
+                time = float(self.time.text())
                 if time == 0:
                     raise ValueError("Time cannot be zero")
                 speed = dist / time
-                result_label.config(text=f"Speed = {speed:.3f} m/s")
+                self.result.setText(f"Speed = {speed:.3f} m/s")
                 log_event("Speed Calculator", f"Distance={dist}, Time={time}", speed)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
+                self.result.setText(f"Error: {e}")
+    dlg = SpeedDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate Speed", command=compute).pack(pady=5)
 
-        if preload:
-            # Optional: parse preload input if needed
-            pass
-
-        return win
-
-    register_window("Speed Calculator", create_window)
-
-# 8. Drag calc
-
-def open_drag_force_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Drag Force Calculator")
-
-        tk.Label(win, text="Enter Air Density ρ (kg/m³):").pack()
-        density_entry = tk.Entry(win, width=20)
-        density_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Velocity v (m/s):").pack()
-        velocity_entry = tk.Entry(win, width=20)
-        velocity_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Drag Coefficient Cd:").pack()
-        cd_entry = tk.Entry(win, width=20)
-        cd_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Cross-sectional Area A (m²):").pack()
-        area_entry = tk.Entry(win, width=20)
-        area_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+def open_drag_force_calculator():
+    class DragDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Drag Force Calculator")
+            layout = QVBoxLayout(self)
+            self.density = QLineEdit()
+            self.velocity = QLineEdit()
+            self.cd = QLineEdit()
+            self.area = QLineEdit()
+            for label, edit in [
+                ("Air Density ρ (kg/m³):", self.density),
+                ("Velocity v (m/s):", self.velocity),
+                ("Drag Coefficient Cd:", self.cd),
+                ("Cross-sectional Area A (m²):", self.area)
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(edit)
+                layout.addLayout(row)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate Drag Force")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(320)
+        def compute(self):
             try:
-                rho = float(density_entry.get())
-                v = float(velocity_entry.get())
-                cd = float(cd_entry.get())
-                A = float(area_entry.get())
+                rho = float(self.density.text())
+                v = float(self.velocity.text())
+                cd = float(self.cd.text())
+                A = float(self.area.text())
                 Fd = 0.5 * rho * v**2 * cd * A
-                result_label.config(text=f"Drag Force = {Fd:.3f} N")
+                self.result.setText(f"Drag Force = {Fd:.3f} N")
                 log_event("Drag Force Calculator", f"ρ={rho}, v={v}, Cd={cd}, A={A}", Fd)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
+                self.result.setText(f"Error: {e}")
+    dlg = DragDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate Drag Force", command=compute).pack(pady=5)
 
-        return win
-
-    register_window("Drag Force Calculator", create_window)
-
-# 9. Accelaration Calc
-def open_acceleration_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Acceleration Calculator")
-
-        tk.Label(win, text="Enter Change in Velocity Δv (m/s):").pack()
-        dv_entry = tk.Entry(win, width=20)
-        dv_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Time (s):").pack()
-        time_entry = tk.Entry(win, width=20)
-        time_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+def open_acceleration_calculator():
+    class AccelDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Acceleration Calculator")
+            layout = QVBoxLayout(self)
+            self.dv = QLineEdit()
+            self.time = QLineEdit()
+            row1 = QHBoxLayout()
+            row1.addWidget(QLabel("Change in Velocity Δv (m/s):"))
+            row1.addWidget(self.dv)
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("Time (s):"))
+            row2.addWidget(self.time)
+            layout.addLayout(row1)
+            layout.addLayout(row2)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(320)
+        def compute(self):
             try:
-                dv = float(dv_entry.get())
-                t = float(time_entry.get())
+                dv = float(self.dv.text())
+                t = float(self.time.text())
                 if t == 0:
                     raise ValueError("Time cannot be zero")
                 a = dv / t
-                result_label.config(text=f"Acceleration = {a:.3f} m/s²")
+                self.result.setText(f"Acceleration = {a:.3f} m/s²")
                 log_event("Acceleration Calculator", f"Δv={dv}, t={t}", a)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
+                self.result.setText(f"Error: {e}")
+    dlg = AccelDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate", command=compute).pack(pady=5)
 
-        return win
-
-    register_window("Acceleration Calculator", create_window)
-
-#9. Force Calc
-
-def open_force_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Force Calculator")
-
-        tk.Label(win, text="Enter Mass (kg):").pack()
-        mass_entry = tk.Entry(win, width=20)
-        mass_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Acceleration (m/s²):").pack()
-        accel_entry = tk.Entry(win, width=20)
-        accel_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+def open_force_calculator():
+    class ForceDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Force Calculator")
+            layout = QVBoxLayout(self)
+            self.mass = QLineEdit()
+            self.accel = QLineEdit()
+            row1 = QHBoxLayout()
+            row1.addWidget(QLabel("Mass (kg):"))
+            row1.addWidget(self.mass)
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("Acceleration (m/s²):"))
+            row2.addWidget(self.accel)
+            layout.addLayout(row1)
+            layout.addLayout(row2)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(300)
+        def compute(self):
             try:
-                m = float(mass_entry.get())
-                a = float(accel_entry.get())
+                m = float(self.mass.text())
+                a = float(self.accel.text())
                 F = m * a
-                result_label.config(text=f"Force = {F:.3f} N")
+                self.result.setText(f"Force = {F:.3f} N")
                 log_event("Force Calculator", f"m={m}, a={a}", F)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
+                self.result.setText(f"Error: {e}")
+    dlg = ForceDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate", command=compute).pack(pady=5)
 
-        return win
-
-    register_window("Force Calculator", create_window)
-
-# 10. Kinetic Energy Calc
-
-def open_kinetic_energy_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Kinetic Energy Calculator")
-
-        tk.Label(win, text="Enter Mass (kg):").pack()
-        mass_entry = tk.Entry(win, width=20)
-        mass_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Velocity (m/s):").pack()
-        velocity_entry = tk.Entry(win, width=20)
-        velocity_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+def open_kinetic_energy_calculator():
+    class KEnergyDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Kinetic Energy Calculator")
+            layout = QVBoxLayout(self)
+            self.mass = QLineEdit()
+            self.velocity = QLineEdit()
+            row1 = QHBoxLayout()
+            row1.addWidget(QLabel("Mass (kg):"))
+            row1.addWidget(self.mass)
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("Velocity (m/s):"))
+            row2.addWidget(self.velocity)
+            layout.addLayout(row1)
+            layout.addLayout(row2)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(300)
+        def compute(self):
             try:
-                m = float(mass_entry.get())
-                v = float(velocity_entry.get())
+                m = float(self.mass.text())
+                v = float(self.velocity.text())
                 KE = 0.5 * m * v**2
-                result_label.config(text=f"Kinetic Energy = {KE:.3f} J")
+                self.result.setText(f"Kinetic Energy = {KE:.3f} J")
                 log_event("Kinetic Energy Calculator", f"m={m}, v={v}", KE)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
-
-        tk.Button(win, text="Calculate", command=compute).pack(pady=5)
-
-        return win
-
-    register_window("Kinetic Energy Calculator", create_window)
+                self.result.setText(f"Error: {e}")
+    dlg = KEnergyDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

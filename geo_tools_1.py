@@ -1,143 +1,134 @@
-from utils import register_window  # [AUTO-REFRACTORED]
 import pandas as pd
-import tkinter as tk
-from tkinter import ttk
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit,
+    QPushButton, QComboBox, QCheckBox, QFileDialog, QMessageBox, QWidget
+)
+from data_utils import _open_dialogs, log_event
 import json
-from utils import log_event
-#from geo_model import open_geo_model_tool <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
 
-# Load mineral database
 minerals_df = pd.read_csv("Minerals_Database.csv")
 minerals_df.drop(columns=[col for col in minerals_df.columns if ".ru" in col], inplace=True)
 
 # 1. Mineral Identifier Tool
-def open_mineral_id_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Mineral Identifier (Fuzzy Matching)")
-
-        tk.Label(win, text="Hardness (Mohs):").pack()
-        hard_entry = tk.Entry(win)
-        hard_entry.pack()
-
-        tk.Label(win, text="Specific Gravity:").pack()
-        sg_entry = tk.Entry(win)
-        sg_entry.pack()
-
-        tk.Label(win, text="Crystal Structure (number code):").pack()
-        cs_entry = tk.Entry(win)
-        cs_entry.pack()
-
-        if preload and isinstance(preload, tuple) and len(preload) == 3:
-            hard_entry.insert(0, str(preload[0]))
-            sg_entry.insert(0, str(preload[1]))
-            cs_entry.insert(0, str(preload[2]))
-            log_event("Mineral Identifier (Chain)", str(preload), "Waiting for match")
-
-        result = tk.Text(win, width=70, height=10, wrap="word")
-        result.pack(pady=10)
-
-        def identify():
+def open_mineral_id_tool():
+    class MineralIdDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Mineral Identifier (Fuzzy Matching)")
+            layout = QVBoxLayout(self)
+            self.hard = QLineEdit()
+            self.sg = QLineEdit()
+            self.cs = QLineEdit()
+            for label, widget in [
+                ("Hardness (Mohs):", self.hard),
+                ("Specific Gravity:", self.sg),
+                ("Crystal Structure (number code):", self.cs),
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(widget)
+                layout.addLayout(row)
+            self.result = QTextEdit()
+            self.result.setReadOnly(True)
+            layout.addWidget(self.result)
+            btn = QPushButton("Identify")
+            btn.clicked.connect(self.identify)
+            layout.addWidget(btn)
+            self.setMinimumWidth(620)
+        def identify(self):
             try:
-                h = float(hard_entry.get())
-                sg = float(sg_entry.get())
-                cs = float(cs_entry.get())
+                h = float(self.hard.text())
+                sg = float(self.sg.text())
+                cs = float(self.cs.text())
                 matches = minerals_df[
                     (minerals_df['Mohs Hardness'].between(h - 0.5, h + 0.5)) &
                     (minerals_df['Specific Gravity'].between(sg - 0.5, sg + 0.5)) &
                     (minerals_df['Crystal Structure'] == cs)
                 ]
-                result.delete('1.0', tk.END)
+                self.result.clear()
                 if not matches.empty:
                     for _, row in matches.iterrows():
                         line = f"Name: {row['Name']} | Hardness: {row['Mohs Hardness']} | SG: {row['Specific Gravity']} | Structure: {row['Crystal Structure']}\n"
-                        result.insert(tk.END, line)
+                        self.result.append(line)
                     log_event("Mineral Identifier", f"H={h}, SG={sg}, CS={cs}", f"Matches found: {len(matches)}")
                 else:
                     msg = "No matching minerals found."
-                    result.insert(tk.END, msg)
+                    self.result.setText(msg)
                     log_event("Mineral Identifier", f"H={h}, SG={sg}, CS={cs}", msg)
             except Exception:
                 msg = "Invalid input."
-                result.delete('1.0', tk.END)
-                result.insert(tk.END, msg)
-                log_event("Mineral Identifier", f"H={hard_entry.get()}, SG={sg_entry.get()}, CS={cs_entry.get()}", msg)
-
-        tk.Button(win, text="Identify", command=identify).pack(pady=5)
-        return win
-
-    register_window("Mineral Id Tool", create_window)
-
+                self.result.setText(msg)
+                log_event("Mineral Identifier", f"H={self.hard.text()}, SG={self.sg.text()}, CS={self.cs.text()}", msg)
+    dlg = MineralIdDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 2. Radioactive Dating Tool
-def open_radioactive_dating_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Radioactive Dating")
-
-        tk.Label(win, text="Half-Life (years):").pack()
-        half_life_entry = tk.Entry(win)
-        half_life_entry.pack()
-
-        tk.Label(win, text="Percentage remaining (%):").pack()
-        percent_entry = tk.Entry(win)
-        percent_entry.pack()
-
-        if preload and isinstance(preload, tuple) and len(preload) == 2:
-            half_life_entry.insert(0, str(preload[0]))
-            percent_entry.insert(0, str(preload[1]))
-            log_event("Radioactive Dating (Chain)", str(preload), "Waiting for calculation")
-
-        result = tk.Label(win, text="")
-        result.pack(pady=10)
-
-        def calculate_age():
+def open_radioactive_dating_tool():
+    class DatingDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Radioactive Dating")
+            layout = QVBoxLayout(self)
+            self.half_life = QLineEdit()
+            self.percent = QLineEdit()
+            for label, widget in [
+                ("Half-Life (years):", self.half_life),
+                ("Percentage remaining (%):", self.percent),
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(widget)
+                layout.addLayout(row)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Estimate Age")
+            btn.clicked.connect(self.calculate_age)
+            layout.addWidget(btn)
+            self.setMinimumWidth(320)
+        def calculate_age(self):
             try:
-                hl = float(half_life_entry.get())
-                rem = float(percent_entry.get())
+                hl = float(self.half_life.text())
+                rem = float(self.percent.text())
                 if not (0 < rem <= 100):
                     msg = "Percentage must be between 0 and 100."
-                    result.config(text=msg)
+                    self.result.setText(msg)
                     log_event("Radioactive Dating", f"HL={hl}, rem={rem}", msg)
                     return
                 import math
                 age = -hl * math.log2(rem / 100)
                 msg = f"Estimated age: {age:.2f} years"
-                result.config(text=msg)
+                self.result.setText(msg)
                 log_event("Radioactive Dating", f"HL={hl}, rem={rem}", msg)
             except Exception:
                 msg = "Invalid input."
-                result.config(text=msg)
-                log_event("Radioactive Dating", f"HL={half_life_entry.get()}, rem={percent_entry.get()}", msg)
-
-        tk.Button(win, text="Estimate Age", command=calculate_age).pack(pady=5)
-        return win
-
-    register_window("Radioactive Dating Tool", create_window)
-
+                self.result.setText(msg)
+                log_event("Radioactive Dating", f"HL={self.half_life.text()}, rem={self.percent.text()}", msg)
+    dlg = DatingDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 3. Plate Boundary Tool
-def open_plate_boundary_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Plate Boundary Types")
-
-        tk.Label(win, text="Choose a boundary type:").pack(pady=5)
-        choices = ["Convergent", "Divergent", "Transform"]
-        var = tk.StringVar()
-        box = ttk.Combobox(win, textvariable=var, values=choices, state="readonly")
-        box.pack(pady=5)
-        box.set("Select Type")
-
-        if preload and preload in choices:
-            var.set(preload)
-            log_event("Plate Boundaries (Chain)", preload, "Waiting for explanation")
-
-        result = tk.Label(win, text="", wraplength=400, justify="left")
-        result.pack(pady=10)
-
-        def explain():
-            selected = var.get()
+def open_plate_boundary_tool():
+    class BoundaryDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Plate Boundary Types")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Choose a boundary type:"))
+            self.box = QComboBox()
+            self.box.addItems(["Select Type", "Convergent", "Divergent", "Transform"])
+            layout.addWidget(self.box)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Explain")
+            btn.clicked.connect(self.explain)
+            layout.addWidget(btn)
+            self.setMinimumWidth(400)
+        def explain(self):
+            selected = self.box.currentText()
             if selected == "Convergent":
                 msg = "Plates move toward each other. Mountains, trenches, and volcanoes form."
             elif selected == "Divergent":
@@ -146,177 +137,243 @@ def open_plate_boundary_tool(preload=None):
                 msg = "Plates slide past each other. Earthquakes are common."
             else:
                 msg = "No boundary type selected."
-            result.config(text=msg)
+            self.result.setText(msg)
             log_event("Plate Boundaries", selected, msg)
-
-        tk.Button(win, text="Explain", command=explain).pack(pady=5)
-        return win
-
-    register_window("Plate Boundary Tool", create_window)
-
+    dlg = BoundaryDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 4. Mineral Explorer
-def open_mineral_explorer(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Mineral Explorer")
+import pandas as pd
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
+    QPushButton, QComboBox, QCheckBox, QMessageBox, QTableWidget, QTableWidgetItem
+)
+from PyQt6.QtGui import QColor, QBrush
+import json
 
-        favorites_path = "mineral_favorites.json"
-        try:
-            with open(favorites_path, "r") as f:
-                favorites = set(json.load(f))
-        except:
-            favorites = set()
+MINERAL_DB_PATH = "Minerals_Database.csv"
+minerals_df = pd.read_csv(MINERAL_DB_PATH)
 
-        search_var = tk.StringVar()
-        structure_var = tk.StringVar()
-        show_favs_var = tk.BooleanVar()
+def safe(val):
+    if pd.isna(val) or val == 0 or val == "0.0":
+        return "—"
+    if isinstance(val, float):
+        return f"{val:.2f}"
+    return str(val)
 
-        if preload and isinstance(preload, str):
-            search_var.set(preload)
-            log_event("Mineral Explorer (Chain)", preload, "Waiting for search")
+def open_mineral_explorer():
+    class ExplorerDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Mineral Explorer")
+            layout = QVBoxLayout(self)
 
-        def update_display():
-            query = search_var.get().strip().lower()
-            selected_structure = structure_var.get()
-            show_favs = show_favs_var.get()
+            self.search = QLineEdit()
+            self.structure = QComboBox()
+            self.favs_only = QCheckBox("Show Favorites Only")
+            self.refresh_btn = QPushButton("Refresh")
+            self.toggle_fav_btn = QPushButton("Toggle Favorite (by name)")
+            structures = ["All"] + sorted([
+                str(int(x)) for x in minerals_df["Crystal Structure"].dropna().unique() if x != 0
+            ])
+            self.structure.addItems(structures)
+
+            bar = QHBoxLayout()
+            bar.addWidget(QLabel("Search:"))
+            bar.addWidget(self.search)
+            bar.addWidget(QLabel("Structure:"))
+            bar.addWidget(self.structure)
+            bar.addWidget(self.favs_only)
+            bar.addWidget(self.refresh_btn)
+            layout.addLayout(bar)
+
+            # Table Widget
+            self.table = QTableWidget()
+            self.table.setColumnCount(7)
+            self.table.setHorizontalHeaderLabels([
+                "Name", "Hardness", "SG", "Struct", "MolMass (g/mol)",
+                "MolVol (cm³/mol)", "CalcDens (g/cm³)"
+            ])
+            self.table.setStyleSheet("""
+                QTableWidget::item:selected { 
+                    background: #c9a2ff;    /* pastel purple for selected rows */
+                    font-weight: bold; 
+                }
+                QTableWidget::item:hover {
+                    outline: 2px solid #8000ff;   /* strong purple outline */
+                }
+            """)
+            self.table.setSelectionBehavior(self.table.SelectionBehavior.SelectRows)
+
+            self.table.setSelectionBehavior(self.table.SelectionBehavior.SelectRows)
+            self.table.setEditTriggers(self.table.EditTrigger.NoEditTriggers)
+            self.table.setAlternatingRowColors(True)
+            self.table.verticalHeader().setVisible(False)
+            layout.addWidget(self.table)
+            layout.addWidget(self.toggle_fav_btn)
+
+            self.favorites_path = "mineral_favorites.json"
+            try:
+                with open(self.favorites_path, "r") as f:
+                    self.favorites = set(json.load(f))
+            except Exception:
+                self.favorites = set()
+
+            # Connections
+            self.search.textChanged.connect(self.update_display)
+            self.structure.currentTextChanged.connect(self.update_display)
+            self.favs_only.stateChanged.connect(self.update_display)
+            self.refresh_btn.clicked.connect(self.update_display)
+            self.toggle_fav_btn.clicked.connect(self.toggle_favorite)
+
+            self.setMinimumWidth(920)
+            self.setMinimumHeight(550)
+            self.update_display()
+
+        def update_display(self):
+            query = self.search.text().strip().lower()
+            selected_structure = self.structure.currentText()
+            show_favs = self.favs_only.isChecked()
 
             filtered = minerals_df.copy()
             if show_favs:
-                filtered = filtered[filtered["Name"].isin(favorites)]
-
+                filtered = filtered[filtered["Name"].isin(self.favorites)]
             if query:
                 filtered = filtered[
                     filtered["Name"].fillna("").str.lower().str.contains(query)
                 ]
-
-            if selected_structure and selected_structure != "All":
+            if selected_structure != "All":
                 try:
-                    val = int(selected_structure)
+                    val = float(selected_structure)
                     filtered = filtered[filtered["Crystal Structure"] == val]
-                except:
+                except Exception:
                     pass
 
-            results.delete("1.0", tk.END)
+            show_fields = [
+                "Name",
+                "Mohs Hardness",
+                "Specific Gravity",
+                "Crystal Structure",
+                "Molar Mass",
+                "Molar Volume",
+                "Calculated Density"
+            ]
+            from PyQt6.QtGui import QFont
 
-            def safe(val):
-                return val if pd.notna(val) and val != 0.0 else "—"
+            self.table.setRowCount(len(filtered))
+            for rowidx, (_, row) in enumerate(filtered.iterrows()):
+                for colidx, field in enumerate(show_fields):
+                    value = safe(row[field])
+                    item = QTableWidgetItem(value)
+                    font = QFont()
 
-            for _, row in filtered.iterrows():
-                name = row["Name"]
-                hard = safe(row['Mohs Hardness'])
-                sg = safe(row['Specific Gravity'])
-                struct = safe(row['Crystal Structure'])
-                line = f"★ " if name in favorites else "   "
-                line += f"{name} | Hardness: {hard} | SG: {sg} | Structure: {struct}\n"
-                results.insert(tk.END, line)
+                    # Favorites: gold background
+                    if row["Name"] in self.favorites:
+                        item.setBackground(QBrush(QColor("#ffd700")))
 
-        def toggle_favorite():
-            selected = search_var.get().strip()
-            if selected in favorites:
-                favorites.remove(selected)
+                    # Mohs Hardness: red for hard, blue for soft, bold for >=8
+                    if field == "Mohs Hardness" and value not in ("—", ""):
+                        try:
+                            h = float(value)
+                            if h >= 7:
+                                item.setForeground(QBrush(QColor("red")))
+                            elif h <= 3:
+                                item.setForeground(QBrush(QColor("blue")))
+                            if h >= 8:
+                                font.setBold(True)
+                        except: pass
+
+                    # Specific Gravity: green for dense, gray for low
+                    if field == "Specific Gravity" and value not in ("—", ""):
+                        try:
+                            sg = float(value)
+                            if sg >= 4:
+                                item.setForeground(QBrush(QColor("green")))
+                            elif sg < 2.5:
+                                item.setForeground(QBrush(QColor("gray")))
+                        except: pass
+
+                    # Calculated Density: purple & bold if >=5
+                    if field == "Calculated Density" and value not in ("—", ""):
+                        try:
+                            dens = float(value)
+                            if dens >= 5:
+                                font.setBold(True)
+                                item.setForeground(QBrush(QColor("#990099")))
+                        except: pass
+
+                    # Apply font (bold if set above)
+                    item.setFont(font)
+                    self.table.setItem(rowidx, colidx, item)
+
+            self.table.resizeColumnsToContents()
+
+
+        def toggle_favorite(self):
+            selected = self.search.text().strip()
+            if not selected:
+                QMessageBox.information(self, "No name", "Enter a mineral name in the search box to star/unstar.")
+                return
+            # Find closest matching mineral name (case-insensitive)
+            matches = minerals_df[minerals_df["Name"].str.lower() == selected.lower()]
+            if matches.empty:
+                QMessageBox.information(self, "Not found", f"No mineral found with name '{selected}' (case-insensitive).")
+                return
+            name = matches.iloc[0]["Name"]
+            if name in self.favorites:
+                self.favorites.remove(name)
             else:
-                favorites.add(selected)
-            with open(favorites_path, "w") as f:
-                json.dump(list(favorites), f, indent=2)
-            log_event("Favorite Toggled", selected, "★" if selected in favorites else "Unstarred")
-            update_display()
+                self.favorites.add(name)
+            with open(self.favorites_path, "w") as f:
+                json.dump(list(self.favorites), f, indent=2)
+            log_event("Favorite Toggled", name, "★" if name in self.favorites else "Unstarred")
+            self.update_display()
 
-        top = tk.Frame(win)
-        top.pack(pady=5)
-        tk.Label(top, text="Search:").pack(side="left")
-        tk.Entry(top, textvariable=search_var, width=30).pack(side="left", padx=5)
-        tk.Label(top, text="Structure:").pack(side="left")
-        structures = ["All"] + sorted(minerals_df["Crystal Structure"].dropna().astype(int).unique().astype(str))
-        ttk.Combobox(top, textvariable=structure_var, values=structures, state="readonly", width=6).pack(side="left")
-        structure_var.set("All")
-        tk.Checkbutton(top, text="Show Favorites Only", variable=show_favs_var, command=update_display).pack(side="left", padx=10)
-        tk.Button(top, text="Refresh", command=update_display).pack(side="left", padx=5)
+    dlg = ExplorerDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        results = tk.Text(win, height=25, width=95, wrap="word")
-        results.pack(padx=10, pady=10)
 
-        bottom = tk.Frame(win)
-        bottom.pack(pady=5)
-        tk.Button(bottom, text="Toggle Favorite (by name)", command=toggle_favorite).pack()
-
-        search_var.trace_add("write", lambda *args: update_display())
-        structure_var.trace_add("write", lambda *args: update_display())
-
-        update_display()
-        return win
-
-    register_window("Mineral Explorer", create_window)
-
-def open_plate_velocity_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Plate Velocity Calculator")
-
-        tk.Label(win, text="Enter Distance Moved (cm):").pack()
-        dist_entry = tk.Entry(win, width=20)
-        dist_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter Time (million years):").pack()
-        time_entry = tk.Entry(win, width=20)
-        time_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+# 5. Plate Velocity Calculator
+def open_plate_velocity_calculator():
+    class PlateVelDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Plate Velocity Calculator")
+            layout = QVBoxLayout(self)
+            self.dist = QLineEdit()
+            self.time = QLineEdit()
+            row1 = QHBoxLayout()
+            row1.addWidget(QLabel("Distance Moved (cm):"))
+            row1.addWidget(self.dist)
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("Time (million years):"))
+            row2.addWidget(self.time)
+            layout.addLayout(row1)
+            layout.addLayout(row2)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate Velocity")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(380)
+        def compute(self):
             try:
-                dist_cm = float(dist_entry.get())
-                time_myr = float(time_entry.get())
+                dist_cm = float(self.dist.text())
+                time_myr = float(self.time.text())
                 if time_myr == 0:
                     raise ValueError("Time cannot be zero")
                 velocity_cm_per_year = dist_cm / (time_myr * 1_000_000)
-                velocity_mm_per_year = velocity_cm_per_year * 10  # convert cm/yr to mm/yr
-                result_label.config(text=f"Plate Velocity ≈ {velocity_mm_per_year:.4f} mm/yr")
+                velocity_mm_per_year = velocity_cm_per_year * 10  # cm/yr to mm/yr
+                msg = f"Plate Velocity ≈ {velocity_mm_per_year:.4f} mm/yr"
+                self.result.setText(msg)
                 log_event("Plate Velocity Calculator", f"Distance={dist_cm} cm, Time={time_myr} Myr", velocity_mm_per_year)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
-
-        tk.Button(win, text="Calculate Velocity", command=compute).pack(pady=5)
-        return win
-
-    register_window("Plate Velocity Calculator", create_window)
-
-def open_geology_tools_hub():
-        def create_window():
-            geo = tk.Toplevel()
-            geo.title("Geology Tools")
-        
-            tk.Label(geo, text="Choose a Geology Tool:").pack(pady=10)
-            options = [
-                "Mineral Identifier",
-                "Radioactive Dating",
-                "Plate Boundary Types",
-                "Mineral Explorer",
-                "Plate Velocity Calculator",
-                #"Geology Model Tool" <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
-            ]
-            var = tk.StringVar()
-            dropdown = ttk.Combobox(geo, textvariable=var, values=options, state="readonly")
-            dropdown.pack(pady=5)
-            dropdown.set("Select Tool")
-        
-            def open_selected():
-                sel = var.get()
-                if sel == "Mineral Identifier":
-                    open_mineral_id_tool()
-                elif sel == "Radioactive Dating":
-                    open_radioactive_dating_tool()
-                elif sel == "Plate Boundary Types":
-                    open_plate_boundary_tool()
-                elif sel == "Mineral Explorer":
-                    open_mineral_explorer()
-                elif sel == "Plate Velocity Calculator":
-                    open_plate_velocity_calculator()
-                #elif sel == "Geology Model Tool": <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
-                #    open_geo_model_tool(geo)      <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
-        
-        
-            tk.Button(geo, text="Open", command=open_selected).pack(pady=10)
-            return geo
-        register_window(open_geology_tools_hub.__name__.replace("open_", "").replace("_", " ").title(), create_window)
+                self.result.setText(f"Error: {e}")
+    dlg = PlateVelDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

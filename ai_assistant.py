@@ -9,6 +9,8 @@ import re
 import markdown2
 import json
 import os
+from PyQt6.QtGui import QTextCursor  # at the top if not already
+
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 OLLAMA_MODELS = [
@@ -55,22 +57,43 @@ MODE_PROMPTS = [
     ""
 ]
 
+import tiktoken
+
+def estimate_tokens(messages, model="gpt-3.5-turbo"):  # Works with GPT-style models
+    enc = tiktoken.encoding_for_model(model)
+    total = 0
+    for role, msg in messages:
+        total += len(enc.encode(role)) + len(enc.encode(msg)) + 4
+    return total
+
 def load_tool_knowledge():
     try:
-        with open("tool_knowledge.json", "r", encoding="utf-8") as f:
-            tools = json.load(f)
-            summary = "\n".join(f"- {k}: {v}" for k, v in tools.items())
-            return (
-                "You're a helpful assistant integrated into Science Hub.\n"
-                "The following tools are available:\n" + summary +
-                "\nSuggest them when relevant. Never invent tools. Always keep your answers concise and helpful."
+        with open("knowledge.json", "r", encoding="utf-8") as f:
+            knowledge = json.load(f)
+            about = knowledge.get("about", {})
+            tools = knowledge.get("tools", {})
+
+            intro = (
+                f"You are the local AI assistant for Science Hub, a modular offline science platform created by {about.get('creator', 'Pablo Oeffner Ferreira')}.\n"
+                f"Do not describe the app or its tools unless the user directly asks about them.\n"
+                f"Do not advertise, explain, or summarize Science Hub unless prompted.\n"
+                f"Your job is to assist with science, coding, and reasoning. If a tool could help with a user’s question, you may briefly mention it by name—but only when clearly relevant.\n\n"
+                f"If the user just says hello or greets you casually, respond briefly and do not explain anything unless asked.\n\n"
+                f"The following tools are registered in Science Hub (you may refer to them *only when necessary*):\n"
             )
+
+            tool_summary = "\n".join(f"- {name}: {desc}" for name, desc in tools.items())
+
+            return intro + tool_summary
     except Exception as e:
-        return "You're a helpful assistant inside Science Hub."
+        return "You are the AI assistant for Science Hub. Tool knowledge is unavailable."
 
 class OllamaWorker(QThread):
     response_ready = pyqtSignal(str)
     error = pyqtSignal(str)
+    model_missing = pyqtSignal(str)
+    partial_response = pyqtSignal(str)  # new signal for live typing output
+
     def __init__(self, messages, model, mode_idx):
         super().__init__()
         self.messages = messages
@@ -94,23 +117,40 @@ class OllamaWorker(QThread):
 
         payload = {"model": self.model, "messages": ollama_messages}
         try:
-            resp = requests.post(OLLAMA_URL, json=payload, timeout=120)
+            resp = requests.post(OLLAMA_URL, json=payload, stream=True, timeout=120)
             resp.raise_for_status()
-            # Parse every line of the streamed JSON response and join all content
-            content = resp.content.decode("utf-8").strip()
-            import json  # make sure this is at the top of your file too
-            lines = content.splitlines()
-            reply_chunks = []
-            for line in lines:
-                if line.strip():
-                    data = json.loads(line)
-                    part = data.get("message", {}).get("content", "")
-                    reply_chunks.append(part)
-            reply = "".join(reply_chunks).strip() or "No response."
-            self.response_ready.emit(reply)
-        except Exception as e:
-            self.error.emit(f"JSON Parse Error: {e}\nRaw response: {resp.text[:200]}")
 
+            reply_chunks = []
+            for line in resp.iter_lines(decode_unicode=True):
+                if line.strip():
+                    try:
+                        data = json.loads(line)
+                        part = data.get("message", {}).get("content", "")
+                        if part:
+                            self.partial_response.emit(part)
+                            reply_chunks.append(part)
+                    except json.JSONDecodeError:
+                        continue  # skip malformed chunks
+
+            full_reply = "".join(reply_chunks).strip() or "No response."
+            self.response_ready.emit(full_reply)
+
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None:
+                try:
+                    err_msg = e.response.text.lower()
+                    if "not found" in err_msg and "model" in err_msg:
+                        self.model_missing.emit(self.model)
+                        return
+                    short = err_msg[:200]
+                except Exception:
+                    short = "<unable to read error text>"
+            else:
+                short = "<no response object>"
+            self.error.emit(f"HTTP Error: {e}\nServer said: {short}")
+
+        except Exception as e:
+            self.error.emit(f"Unhandled error: {e}")
 
 class AIAssistantWindow(QWidget):
     def __init__(self):
@@ -158,23 +198,50 @@ class AIAssistantWindow(QWidget):
 
         main_layout.addLayout(top_layout)
 
+        # Load Chat Button
+        self.load_btn = QPushButton("Load Chat")
+        self.load_btn.clicked.connect(self.load_chat)
+        top_layout.addWidget(self.load_btn)
+
+        # Token counter
+        self.token_label = QLabel("Tokens: 0")
+        self.token_label.setStyleSheet("font-size: 12px;")
+        main_layout.addWidget(self.token_label)
+
+                # Input and send button layout
+        input_layout = QHBoxLayout()
+        self.input = QLineEdit()
+        self.input.setPlaceholderText("Type your question here and press Enter...")
+        self.input.returnPressed.connect(self.send)
+        input_layout.addWidget(self.input)
+
+        self.send_btn = QPushButton("Send")
+        self.send_btn.clicked.connect(self.send)
+        input_layout.addWidget(self.send_btn)
+
+        main_layout.addLayout(input_layout)
+
+
+
         # Chat display
         from PyQt6.QtWidgets import QTextBrowser
         self.chatbox = QTextBrowser()
         self.chatbox.setReadOnly(True)
         main_layout.addWidget(self.chatbox)
 
-
-        # Input and send button
-        input_layout = QHBoxLayout()
-        self.input = QLineEdit()
-        self.input.setPlaceholderText("Type your question here and press Enter...")
-        self.input.returnPressed.connect(self.send)
-        input_layout.addWidget(self.input)
-        self.send_btn = QPushButton("Send")
-        self.send_btn.clicked.connect(self.send)
-        input_layout.addWidget(self.send_btn)
-        main_layout.addLayout(input_layout)
+    def prompt_model_download(self, model_name):
+        reply = QMessageBox.question(
+            self,
+            "Model Not Found",
+            f"The model '{model_name}' is not installed.\nDo you want to download it now?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            import subprocess
+            subprocess.run(["ollama", "pull", model_name])
+            QMessageBox.information(self, "Download Complete", f"Model '{model_name}' installed.\nTry again.")
+        else:
+            self.handle_error(f"Model '{model_name}' not installed.")
 
     def send(self):
         user_msg = self.input.text().strip()
@@ -185,14 +252,24 @@ class AIAssistantWindow(QWidget):
         self.update_chat()
         self.send_btn.setDisabled(True)
         self.input.setDisabled(True)
+
         self.worker = OllamaWorker(
             self.messages,
             self.model_picker.currentText(),
             self.mode_selector.currentIndex()
         )
+        self.worker.partial_response.connect(self.append_partial)  # move it here!
         self.worker.response_ready.connect(self.receive)
         self.worker.error.connect(self.handle_error)
+        self.worker.model_missing.connect(self.prompt_model_download)
         self.worker.start()
+            
+    def append_partial(self, chunk):
+        cursor = self.chatbox.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        cursor.insertText(chunk)
+        self.chatbox.setTextCursor(cursor)
+
     
     @staticmethod
     def remove_emojis(text):
@@ -234,6 +311,17 @@ class AIAssistantWindow(QWidget):
 
 
         self.chatbox.verticalScrollBar().setValue(self.chatbox.verticalScrollBar().maximum())
+        tokens = estimate_tokens(self.messages)
+        self.token_label.setText(f"Tokens: {tokens}")
+
+        if tokens > 7000:
+            self.token_label.setStyleSheet("color: red; font-size: 12px;")
+        elif tokens > 3500:
+            self.token_label.setStyleSheet("color: orange; font-size: 12px;")
+        else:
+            self.token_label.setStyleSheet("color: black; font-size: 12px;")
+
+
 
     def save_chat(self):
         filename, _ = QFileDialog.getSaveFileName(self, "Save Chat Log", "", "Text Files (*.txt)")
@@ -246,6 +334,36 @@ class AIAssistantWindow(QWidget):
     def clear_chat(self):
         self.messages = []
         self.update_chat()
+
+    def load_chat(self):
+        filename, _ = QFileDialog.getOpenFileName(self, "Load Chat Log", "", "Text Files (*.txt)")
+        if filename:
+            with open(filename, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            messages = []
+            current_role = None
+            buffer = []
+            for line in lines:
+                line = line.strip()
+                if line == "You:":
+                    if buffer and current_role:
+                        messages.append((current_role, "\n".join(buffer)))
+                    current_role = "user"
+                    buffer = []
+                elif line == "AI:":
+                    if buffer and current_role:
+                        messages.append((current_role, "\n".join(buffer)))
+                    current_role = "ai"
+                    buffer = []
+                else:
+                    buffer.append(line)
+
+            if buffer and current_role:
+                messages.append((current_role, "\n".join(buffer)))
+
+            self.messages = messages
+            self.update_chat()
 
 def open_ai_assistant(parent=None):
     app = QApplication.instance()

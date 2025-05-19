@@ -1,174 +1,123 @@
 # The Science Hub
 
-A modular, cross-discipline platform for learning, experimenting, and doing science with Python—now with a context-aware, locally running AI assistant and full system integration.
-
-![MainImage](images/Main.png)
+![Main Image](images/Main.png)
 
 ---
 
-## What is The Science Hub?
+## What is Science Hub?
 
-**The Science Hub** is a self-built desktop application that combines science tools, image management, data organization, and offline AI into one cohesive system.  
-Originally developed by Pablo Oeffner Ferreira at age 14, it has grown into a serious toolset spanning chemistry, physics, biology, geology, math—and now, intelligent local reasoning.
+**Science Hub** is a modular, offline science platform built for learning, experimenting, researching, visualizing, and organizing scientific concepts on your computer, with dedicated tools, a fully local AI assistant, and complete data integration.
 
-From launching simulations to asking scientific questions, **Science Hub adapts to your system and your curiosity**.
-
----
-
-## Features
-
-- **Science Library:**  
-  Organize, search, and filter your own formulas, concepts, and references. Link entries to experiments or generated plots.
-
-- **Gallery:**  
-  Drag-and-drop interface for managing scientific diagrams and results. Supports tagging, favoriting, and linking to entries.
-
-- **Tool Launcher:**  
-  Instant access to modular calculators and visualizers for chemistry, physics, biology, geology, and math. Tools are lightweight and extendable.
-
-- **Result Storage:**  
-  Store generated plots and outputs in a structured way, and connect them to concepts in the Science Library.
-
-- **Batch Import/Export:**  
-  Migrate entries, back up experiments, or share entire sessions.
-
-- **Integrated AI Assistant (Offline):**  
-  Powered by [Ollama](https://ollama.com/), the assistant runs 100% locally. No accounts, no APIs, and no cloud. Just tools and thinking—on your machine.
+You can simulate phenomena, solve problems in physics, chemistry, biology, geology, and math, save results, organize formulas, manage scientific images, and search for articles—all in a single system designed to let you explore science your way.
 
 ---
 
-## AI Assistant – Now Fully Integrated
+## Main Features
 
-### Modes and Capabilities
-
-- **Learn Mode** – Step-by-step explanations for science questions or math breakdowns.
-- **Use Mode** – Fast facts, direct answers, no fluff.
-- **Casual Mode** – Friendly chat with tool awareness and clean formatting.
-
-The assistant now understands **your tools**, **your project structure**, and **when to help**. It will only recommend Science Hub tools *when appropriate*. It never advertises or explains itself unless you ask.
-
----
-
-### Launcher Integration: The Holy Ultramoly Gigasoley – TOOL RUNNER™
-
-All AI models are now accessible via the global quick-launch bar:
-
-- Type `tiny`, `gem4`, `phi4r use`, or `dolphin learn` to launch the assistant with a specific model and mode.
-- Every supported model has a shortcut name.
-- AI opens in a subprocess with its own window, so Science Hub stays stable.
+- **Science Library:** Register, search, and filter your own formulas, concepts, descriptions, images, and tags. Create your personal science encyclopedia, with batch export/import and smart linking.
+- **Results Gallery:** Manage, view, and organize images, charts, experiment outputs, and results, all with favorites, tags, and automatic metadata.
+- **Molecular Search:** Find compounds using PubChem, view structures, formulas, and detailed data.
+- **Academic Search:** Find scientific articles directly via OpenAlex, including title, authors, DOI, abstract, and open-access links.
+- **Local AI Assistant:** A true science assistant running offline via Ollama, with multiple models and modes (explanation, direct answer, or casual conversation).
+- **Full Integration:** All tools, results, and references are connected—save, share, export, and retrieve your discoveries with ease.
+- **Modern Interface:** All windows use PyQt6, with a dark theme, Unicode-safe rendering, and smart search and filters.
 
 ---
 
-### Chat Features
+## Included Tools
 
-- **Load Chat** – Resume previous conversations and continue reasoning mid-session.
-- **Token Counter** – Live tracking of prompt size. Colored warnings let you know when to switch models.
-- **Model Switcher** – Change models mid-conversation without losing history.
-- **Tooltip Descriptions** – Hover over models to learn what they do best and what hardware they need.
+Every tool launches in its own window and can be used independently. They cover the most essential areas of science.  
+Here are the main included tools, grouped by subject:
 
----
+### Math & Physics
 
-### Model Awareness and Specialization
+- **Simple Calculator:** Basic mathematical operations.
+- **Function Plotter:** Graphing mathematical functions.
+- **Quadratic Solver:** Solves ax²+bx+c=0 equations.
+- **Unit Converter:** Converts between physical units.
+- **Terminal Velocity Calculator:** Simulates free fall.
+- **Projectile Motion Tool:** Ballistics and projectile trajectories.
+- **Ohm’s Law Calculator:** Electrical circuits.
+- **Lens & Mirror Equation:** Geometric optics.
+- **Mass Calculator:** Mass calculations and conversions.
+- **Shell Visualizer:** Electron shell structures.
+- **Property Grapher:** Scientific property plotting.
+- **Force, Acceleration, and Kinetic Energy Calculators:** Classical mechanics.
+- **Drag Force Calculator:** Fluid drag force simulation.
+- **Comparator:** Comparative analysis between values or data sets.
+- **Unit Multiplier:** Calculate multiplicative factors.
+- **pH Calculator:** Solution pH calculations.
+- **Population Growth Calculator:** Growth modeling.
 
-All 16 Ollama models supported:
-- From **ultra-fast** (`tinyllama:1.1b`) to **deep logical analyzers** (`phi4-reasoning:14b`)
-- Includes **code assistants**, **math solvers**, **multi-turn chat models**, and **low-resource tools**
-- Fully local—no external data use
+### Chemistry
 
----
+- **Element Viewer:** Complete periodic table data.
+- **Isotope Tool:** Explore element isotopes.
+- **Phase Predictor:** Matter state prediction.
+- **Molecular Weight Calculator:** For molecules and compounds.
+- **Molecule Assembler:** Build and visualize molecules manually.
 
-### How to Enable the AI Assistant
+### Biology
 
-1. **Install Ollama:**  
-   [Download Ollama](https://ollama.com/download) for your OS
+- **DNA Transcription Tool:** DNA→RNA conversion.
+- **Codon Lookup Tool:** Quick codon and amino acid reference.
+- **Osmosis Tool:** Simulate osmotic processes.
+- **DNA to Protein Tool:** Sequence translation.
+- **Reverse Complement Tool:** Essential molecular biology tools.
+- **GC Content Tool:** Calculates G+C percentage in sequences.
+- **Sequence File Parser:** Read FASTA/GenBank files.
+- **Pairwise Alignment Tool:** Sequence comparison.
 
-2. **Pull a model:**  
-   For example:
-   ```sh
-   ollama pull dolphin3:8b
-   ollama pull tinyllama:1.1b
+### Geology
 
-3. **Run Science Hub as usual**, and launch the AI assistant from:
-
-   * The **AI button**
-   * The **global quick launcher**
-   * Or directly by typing a model name
-
----
-
-### Minimum Specs
-
-* **Minimum:**
-  8 GB RAM, 4 GB VRAM — use `tinyllama`, `phi4-mini`, or `gemma3:2b`
-* **Recommended:**
-  16 GB RAM, 8+ GB VRAM — for full functionality with `dolphin3`, `qwen3`, `mathstral`, or `phi4`
-
----
-
-## Quick Start
-
-1. **Clone the repository:**
-
-```sh
-git clone https://github.com/PabloOeffnerFerreira/The-Science-Hub.git
-cd The-Science-Hub
-```
-
-2. **(Optional) Create a virtual environment:**
-
-```sh
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-pip install -r requirements.txt
-```
-
-3. **Install dependencies:**
-
-```sh
-pip install Pillow tkinterdnd2
-# and optionally: conda install -c conda-forge rdkit
-```
-
-4. **Run the app:**
-
-```sh
-python hub.py
-```
+- **Mineral ID Tool:** Identify minerals by properties.
+- **Radioactive Dating Tool:** Estimate geological ages.
+- **Plate Boundary Tool:** Plate tectonic boundaries.
+- **Mineral Explorer:** Browse mineral data.
+- **Plate Velocity Calculator:** Plate tectonics calculations.
 
 ---
 
-## Toolkits & Modules
+## Supported AI Models
 
-* **Chemistry:** Molar mass, molecular visualization, isotopes
-* **Physics:** Kinematics, forces, motion, optics
-* **Biology:** DNA tools, codon lookup, transcription
-* **Geology:** Mineral explorer, plate motion calculators
-* **Math:** Function plotting, equation solvers, unit conversion
+Science Hub integrates multiple AI models via Ollama, working **100% offline** on your computer.  
+Available models include:
 
-All tools are **modular Python scripts** and integrate with the gallery, AI, and storage.
+- **TinyLlama:** Ultra-fast, perfect for short answers and simple tasks.
+- **Phi4, Phi4-Reasoning:** Logic analysis and mathematical problem solving.
+- **Dolphin3:** General chat and science.
+- **Qwen3:** Advanced language modeling.
+- **Gemma3:** Lightweight and efficient for scientific dialogue.
+- **Mathstral:** Advanced math and calculation solving.
+- **Code Assistants:** Specific models for programming and scientific automation.
+
+You can switch models at any time, track token usage live, and load previous conversations.
 
 ---
 
 ## Screenshots
 
-![Main window](screenshots/main_window.png)
-![Gallery](screenshots/screenshot_gallery.png)
-![Science Library](screenshots/screenshot_library.png)
-![AI Assistant](screenshots/AI.png)
+![Main Window](screenshots/main_window.png)  
+*Science Hub main window*
+
+![Scientific Gallery](screenshots/screenshot_gallery.png)  
+*Gallery of scientific images, results, and experiments*
+
+![Science Library](screenshots/screenshot_library.png)  
+*Library for formulas, concepts, tags, and descriptions*
+
+![AI Assistant](screenshots/AI.png)  
+*Local offline AI assistant integrated into Science Hub*
 
 ---
 
-## License
+## Learn More
 
-MIT License. See [LICENSE](LICENSE) for full terms.
-
----
-
-## Support & Contributions
-
-Suggestions and bug reports are welcome at
-[GitHub Issues](https://github.com/PabloOeffnerFerreira/The-Science-Hub/issues)
+- [README em Português Brasileiro](README.pt-BR.md)
+- [Guia de Instalação em Português](INSTALL.pt-BR.md)
+- [English Install Guide](INSTALL.md)
+- Report issues or suggest improvements at: [GitHub Issues](https://github.com/PabloOeffnerFerreira/The-Science-Hub/issues)
 
 ---
 
-*Science Hub is not a chatbot. It is a science system that includes one.*
+*Science Hub is not just a chatbot—it’s a complete science system for deep curiosity, serious study, and real experimentation, built to work your way.*

@@ -672,6 +672,37 @@ tool_registry = {
     "Sequence File Parser": open_seq_file_parser_tool,
     "Pairwise Alignment Tool": open_pairwise_align_tool,
 } 
+
+# AI Model Launchers (for global launcher integration)
+from utils import smart_launch
+
+tool_registry.update({
+    "Tiny": lambda: smart_launch("tiny"),
+    "Tinyllama": lambda: smart_launch("tinyllama"),
+    "Gem2": lambda: smart_launch("gem2"),
+    "Gem4": lambda: smart_launch("gem4"),
+    "Gem12": lambda: smart_launch("gem12"),
+    "Phi-mini": lambda: smart_launch("phi-mini"),
+    "Phi4": lambda: smart_launch("phi4"),
+    "Phi4r": lambda: smart_launch("phi4r"),
+    "Mathstral": lambda: smart_launch("mathstral"),
+    "Dolphin": lambda: smart_launch("dolphin"),
+    "Qwen8": lambda: smart_launch("qwen8"),
+    "Qwen14": lambda: smart_launch("qwen14"),
+    "Deep7": lambda: smart_launch("deep7"),
+    "Deep14": lambda: smart_launch("deep14"),
+    "Code2": lambda: smart_launch("code2"),
+    "Code7": lambda: smart_launch("code7"),
+    "Mistral": lambda: smart_launch("mistral"),
+
+    # Optional mode presets
+    "Tiny Use": lambda: smart_launch("tiny use"),
+    "Dolphin Learn": lambda: smart_launch("dolphin learn"),
+    "Gem4 Learn": lambda: smart_launch("gem4 learn"),
+    "Phi4r Use": lambda: smart_launch("phi4r use"),
+    "Mistral Casual": lambda: smart_launch("mistral casual")
+})
+
  
 root.bind("<Control-k>", lambda e: open_global_launcher(root, tool_registry))
 update_counter_label()

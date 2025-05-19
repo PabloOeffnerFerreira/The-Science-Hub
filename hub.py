@@ -4,6 +4,7 @@ import json
 import utils
 import os
 from gallery import GalleryTool
+from ai_assistant import open_ai_assistant
 
 from utils import log_event
 from chain_mode import open_chain_mode  
@@ -573,6 +574,16 @@ util_frame.grid(pady=30, padx=40, sticky="ew")
 ttk.Label(util_frame, text="Quick access tools that aren't part of any major category.", style="Dark.TLabel").pack(anchor="w", pady=5)
 ttk.Label(util_frame, text="Open the Quick Bar with Ctrl + K.", style="Dark.TLabel").pack(anchor="w", pady=5)
 
+import subprocess
+import sys
+import os
+
+def launch_ai_assistant_subprocess():
+    # Launch it as a separate process so closing it doesn't affect the main app
+    script_path = os.path.join(os.path.dirname(__file__), "launch_ai_assistant.py")
+    python_exe = sys.executable
+    subprocess.Popen([python_exe, script_path])
+
 
 def on_button_click(cmd):
     def wrapper():
@@ -599,13 +610,13 @@ tools = [
     ("Export Log", export_log_to_md),
     ("Window Manager", show_window_manager),
     ("Chain Mode", lambda: open_chain_mode(chainable_tools)),
-    ("Gallery", lambda: GalleryTool(root))
+    ("Gallery", lambda: GalleryTool(root)),
+    ("AI Assistant", launch_ai_assistant_subprocess)
 ]
 
 for text, func in tools:
     ttk.Button(util_frame, text=text, style="Dark.TButton",
                command=on_button_click(func)).pack(pady=4, anchor="w")
-
 
 counter_label = ttk.Label(util_frame, font=("Helvetica", 10), style="Dark.TLabel")
 counter_label.pack(anchor="e", padx=5)

@@ -25,14 +25,14 @@ You can simulate phenomena, solve problems in physics, chemistry, biology, geolo
 - **Modern Interface:** Modern Interface: Fully redesigned in PyQt6, with chain-mode support, unified layouts, stable error handling, smart filtering, and a persistent dark theme.
 =======
 - **Modern Interface:** A few windows use PyQt6, with a dark theme, Unicode-safe rendering, and smart search and filters.
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
 
 ---
 
 ## Included Tools
 
-<<<<<<< HEAD
-Every tool launches in its own window and can be used independently. Most support preload, result saving, and chaining.
+Every tool launches in its own window and can be used independently. Most support preload, result saving, and chaining. They cover the most essential areas of science.  
+Here are the main included tools, grouped by subject:
+
 
 ### Math & Physics
 
@@ -83,58 +83,6 @@ Every tool launches in its own window and can be used independently. Most suppor
 ### Miscellaneous
 
 - **Chain Mode Log Viewer** – See saved workflow outputs.
-
-=======
-Every tool launches in its own window and can be used independently. They cover the most essential areas of science.  
-Here are the main included tools, grouped by subject:
-
-### Math & Physics
-
-- **Simple Calculator:** Basic mathematical operations.
-- **Function Plotter:** Graphing mathematical functions.
-- **Quadratic Solver:** Solves ax²+bx+c=0 equations.
-- **Unit Converter:** Converts between physical units.
-- **Terminal Velocity Calculator:** Simulates free fall.
-- **Projectile Motion Tool:** Ballistics and projectile trajectories.
-- **Ohm’s Law Calculator:** Electrical circuits.
-- **Lens & Mirror Equation:** Geometric optics.
-- **Mass Calculator:** Mass calculations and conversions.
-- **Shell Visualizer:** Electron shell structures.
-- **Property Grapher:** Scientific property plotting.
-- **Force, Acceleration, and Kinetic Energy Calculators:** Classical mechanics.
-- **Drag Force Calculator:** Fluid drag force simulation.
-- **Comparator:** Comparative analysis between values or data sets.
-- **Unit Multiplier:** Calculate multiplicative factors.
-- **pH Calculator:** Solution pH calculations.
-- **Population Growth Calculator:** Growth modeling.
-
-### Chemistry
-
-- **Element Viewer:** Complete periodic table data.
-- **Isotope Tool:** Explore element isotopes.
-- **Phase Predictor:** Matter state prediction.
-- **Molecular Weight Calculator:** For molecules and compounds.
-- **Molecule Assembler:** Build and visualize molecules manually.
-
-### Biology
-
-- **DNA Transcription Tool:** DNA→RNA conversion.
-- **Codon Lookup Tool:** Quick codon and amino acid reference.
-- **Osmosis Tool:** Simulate osmotic processes.
-- **DNA to Protein Tool:** Sequence translation.
-- **Reverse Complement Tool:** Essential molecular biology tools.
-- **GC Content Tool:** Calculates G+C percentage in sequences.
-- **Sequence File Parser:** Read FASTA/GenBank files.
-- **Pairwise Alignment Tool:** Sequence comparison.
-
-### Geology
-
-- **Mineral ID Tool:** Identify minerals by properties.
-- **Radioactive Dating Tool:** Estimate geological ages.
-- **Plate Boundary Tool:** Plate tectonic boundaries.
-- **Mineral Explorer:** Browse mineral data.
-- **Plate Velocity Calculator:** Plate tectonics calculations.
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
 
 ---
 

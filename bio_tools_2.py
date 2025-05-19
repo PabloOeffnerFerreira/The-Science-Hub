@@ -1,106 +1,126 @@
-from utils import register_window
-import tkinter as tk
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QFileDialog
+)
+from data_utils import _open_dialogs, log_event
+
+import warnings
+from Bio import BiopythonDeprecationWarning
+warnings.filterwarnings("ignore", category=BiopythonDeprecationWarning)
+
+from Bio.Seq import Seq
+from Bio.SeqUtils import gc_fraction
+from Bio import SeqIO
+from Bio import pairwise2
+from Bio.pairwise2 import format_alignment
 
 # 1. Reverse Complement Tool
-from Bio.Seq import Seq
-def open_reverse_complement_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Reverse Complement")
-
-        tk.Label(win, text="Enter DNA sequence:").pack()
-        seq_entry = tk.Entry(win, width=60)
-        seq_entry.pack(pady=5)
-
-        if preload:
-            seq_entry.insert(0, preload)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
-            seq = seq_entry.get().strip().upper()
+def open_reverse_complement_tool():
+    class ReverseDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Reverse Complement")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter DNA sequence:"))
+            self.seq_entry = QLineEdit()
+            layout.addWidget(self.seq_entry)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Compute")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(400)
+        def compute(self):
+            seq = self.seq_entry.text().strip().upper()
             try:
                 rc = str(Seq(seq).reverse_complement())
-                result_label.config(text=f"Reverse Complement: {rc}")
+                msg = f"Reverse Complement: {rc}"
+                self.result.setText(msg)
+                log_event("Reverse Complement", seq, rc)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
-
-        tk.Button(win, text="Compute", command=compute).pack(pady=5)
-        return win
-    register_window("Reverse Complement Tool", create_window)
+                self.result.setText(f"Error: {e}")
+    dlg = ReverseDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 2. DNA to Protein Translation (all 3 frames)
-def open_translate_dna_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("DNA to Protein Translation (All Frames)")
-
-        tk.Label(win, text="Enter DNA sequence:").pack()
-        seq_entry = tk.Entry(win, width=60)
-        seq_entry.pack(pady=5)
-        if preload:
-            seq_entry.insert(0, preload)
-
-        result = tk.Text(win, width=70, height=8)
-        result.pack(pady=5)
-
-        def translate():
-            seq = Seq(seq_entry.get().strip().upper())
+def open_translate_dna_tool():
+    class TranslateDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("DNA to Protein Translation (All Frames)")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter DNA sequence:"))
+            self.seq_entry = QLineEdit()
+            layout.addWidget(self.seq_entry)
+            self.result = QTextEdit()
+            self.result.setReadOnly(True)
+            layout.addWidget(self.result)
+            btn = QPushButton("Translate")
+            btn.clicked.connect(self.translate)
+            layout.addWidget(btn)
+            self.setMinimumWidth(430)
+        def translate(self):
+            seq = Seq(self.seq_entry.text().strip().upper())
             lines = []
             for frame in range(3):
                 prot = seq[frame:].translate(to_stop=False)
                 lines.append(f"Frame {frame+1}: {prot}")
-            result.delete('1.0', tk.END)
-            result.insert(tk.END, "\n".join(lines))
-
-        tk.Button(win, text="Translate", command=translate).pack(pady=5)
-        return win
-    register_window("DNA to Protein Tool", create_window)
+            self.result.setText("\n".join(lines))
+            log_event("DNA to Protein Tool", str(seq), "\n".join(lines))
+    dlg = TranslateDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 3. GC Content Calculator
-from Bio.SeqUtils import gc_fraction
-def open_gc_content_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("GC Content Calculator")
-
-        tk.Label(win, text="Enter DNA sequence:").pack()
-        seq_entry = tk.Entry(win, width=60)
-        seq_entry.pack(pady=5)
-        if preload:
-            seq_entry.insert(0, preload)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
-            seq = seq_entry.get().strip().upper()
+def open_gc_content_tool():
+    class GCDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("GC Content Calculator")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter DNA sequence:"))
+            self.seq_entry = QLineEdit()
+            layout.addWidget(self.seq_entry)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Compute")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(400)
+        def compute(self):
+            seq = self.seq_entry.text().strip().upper()
             try:
                 gc = gc_fraction(seq) * 100
-                result_label.config(text=f"GC Content: {gc:.2f}%")
+                msg = f"GC Content: {gc:.2f}%"
+                self.result.setText(msg)
+                log_event("GC Content Tool", seq, msg)
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
-
-        tk.Button(win, text="Compute", command=compute).pack(pady=5)
-        return win
-    register_window("GC Content Tool", create_window)
+                self.result.setText(f"Error: {e}")
+    dlg = GCDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 4. Sequence File Parser (FASTA/GenBank Viewer)
-from Bio import SeqIO
-from tkinter import filedialog
-def open_seq_file_parser_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Sequence File Parser (FASTA/GenBank)")
-
-        tk.Label(win, text="Open a FASTA or GenBank file:").pack()
-
-        result = tk.Text(win, width=70, height=12)
-        result.pack(pady=5)
-
-        def open_file():
-            path = filedialog.askopenfilename(filetypes=[("FASTA/GenBank files", "*.fasta *.fa *.gb *.gbk")])
+def open_seq_file_parser_tool():
+    class SeqParserDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Sequence File Parser (FASTA/GenBank)")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Open a FASTA or GenBank file:"))
+            self.result = QTextEdit()
+            self.result.setReadOnly(True)
+            layout.addWidget(self.result)
+            btn = QPushButton("Open File")
+            btn.clicked.connect(self.open_file)
+            layout.addWidget(btn)
+            self.setMinimumWidth(600)
+            self.setMinimumHeight(350)
+        def open_file(self):
+            path, _ = QFileDialog.getOpenFileName(self, "Open FASTA/GenBank File", "", "FASTA/GenBank (*.fasta *.fa *.gb *.gbk)")
             if path:
                 try:
                     # Try FASTA first, then GenBank
@@ -110,49 +130,52 @@ def open_seq_file_parser_tool(preload=None):
                             raise ValueError("No records found in FASTA.")
                     except Exception:
                         records = list(SeqIO.parse(path, "genbank"))
+                    text = []
                     for rec in records:
-                        result.insert(tk.END, f"ID: {rec.id}\nLength: {len(rec.seq)}\nSequence:\n{rec.seq}\n{'-'*30}\n")
+                        text.append(f"ID: {rec.id}\nLength: {len(rec.seq)}\nSequence:\n{rec.seq}\n{'-'*30}\n")
+                    self.result.setText("".join(text))
+                    log_event("Sequence File Parser", path, f"{len(records)} records")
                 except Exception as e:
-                    result.insert(tk.END, f"Error: {e}\n")
-
-        tk.Button(win, text="Open File", command=open_file).pack(pady=5)
-        return win
-    register_window("Sequence File Parser", create_window)
+                    self.result.setText(f"Error: {e}\n")
+    dlg = SeqParserDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 5. Pairwise Sequence Alignment (Needleman-Wunsch, simple global align)
-from Bio import pairwise2
-from Bio.pairwise2 import format_alignment
-def open_pairwise_align_tool(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Pairwise Sequence Alignment")
-
-        tk.Label(win, text="Sequence 1:").pack()
-        seq1_entry = tk.Entry(win, width=60)
-        seq1_entry.pack(pady=2)
-
-        tk.Label(win, text="Sequence 2:").pack()
-        seq2_entry = tk.Entry(win, width=60)
-        seq2_entry.pack(pady=2)
-
-        result = tk.Text(win, width=80, height=12)
-        result.pack(pady=5)
-
-        def align():
-            seq1 = seq1_entry.get().strip().upper()
-            seq2 = seq2_entry.get().strip().upper()
+def open_pairwise_align_tool():
+    class AlignDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Pairwise Sequence Alignment")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Sequence 1:"))
+            self.seq1_entry = QLineEdit()
+            layout.addWidget(self.seq1_entry)
+            layout.addWidget(QLabel("Sequence 2:"))
+            self.seq2_entry = QLineEdit()
+            layout.addWidget(self.seq2_entry)
+            self.result = QTextEdit()
+            self.result.setReadOnly(True)
+            layout.addWidget(self.result)
+            btn = QPushButton("Align")
+            btn.clicked.connect(self.align)
+            layout.addWidget(btn)
+            self.setMinimumWidth(650)
+        def align(self):
+            seq1 = self.seq1_entry.text().strip().upper()
+            seq2 = self.seq2_entry.text().strip().upper()
             try:
                 alignments = pairwise2.align.globalxx(seq1, seq2)
-                result.delete('1.0', tk.END)
                 if alignments:
-                    for aln in alignments[:3]:
-                        result.insert(tk.END, format_alignment(*aln) + '\n')
+                    text = "\n".join(format_alignment(*aln) for aln in alignments[:3])
+                    self.result.setText(text)
                 else:
-                    result.insert(tk.END, "No alignment found.\n")
+                    self.result.setText("No alignment found.\n")
+                log_event("Pairwise Alignment Tool", f"{seq1} | {seq2}", "Aligned")
             except Exception as e:
-                result.delete('1.0', tk.END)
-                result.insert(tk.END, f"Error: {e}")
-
-        tk.Button(win, text="Align", command=align).pack(pady=5)
-        return win
-    register_window("Pairwise Alignment Tool", create_window)
+                self.result.setText(f"Error: {e}")
+    dlg = AlignDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

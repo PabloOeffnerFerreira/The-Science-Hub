@@ -62,9 +62,11 @@ def open_global_launcher(root, tool_registry):
         try:
             selected = listbox.get(listbox.curselection())
             global_launcher.destroy()
-            tool_registry[selected]()
+            if not smart_launch(selected):
+                tool_registry[selected]()
         except Exception:
             pass
+
 
     listbox.bind("<Return>", launch_selected)
     listbox.bind("<Double-1>", launch_selected)
@@ -113,3 +115,50 @@ def clean_open_windows():
             dead.append(name)
     for name in dead:
         del open_windows[name]
+import subprocess
+import sys
+import os
+
+MODEL_ALIASES = {  # keep this same
+    "tiny": "tinyllama:1.1b",
+    "tinyllama": "tinyllama:1.1b",
+    "gem2": "gemma3:2b",
+    "gem4": "gemma3:4b",
+    "gem12": "gemma3:12b",
+    "phi-mini": "phi4-mini:3.8b",
+    "phi4": "phi4:14b",
+    "phi4r": "phi4-reasoning:14b",
+    "mathstral": "mathstral:7b",
+    "dolphin": "dolphin3:8b",
+    "qwen8": "qwen3:8b",
+    "qwen14": "qwen3:14b",
+    "deep7": "deepseek-r1:7b",
+    "deep14": "deepseek-r1:14b",
+    "code2": "codegemma:2b",
+    "code7": "codegemma:7b",
+    "mistral": "mistral-small3.1"
+}
+
+def smart_launch(query):
+    query = query.strip().lower()
+    parts = query.split()
+
+    if not parts:
+        return False
+
+    model_key = parts[0]
+    model = MODEL_ALIASES.get(model_key)
+    if not model:
+        return False
+
+    mode = "casual"
+    if "learn" in parts:
+        mode = "learn"
+    elif "use" in parts:
+        mode = "use"
+
+    # Build the subprocess launch call with model + mode
+    script_path = os.path.join(os.path.dirname(__file__), "launch_ai_assistant.py")
+    python_exe = sys.executable
+    subprocess.Popen([python_exe, script_path, model, mode])
+    return True

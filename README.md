@@ -20,7 +20,7 @@ You can simulate phenomena, solve problems in physics, chemistry, biology, geolo
 - **Academic Search:** Find scientific articles directly via OpenAlex, including title, authors, DOI, abstract, and open-access links.
 - **Local AI Assistant:** A true science assistant running offline via Ollama, with multiple models and modes (explanation, direct answer, or casual conversation).
 - **Full Integration:** All tools, results, and references are connected—save, share, export, and retrieve your discoveries with ease.
-- **Modern Interface:** All windows use PyQt6, with a dark theme, Unicode-safe rendering, and smart search and filters.
+- **Modern Interface:** A few windows use PyQt6, with a dark theme, Unicode-safe rendering, and smart search and filters.
 
 ---
 

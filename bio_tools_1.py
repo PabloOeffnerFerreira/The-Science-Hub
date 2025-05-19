@@ -1,15 +1,8 @@
-from utils import register_window  # [AUTO-REFRACTORED]
-import tkinter as tk
-from tkinter import ttk
-from utils import log_event
-
-from bio_tools_2 import (
-    open_reverse_complement_tool,
-    open_translate_dna_tool,
-    open_gc_content_tool,
-    open_seq_file_parser_tool,
-    open_pairwise_align_tool,
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
 )
+from data_utils import _open_dialogs, log_event
+import math
 
 CODON_TABLE = {
     'UUU': 'Phe', 'UUC': 'Phe', 'UUA': 'Leu', 'UUG': 'Leu',
@@ -31,24 +24,24 @@ CODON_TABLE = {
 }
 
 # 1. DNA Transcription & Translation Tool
-def open_transcription_tool(preload=None):
-    def create_window():
-        window = tk.Toplevel()
-        window.title("DNA Transcription & Translation")
-
-        tk.Label(window, text="Enter DNA sequence:").pack(pady=5)
-        entry = tk.Entry(window, width=60)
-        entry.pack(pady=5)
-
-        if preload:
-            entry.insert(0, preload)
-            log_event("DNA Transcription (Chain)", preload, "Waiting for translation")
-
-        output = tk.Text(window, width=70, height=10)
-        output.pack(pady=5)
-
-        def transcribe():
-            dna = entry.get().upper().replace("T", "U")
+def open_transcription_tool():
+    class TranscribeDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("DNA Transcription & Translation")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter DNA sequence:"))
+            self.entry = QLineEdit()
+            layout.addWidget(self.entry)
+            self.output = QTextEdit()
+            self.output.setReadOnly(True)
+            layout.addWidget(self.output)
+            btn = QPushButton("Translate")
+            btn.clicked.connect(self.transcribe)
+            layout.addWidget(btn)
+            self.setMinimumWidth(500)
+        def transcribe(self):
+            dna = self.entry.text().upper().replace("T", "U")
             protein = []
             for i in range(0, len(dna) - 2, 3):
                 codon = dna[i:i + 3]
@@ -56,272 +49,212 @@ def open_transcription_tool(preload=None):
                 protein.append(amino)
             mrna_line = f"mRNA: {dna}"
             protein_line = f"Protein: {'-'.join(protein)}"
-            output.delete('1.0', tk.END)
-            output.insert(tk.END, mrna_line + "\n")
-            output.insert(tk.END, protein_line)
+            self.output.setText(mrna_line + "\n" + protein_line)
             log_event("DNA Transcription", dna, protein_line)
-
-        tk.Button(window, text="Translate", command=transcribe).pack(pady=5)
-        return window
-
-    register_window("Transcription Tool", create_window)
-
+    dlg = TranscribeDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 2. Codon Lookup Tool
-def open_codon_lookup_tool(preload=None):
-    def create_window():
-        window = tk.Toplevel()
-        window.title("Codon Lookup")
-
-        tk.Label(window, text="Enter RNA Codon (e.g. AUG):").pack(pady=5)
-        entry = tk.Entry(window, width=10)
-        entry.pack(pady=5)
-
-        if preload:
-            entry.insert(0, preload)
-            log_event("Codon Lookup (Chain)", preload, "Waiting for lookup")
-
-        result = tk.Label(window, text="")
-        result.pack(pady=5)
-
-        def lookup():
-            codon = entry.get().upper()
+def open_codon_lookup_tool():
+    class CodonDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Codon Lookup")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter RNA Codon (e.g. AUG):"))
+            self.entry = QLineEdit()
+            layout.addWidget(self.entry)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Lookup")
+            btn.clicked.connect(self.lookup)
+            layout.addWidget(btn)
+            self.setMinimumWidth(280)
+        def lookup(self):
+            codon = self.entry.text().upper()
             amino = CODON_TABLE.get(codon, 'Invalid')
-            result.config(text=f"Amino Acid: {amino}")
+            self.result.setText(f"Amino Acid: {amino}")
             log_event("Codon Lookup", codon, amino)
-
-        tk.Button(window, text="Lookup", command=lookup).pack(pady=5)
-        return window
-
-    register_window("Codon Lookup Tool", create_window)
-
+    dlg = CodonDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 # 3. Osmosis and Tonicity Tool
-def open_osmosis_tool(preload=None):
-    def create_window():
-        window = tk.Toplevel()
-        window.title("Osmosis & Tonicity")
-
-        tk.Label(window, text="Enter internal concentration (mM):").pack(pady=2)
-        int_entry = tk.Entry(window)
-        int_entry.pack(pady=2)
-
-        tk.Label(window, text="Enter external concentration (mM):").pack(pady=2)
-        ext_entry = tk.Entry(window)
-        ext_entry.pack(pady=2)
-
-        if preload and isinstance(preload, tuple) and len(preload) == 2:
-            int_entry.insert(0, str(preload[0]))
-            ext_entry.insert(0, str(preload[1]))
-            log_event("Osmosis Tool (Chain)", f"{preload}", "Waiting for assessment")
-
-        result = tk.Label(window, text="")
-        result.pack(pady=5)
-
-        def assess():
+def open_osmosis_tool():
+    class OsmosisDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Osmosis & Tonicity")
+            layout = QVBoxLayout(self)
+            row1 = QHBoxLayout()
+            row1.addWidget(QLabel("Internal concentration (mM):"))
+            self.int_entry = QLineEdit()
+            row1.addWidget(self.int_entry)
+            row2 = QHBoxLayout()
+            row2.addWidget(QLabel("External concentration (mM):"))
+            self.ext_entry = QLineEdit()
+            row2.addWidget(self.ext_entry)
+            layout.addLayout(row1)
+            layout.addLayout(row2)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Assess")
+            btn.clicked.connect(self.assess)
+            layout.addWidget(btn)
+            self.setMinimumWidth(350)
+        def assess(self):
             try:
-                inside = float(int_entry.get())
-                outside = float(ext_entry.get())
+                inside = float(self.int_entry.text())
+                outside = float(self.ext_entry.text())
                 if inside > outside:
                     status = "Hypertonic inside: Water leaves the cell"
                 elif inside < outside:
                     status = "Hypotonic inside: Water enters the cell"
                 else:
                     status = "Isotonic: No net water movement"
-                result.config(text=status)
+                self.result.setText(status)
                 log_event("Osmosis Tool", f"in={inside} mM, out={outside} mM", status)
             except ValueError:
                 status = "Invalid input."
-                result.config(text=status)
-                log_event("Osmosis Tool", f"in={int_entry.get()}, out={ext_entry.get()}", status)
+                self.result.setText(status)
+                log_event("Osmosis Tool", f"in={self.int_entry.text()}, out={self.ext_entry.text()}", status)
+    dlg = OsmosisDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(window, text="Assess", command=assess).pack(pady=5)
-        return window
-
-    register_window("Osmosis Tool", create_window)
-
-def open_molecular_weight_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Molecular Weight Calculator")
-
-        tk.Label(win, text="Enter Sequence (DNA or Protein):").pack()
-        seq_entry = tk.Text(win, width=50, height=5)
-        seq_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
-            seq = seq_entry.get("1.0", tk.END).strip().upper()
+# 4. Molecular Weight Calculator (DNA/RNA/Protein)
+def open_molecular_weight_calculator():
+    class MWDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Molecular Weight Calculator")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter Sequence (DNA/RNA or Protein):"))
+            self.seq_entry = QTextEdit()
+            self.seq_entry.setFixedHeight(50)
+            layout.addWidget(self.seq_entry)
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(420)
+        def compute(self):
+            seq = self.seq_entry.toPlainText().strip().upper()
             if not seq:
-                result_label.config(text="Please enter a sequence.")
+                self.result_label.setText("Please enter a sequence.")
                 return
-
-            # Approximate average weights (Daltons)
             dna_weights = {
                 "A": 313.21, "T": 304.2, "G": 329.21, "C": 289.18, "U": 290.17
             }
             protein_weights = {
-                # Average amino acid weights; simplified
                 "A": 89.09, "R": 174.2, "N": 132.12, "D": 133.1, "C": 121.15,
                 "E": 147.13, "Q": 146.15, "G": 75.07, "H": 155.16, "I": 131.17,
                 "L": 131.17, "K": 146.19, "M": 149.21, "F": 165.19, "P": 115.13,
                 "S": 105.09, "T": 119.12, "W": 204.23, "Y": 181.19, "V": 117.15
             }
-
-            # Decide if DNA/RNA or protein by letters
             if all(base in dna_weights for base in seq):
                 weight = sum(dna_weights.get(base, 0) for base in seq)
-                result_label.config(text=f"Approximate DNA/RNA Molecular Weight: {weight:.2f} Da")
+                msg = f"Approximate DNA/RNA Molecular Weight: {weight:.2f} Da"
             elif all(aa in protein_weights for aa in seq):
                 weight = sum(protein_weights.get(aa, 0) for aa in seq)
-                result_label.config(text=f"Approximate Protein Molecular Weight: {weight:.2f} Da")
+                msg = f"Approximate Protein Molecular Weight: {weight:.2f} Da"
             else:
-                result_label.config(text="Sequence contains invalid characters.")
+                msg = "Sequence contains invalid characters."
+            self.result_label.setText(msg)
+            log_event("Molecular Weight Calculator", seq, msg)
+    dlg = MWDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate", command=compute).pack(pady=5)
-        return win
-
-    register_window("Molecular Weight Calculator", create_window)
-
-import math
-
-def open_ph_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("pH Calculator")
-
-        tk.Label(win, text="Enter H⁺ concentration [mol/L] (leave blank if calculating pOH):").pack()
-        h_entry = tk.Entry(win, width=30)
-        h_entry.pack(pady=5)
-
-        tk.Label(win, text="Enter OH⁻ concentration [mol/L] (leave blank if calculating pH):").pack()
-        oh_entry = tk.Entry(win, width=30)
-        oh_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+# 5. pH Calculator
+def open_ph_calculator():
+    class PHDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("pH Calculator")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter H⁺ concentration [mol/L] (leave blank if calculating pOH):"))
+            self.h_entry = QLineEdit()
+            layout.addWidget(self.h_entry)
+            layout.addWidget(QLabel("Enter OH⁻ concentration [mol/L] (leave blank if calculating pH):"))
+            self.oh_entry = QLineEdit()
+            layout.addWidget(self.oh_entry)
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(400)
+        def compute(self):
             try:
-                h_conc = h_entry.get().strip()
-                oh_conc = oh_entry.get().strip()
+                h_conc = self.h_entry.text().strip()
+                oh_conc = self.oh_entry.text().strip()
                 if h_conc and oh_conc:
-                    result_label.config(text="Enter only one concentration at a time.")
-                    return
-                if h_conc:
+                    msg = "Enter only one concentration at a time."
+                elif h_conc:
                     h = float(h_conc)
                     if h <= 0:
                         raise ValueError
                     pH = -math.log10(h)
-                    result_label.config(text=f"pH = {pH:.2f}")
+                    msg = f"pH = {pH:.2f}"
                 elif oh_conc:
                     oh = float(oh_conc)
                     if oh <= 0:
                         raise ValueError
                     pOH = -math.log10(oh)
                     pH = 14 - pOH
-                    result_label.config(text=f"pOH = {pOH:.2f}, pH = {pH:.2f}")
+                    msg = f"pOH = {pOH:.2f}, pH = {pH:.2f}"
                 else:
-                    result_label.config(text="Enter at least one concentration.")
+                    msg = "Enter at least one concentration."
             except:
-                result_label.config(text="Invalid input.")
+                msg = "Invalid input."
+            self.result_label.setText(msg)
+            log_event("pH Calculator", f"H={self.h_entry.text()}, OH={self.oh_entry.text()}", msg)
+    dlg = PHDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-        tk.Button(win, text="Calculate", command=compute).pack(pady=5)
-        return win
-
-    register_window("pH Calculator", create_window)
-import math
-
-def open_population_growth_calculator(preload=None):
-    def create_window():
-        win = tk.Toplevel()
-        win.title("Population Growth Calculator")
-
-        tk.Label(win, text="Initial Population (N₀):").pack()
-        n0_entry = tk.Entry(win, width=30)
-        n0_entry.pack(pady=5)
-
-        tk.Label(win, text="Growth Rate (r) [per time unit]:").pack()
-        r_entry = tk.Entry(win, width=30)
-        r_entry.pack(pady=5)
-
-        tk.Label(win, text="Time (t):").pack()
-        t_entry = tk.Entry(win, width=30)
-        t_entry.pack(pady=5)
-
-        result_label = tk.Label(win, text="")
-        result_label.pack(pady=10)
-
-        def compute():
+# 6. Population Growth Calculator
+def open_population_growth_calculator():
+    class PopDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Population Growth Calculator")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Initial Population (N₀):"))
+            self.n0_entry = QLineEdit()
+            layout.addWidget(self.n0_entry)
+            layout.addWidget(QLabel("Growth Rate (r) [per time unit]:"))
+            self.r_entry = QLineEdit()
+            layout.addWidget(self.r_entry)
+            layout.addWidget(QLabel("Time (t):"))
+            self.t_entry = QLineEdit()
+            layout.addWidget(self.t_entry)
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.compute)
+            layout.addWidget(btn)
+            self.setMinimumWidth(350)
+        def compute(self):
             try:
-                N0 = float(n0_entry.get())
-                r = float(r_entry.get())
-                t = float(t_entry.get())
+                N0 = float(self.n0_entry.text())
+                r = float(self.r_entry.text())
+                t = float(self.t_entry.text())
                 N = N0 * math.exp(r * t)
-                result_label.config(text=f"Population after {t} time units: {N:.2f}")
-                log_event("Population Growth Calculator", f"N0={N0}, r={r}, t={t}", N)
+                msg = f"Population after {t} time units: {N:.2f}"
             except Exception as e:
-                result_label.config(text=f"Error: {e}")
-
-        tk.Button(win, text="Calculate", command=compute).pack(pady=5)
-        return win
-
-    register_window("Population Growth Calculator", create_window)
-
-def open_bio_tools_hub(preload=None):
-    def create_window():
-        bio = tk.Toplevel()
-        bio.title("Biology Tools")
-
-        tk.Label(bio, text="Choose a Biology Tool:").pack(pady=10)
-        choices = [
-            "DNA Transcription & Translation",
-            "Codon Lookup",
-            "Osmosis & Tonicity",
-            "Molecular Weight Calculator",
-            "pH Calculator",
-            "Population Growth Calculator",
-            "Reverse Complement Tool",
-            "DNA to Protein Tool",
-            "GC Content Tool",
-            "Sequence File Parser",
-            "Pairwise Alignment Tool"
-        ]
-
-        var = tk.StringVar()
-        box = ttk.Combobox(bio, textvariable=var, values=choices, state="readonly")
-        box.pack(pady=5)
-        box.set("Select a Tool")
-
-        def launch():
-            selection = var.get()
-            if selection == "DNA Transcription & Translation":
-                open_transcription_tool()
-            elif selection == "Codon Lookup":
-                open_codon_lookup_tool()
-            elif selection == "Osmosis & Tonicity":
-                open_osmosis_tool()
-            elif selection == "Molecular Weight Calculator":
-                open_molecular_weight_calculator()
-            elif selection == "pH Calculator":
-                open_ph_calculator()
-            elif selection == "Population Growth Calculator":
-                open_population_growth_calculator()
-            elif selection == "Reverse Complement Tool":
-                open_reverse_complement_tool()
-            elif selection == "DNA to Protein Tool":
-                open_translate_dna_tool()
-            elif selection == "GC Content Tool":
-                open_gc_content_tool()
-            elif selection == "Sequence File Parser":
-                open_seq_file_parser_tool()
-            elif selection == "Pairwise Alignment Tool":
-                open_pairwise_align_tool()
-
-
-        tk.Button(bio, text="Open", command=launch).pack(pady=10)
-        return bio
-
-    register_window(open_bio_tools_hub.__name__.replace("open_", "").replace("_", " ").title(), create_window)
+                msg = f"Error: {e}"
+            self.result_label.setText(msg)
+            log_event("Population Growth Calculator", f"N0={self.n0_entry.text()}, r={self.r_entry.text()}, t={self.t_entry.text()}", msg)
+    dlg = PopDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

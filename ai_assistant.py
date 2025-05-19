@@ -57,14 +57,24 @@ MODE_PROMPTS = [
 
 def load_tool_knowledge():
     try:
-        with open("tool_knowledge.json", "r", encoding="utf-8") as f:
-            tools = json.load(f)
-            summary = "\n".join(f"- {k}: {v}" for k, v in tools.items())
-            return (
-                "You're a helpful assistant integrated into Science Hub.\n"
-                "The following tools are available:\n" + summary +
-                "\nSuggest them when relevant. Never invent tools. Always keep your answers concise and helpful."
+        with open("knowledge.json", "r", encoding="utf-8") as f:
+            knowledge = json.load(f)
+            about = knowledge.get("about", {})
+            tools = knowledge.get("tools", {})
+
+            intro = (
+                f"You are the local AI assistant for Science Hub, a modular science platform created by {about.get('creator', 'an unknown user')}.\n"
+                f"The first tool developed was a terminal velocity and fall time calculator.\n"
+                f"Your purpose is to help users explore, explain, and apply scientific knowledge using the tools available inside the app.\n\n"
+                f"Design goals:\n- " + "\n- ".join(about.get("goals", [])) + "\n\n"
+                f"Core features:\n- " + "\n- ".join(about.get("features", [])) + "\n\n"
+                f"You should suggest specific tools by name when relevant. Never invent tools. Never simulate tool output. Always remain concise and relevant.\n\n"
+                f"The registered tools are:\n"
             )
+
+            tool_summary = "\n".join(f"- {name}: {desc}" for name, desc in tools.items())
+
+            return intro + tool_summary
     except Exception as e:
         return "You're a helpful assistant inside Science Hub."
 

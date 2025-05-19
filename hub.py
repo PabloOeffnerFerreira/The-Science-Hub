@@ -173,8 +173,4 @@ def main():
     sys.exit(app.exec())
 
 if __name__ == "__main__":
-<<<<<<< HEAD
     main()
-=======
-    main()
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

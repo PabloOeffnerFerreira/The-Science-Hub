@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import datetime
 
 def load_element_data():
     path = os.path.join(os.path.dirname(__file__), "PeriodicTableJSON.json")
@@ -38,3 +39,32 @@ def parse_formula(formula):
         return elements, i
 
     return parse_chunk(formula)[0]
+
+# --------- Dialog Management for Non-Modal Windows ---------
+
+_open_dialogs = []
+_open_windows_registry = {}  # name: dialog instance
+
+def register_window(name, dialog):
+    _open_dialogs.append(dialog)
+    _open_windows_registry[name] = dialog
+    # Remove from both on close
+    def cleanup():
+        if dialog in _open_dialogs:
+            _open_dialogs.remove(dialog)
+        if name in _open_windows_registry and _open_windows_registry[name] is dialog:
+            del _open_windows_registry[name]
+    dialog.finished.connect(lambda _: cleanup())
+
+
+# ---------------- Writing the Log -------------------
+ 
+def log_event(tool, input_value, output_value):
+    try:
+        with open("calchub_log.txt", "a", encoding="utf-8") as f:
+            timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
+            line = f"{timestamp} {tool} Input: {input_value} Output: {output_value}\n"
+            f.write(line)
+    except Exception as e:
+        print("Logging failed:", e)
+ 

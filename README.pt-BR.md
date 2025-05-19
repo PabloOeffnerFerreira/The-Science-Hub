@@ -20,7 +20,7 @@ Você pode simular fenômenos, resolver problemas de física, química, biologia
 - **Buscador Acadêmico:** Pesquise artigos científicos diretamente pelo OpenAlex, com títulos, autores, DOI, resumo e link aberto.
 - **Assistente de IA Local:** Um verdadeiro assistente científico, rodando offline pelo Ollama, com múltiplos modelos e modos (explicação, resposta direta ou conversa).
 - **Integração Total:** Todas as ferramentas, resultados e referências se conectam — salve, compartilhe, exporte, e recupere suas descobertas facilmente.
-- **Interface Moderna:** Todas as janelas usam PyQt6, visual escuro, Unicode seguro, busca e filtros inteligentes.
+- **Interface Moderna:** Un poco janelas usam PyQt6, visual escuro, Unicode seguro, busca e filtros inteligentes.
 
 ---
 

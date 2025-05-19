@@ -17,8 +17,37 @@ OLLAMA_MODELS = [
     "deepseek-r1:14b",
     "mistral-small3.1",
     "qwen3:8b",
-    "gemma3:4b"
+    "gemma3:4b",
+    "phi4-mini:3.8b",
+    "gemma3:2b",
+    "tinyllama:1.1b",
+    "phi4:14b",
+    "phi4-reasoning:14b",
+    "mathstral:7b",
+    "deepseek-r1:7b",
+    "codegemma:2b",
+    "codegemma:7b",
+    "dolphin3:8b"
 ]
+
+MODEL_TOOLTIPS = {
+    "qwen3:14b": "Very smart, very slow. Only use if you have lots of RAM.",
+    "gemma3:12b": "Accurate but heavy. Best for deep analysis.",
+    "deepseek-r1:14b": "Logic-oriented. High memory use.",
+    "mistral-small3.1": "Fast, fluent, long context. Good fallback.",
+    "qwen3:8b": "Balanced power and speed. Good for detailed answers.",
+    "gemma3:4b": "Compact and quick. Reliable across tasks.",
+    "phi4-mini:3.8b": "Very fast, good for basic reasoning.",
+    "gemma3:2b": "Tiny and fast. Best for short replies.",
+    "tinyllama:1.1b": "Ultra light. Works on very weak machines.",
+    "phi4:14b": "Excellent logic, good for Learn mode.",
+    "phi4-reasoning:14b": "Great at reasoning. Slow but smart.",
+    "mathstral:7b": "Math specialist. Best for calculations and logic.",
+    "deepseek-r1:7b": "Smaller reasoning model. Good tradeoff.",
+    "codegemma:2b": "Fast coding assistant. For quick help.",
+    "codegemma:7b": "Stronger code helper. Slightly slower.",
+    "dolphin3:8b": "Balanced for all tasks. Recommended default."
+}
 
 MODE_PROMPTS = [
     "Please explain your reasoning and steps like a helpful teacher.",
@@ -99,7 +128,11 @@ class AIAssistantWindow(QWidget):
         top_layout.addWidget(QLabel("Model:"))
         self.model_picker = QComboBox()
         self.model_picker.addItems(OLLAMA_MODELS)
-        self.model_picker.setCurrentText("gemma3:12b")
+        for i in range(self.model_picker.count()):
+            model_name = self.model_picker.itemText(i)
+            tooltip = MODEL_TOOLTIPS.get(model_name, "No description available.")
+            self.model_picker.setItemData(i, tooltip, Qt.ItemDataRole.ToolTipRole)
+        self.model_picker.setCurrentText("dolphin3:8b")
         self.model_picker.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         top_layout.addWidget(self.model_picker)
 

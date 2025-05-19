@@ -42,7 +42,8 @@ Whether you want to calculate, visualize, manage results, or ask questions to an
 
 ## NEW: AI Assistant (Ollama Integration)
 
-> **Note:** The AI features are fully optional. They only use system resources (RAM/VRAM) when active, and do not replace learning—they support it.
+> **Note:** The AI assistant is fully optional and only uses system resources (RAM/VRAM) when active.  
+> **Performance:** While it works entirely offline, it can be **quite slow**—especially with larger models. This is expected and depends heavily on your hardware.
 
 ### What can the AI do?
 
@@ -51,7 +52,7 @@ Whether you want to calculate, visualize, manage results, or ask questions to an
 - Explain concepts or formulas step by step (“Learn” mode).
 - Give direct answers for fast lookups (“Use” mode).
 - Chat naturally and help brainstorm ideas (“Casual” mode).
-- Review your work or provide hints (not just solutions).
+- Understand and suggest built-in tools in Science Hub.
 
 ### Hardware requirements
 
@@ -72,13 +73,11 @@ Whether you want to calculate, visualize, manage results, or ask questions to an
 ollama pull gemma3:4b
 
 ````
-(or try other models: `qwen3:14b`, `mistral-small3.1`, etc.)
+(or try other models: `gemma3:12b`, `qwen3:14b`, etc.)
 3. **Set up Science Hub as usual.**
 4. **Launch the AI Assistant from the main window.**
 5. **Choose your model and mode** (Learn, Use, Casual) in the chatbox.
-6. **Ask questions, get explanations, and explore science with LLMs running 100% locally.**
-
-*If you run into issues (missing models, not enough VRAM, etc.), just use a smaller model or disable the AI features.*
+6. **Ask questions, get explanations, and explore science with LLMs running 100% locally.
 
 ---
 
@@ -138,6 +137,7 @@ cd The-Science-Hub
 ![Main window](screenshots/main_window.png)
 ![Gallery](screenshots/screenshot_gallery.png)
 ![Science Library](screenshots/screenshot_library.png)
+![AI Assistant](screenshots/AI.png)
 
 ---
 

@@ -3,13 +3,11 @@ from tkinter import ttk
 import json
 import utils
 import os
-from gallery import GalleryTool
-from ai_assistant import open_ai_assistant
+from gallery import GalleryViewer
 
 from utils import log_event
 from chain_mode import open_chain_mode  
 from mol_assembler import open_molecule_assembler
-from library import ScienceLibrary
 
 # Tool category hubs
 from bio_tools_1 import open_bio_tools_hub
@@ -86,6 +84,29 @@ def initialize_gui():
         root.title("The Science Hub")
         root.geometry("1000x700")
         root.configure(bg="#f4f4f4")
+
+def launch_openalex_browser():
+    script_path = os.path.join(os.path.dirname(__file__), "openalex_browser.py")
+    subprocess.Popen([sys.executable, script_path])
+
+def launch_molecule_library():
+    import os
+    import subprocess
+    script_path = os.path.join(os.path.dirname(__file__), "molecule_library.py")
+    subprocess.Popen([sys.executable, script_path])
+
+def launch_gallery():
+    import os
+    import subprocess
+    script_path = os.path.join(os.path.dirname(__file__), "gallery.py")
+    subprocess.Popen([sys.executable, script_path])
+
+def launch_library():
+    import os
+    import subprocess
+    script_path = os.path.join(os.path.dirname(__file__), "library.py")
+    subprocess.Popen([sys.executable, script_path])
+
 
 # ----------------- UTILITY FUNCTIONS -----------------
 
@@ -260,12 +281,6 @@ def open_log():
 
     refresh_log()
 
-# ----------------- LIBRARY ------------------------
-
-def open_science_library():
-    initialize_gui()
-    ScienceLibrary(root)
-
 # ----------------- EXPORT LOG ---------------------
 
 def export_log_to_md():
@@ -366,8 +381,6 @@ def launch_tool(selection):
         open_bio_tools_hub()
     elif selection == "Chemistry Tools":
         open_chemistry_tools_hub()
-    elif selection == "Science Library":
-        open_science_library()
 
 
     #------------------ Define ----------------------
@@ -610,8 +623,12 @@ tools = [
     ("Export Log", export_log_to_md),
     ("Window Manager", show_window_manager),
     ("Chain Mode", lambda: open_chain_mode(chainable_tools)),
-    ("Gallery", lambda: GalleryTool(root)),
-    ("AI Assistant", launch_ai_assistant_subprocess)
+    ("Gallery", launch_gallery),
+    ("AI Assistant", launch_ai_assistant_subprocess),
+    ("OpenAlex Browser", launch_openalex_browser),
+    ("Molecule Library", launch_molecule_library),
+    ("Science Library", launch_library),
+
 ]
 
 for text, func in tools:
@@ -663,8 +680,7 @@ tool_registry = {
     "pH Calculator": open_ph_calculator,
     "Population Growth Calculator": open_population_growth_calculator,
     "Plate Velocity Calculator": open_plate_velocity_calculator,
-    "Gallery": lambda: GalleryTool(root),
-    "Library": lambda: ScienceLibrary(root),
+    "Gallery": lambda: GalleryViewer(root),
     #"Geology Model Tool": open_geo_model_tool <-- Commented out, because the FRICKING TOOL WONT WORK AND I WORKED ON IT FOR AN HOUR WITHOUT RESULTS AAAAAHHHH
     "Reverse Complement Tool": open_reverse_complement_tool,
     "DNA to Protein Tool": open_translate_dna_tool,
@@ -672,6 +688,11 @@ tool_registry = {
     "Sequence File Parser": open_seq_file_parser_tool,
     "Pairwise Alignment Tool": open_pairwise_align_tool,
 } 
+
+tool_registry["OpenAlex Browser"] = launch_openalex_browser
+tool_registry["Molecule Library"] = launch_molecule_library
+tool_registry["Science Library"] = launch_library
+
 
 # AI Model Launchers (for global launcher integration)
 from utils import smart_launch

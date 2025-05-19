@@ -4,6 +4,12 @@ import os
 # Map of tool names to functions that accept preload input
 CHAINABLE_TOOLS = {}  # ← leave this empty, it'll be injected
 
+import datetime
+
+def log_chain(text):
+    with open("chainmode_log.txt", "a", encoding="utf-8") as f:
+        f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {text}\n")
+
 def get_recent_log_outputs(log_path="calchub_log.txt", limit=20):
     if not os.path.exists(log_path):
         return []

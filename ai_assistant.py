@@ -9,6 +9,8 @@ import re
 import markdown2
 import json
 import os
+from PyQt6.QtGui import QTextCursor  # at the top if not already
+
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 OLLAMA_MODELS = [
@@ -89,7 +91,8 @@ def load_tool_knowledge():
 class OllamaWorker(QThread):
     response_ready = pyqtSignal(str)
     error = pyqtSignal(str)
-    model_missing = pyqtSignal(str)  # signal to request model download from UI
+    model_missing = pyqtSignal(str)
+    partial_response = pyqtSignal(str)  # new signal for live typing output
 
     def __init__(self, messages, model, mode_idx):
         super().__init__()
@@ -114,21 +117,25 @@ class OllamaWorker(QThread):
 
         payload = {"model": self.model, "messages": ollama_messages}
         try:
-            resp = requests.post(OLLAMA_URL, json=payload, timeout=120)
+            resp = requests.post(OLLAMA_URL, json=payload, stream=True, timeout=120)
             resp.raise_for_status()
-            content = resp.content.decode("utf-8").strip()
-            lines = content.splitlines()
+
             reply_chunks = []
-            for line in lines:
+            for line in resp.iter_lines(decode_unicode=True):
                 if line.strip():
-                    data = json.loads(line)
-                    part = data.get("message", {}).get("content", "")
-                    reply_chunks.append(part)
-            reply = "".join(reply_chunks).strip() or "No response."
-            self.response_ready.emit(reply)
+                    try:
+                        data = json.loads(line)
+                        part = data.get("message", {}).get("content", "")
+                        if part:
+                            self.partial_response.emit(part)
+                            reply_chunks.append(part)
+                    except json.JSONDecodeError:
+                        continue  # skip malformed chunks
+
+            full_reply = "".join(reply_chunks).strip() or "No response."
+            self.response_ready.emit(full_reply)
 
         except requests.exceptions.HTTPError as e:
-            # If model is missing, Ollama returns a 400 with a specific error
             if e.response is not None:
                 try:
                     err_msg = e.response.text.lower()
@@ -143,10 +150,7 @@ class OllamaWorker(QThread):
             self.error.emit(f"HTTP Error: {e}\nServer said: {short}")
 
         except Exception as e:
-            # All other errors (network, timeout, etc.)
             self.error.emit(f"Unhandled error: {e}")
-
-
 
 class AIAssistantWindow(QWidget):
     def __init__(self):
@@ -204,24 +208,26 @@ class AIAssistantWindow(QWidget):
         self.token_label.setStyleSheet("font-size: 12px;")
         main_layout.addWidget(self.token_label)
 
+                # Input and send button layout
+        input_layout = QHBoxLayout()
+        self.input = QLineEdit()
+        self.input.setPlaceholderText("Type your question here and press Enter...")
+        self.input.returnPressed.connect(self.send)
+        input_layout.addWidget(self.input)
+
+        self.send_btn = QPushButton("Send")
+        self.send_btn.clicked.connect(self.send)
+        input_layout.addWidget(self.send_btn)
+
+        main_layout.addLayout(input_layout)
+
+
 
         # Chat display
         from PyQt6.QtWidgets import QTextBrowser
         self.chatbox = QTextBrowser()
         self.chatbox.setReadOnly(True)
         main_layout.addWidget(self.chatbox)
-
-
-        # Input and send button
-        input_layout = QHBoxLayout()
-        self.input = QLineEdit()
-        self.input.setPlaceholderText("Type your question here and press Enter...")
-        self.input.returnPressed.connect(self.send)
-        input_layout.addWidget(self.input)
-        self.send_btn = QPushButton("Send")
-        self.send_btn.clicked.connect(self.send)
-        input_layout.addWidget(self.send_btn)
-        main_layout.addLayout(input_layout)
 
     def prompt_model_download(self, model_name):
         reply = QMessageBox.question(
@@ -246,15 +252,24 @@ class AIAssistantWindow(QWidget):
         self.update_chat()
         self.send_btn.setDisabled(True)
         self.input.setDisabled(True)
+
         self.worker = OllamaWorker(
             self.messages,
             self.model_picker.currentText(),
             self.mode_selector.currentIndex()
         )
+        self.worker.partial_response.connect(self.append_partial)  # move it here!
         self.worker.response_ready.connect(self.receive)
         self.worker.error.connect(self.handle_error)
         self.worker.model_missing.connect(self.prompt_model_download)
         self.worker.start()
+            
+    def append_partial(self, chunk):
+        cursor = self.chatbox.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        cursor.insertText(chunk)
+        self.chatbox.setTextCursor(cursor)
+
     
     @staticmethod
     def remove_emojis(text):

@@ -89,6 +89,8 @@ def load_tool_knowledge():
 class OllamaWorker(QThread):
     response_ready = pyqtSignal(str)
     error = pyqtSignal(str)
+    model_missing = pyqtSignal(str)  # signal to request model download from UI
+
     def __init__(self, messages, model, mode_idx):
         super().__init__()
         self.messages = messages
@@ -114,9 +116,7 @@ class OllamaWorker(QThread):
         try:
             resp = requests.post(OLLAMA_URL, json=payload, timeout=120)
             resp.raise_for_status()
-            # Parse every line of the streamed JSON response and join all content
             content = resp.content.decode("utf-8").strip()
-            import json  # make sure this is at the top of your file too
             lines = content.splitlines()
             reply_chunks = []
             for line in lines:
@@ -126,8 +126,26 @@ class OllamaWorker(QThread):
                     reply_chunks.append(part)
             reply = "".join(reply_chunks).strip() or "No response."
             self.response_ready.emit(reply)
+
+        except requests.exceptions.HTTPError as e:
+            # If model is missing, Ollama returns a 400 with a specific error
+            if e.response is not None:
+                try:
+                    err_msg = e.response.text.lower()
+                    if "not found" in err_msg and "model" in err_msg:
+                        self.model_missing.emit(self.model)
+                        return
+                    short = err_msg[:200]
+                except Exception:
+                    short = "<unable to read error text>"
+            else:
+                short = "<no response object>"
+            self.error.emit(f"HTTP Error: {e}\nServer said: {short}")
+
         except Exception as e:
-            self.error.emit(f"JSON Parse Error: {e}\nRaw response: {resp.text[:200]}")
+            # All other errors (network, timeout, etc.)
+            self.error.emit(f"Unhandled error: {e}")
+
 
 
 class AIAssistantWindow(QWidget):
@@ -205,6 +223,20 @@ class AIAssistantWindow(QWidget):
         input_layout.addWidget(self.send_btn)
         main_layout.addLayout(input_layout)
 
+    def prompt_model_download(self, model_name):
+        reply = QMessageBox.question(
+            self,
+            "Model Not Found",
+            f"The model '{model_name}' is not installed.\nDo you want to download it now?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            import subprocess
+            subprocess.run(["ollama", "pull", model_name])
+            QMessageBox.information(self, "Download Complete", f"Model '{model_name}' installed.\nTry again.")
+        else:
+            self.handle_error(f"Model '{model_name}' not installed.")
+
     def send(self):
         user_msg = self.input.text().strip()
         if not user_msg:
@@ -221,6 +253,7 @@ class AIAssistantWindow(QWidget):
         )
         self.worker.response_ready.connect(self.receive)
         self.worker.error.connect(self.handle_error)
+        self.worker.model_missing.connect(self.prompt_model_download)
         self.worker.start()
     
     @staticmethod

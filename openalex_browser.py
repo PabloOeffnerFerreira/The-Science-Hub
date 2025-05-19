@@ -159,8 +159,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     window = OpenAlexBrowser()
     window.show()
-<<<<<<< HEAD
     sys.exit(app.exec())
-=======
-    sys.exit(app.exec())
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

@@ -67,8 +67,3 @@ def log_event(tool, input_value, output_value):
             f.write(line)
     except Exception as e:
         print("Logging failed:", e)
-<<<<<<< HEAD
- 
-=======
- 
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

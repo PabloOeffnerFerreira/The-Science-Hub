@@ -257,8 +257,4 @@ def open_population_growth_calculator():
     dlg = PopDialog()
     dlg.show()
     _open_dialogs.append(dlg)
-<<<<<<< HEAD
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-=======
-    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

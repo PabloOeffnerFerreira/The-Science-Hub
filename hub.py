@@ -14,6 +14,8 @@ _hidden_tk_root = tk.Tk()
 _hidden_tk_root.withdraw()
 
 import toolkits
+from coder import open_coder
+
 
 TOOLKIT_LAUNCHERS = {
     "Math": toolkits.open_math_tools_hub,
@@ -140,7 +142,8 @@ class ScienceHub(QMainWindow):
             ("OpenAlex Browser", utilities.launch_openalex_browser),
             ("Molecule Library", utilities.launch_molecule_library),
             ("Science Library", utilities.launch_library),
-            ("Settings", utilities.open_settings)
+            ("Settings", utilities.open_settings),
+            ("Code Editor", open_coder),
         ]
 
         for label, func in util_buttons:

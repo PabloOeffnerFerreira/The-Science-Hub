@@ -81,6 +81,7 @@ library_entries/wave_speed.json
 library_entries/work.json
 results/shell_C_2025-05-17_12-53-11.ps
 exports/chats/chat1.txt
+<<<<<<< HEAD
 calchub_log.txt
 exports/chats/chat3.txt
 exports/chats/chat2.txt
@@ -92,3 +93,5 @@ LICENSE
 mineral_favorites.json
 LICENSE
 calchub_log.txt
+=======
+>>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

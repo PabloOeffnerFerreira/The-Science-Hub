@@ -152,4 +152,8 @@ def open_element_viewer():
 
     dlg = ElementViewerDialog()
     dlg.exec()
+<<<<<<< HEAD
     
+=======
+    
+>>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

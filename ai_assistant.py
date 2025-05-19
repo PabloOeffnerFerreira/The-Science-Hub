@@ -55,6 +55,15 @@ MODE_PROMPTS = [
     ""
 ]
 
+import tiktoken
+
+def estimate_tokens(messages, model="gpt-3.5-turbo"):  # Works with GPT-style models
+    enc = tiktoken.encoding_for_model(model)
+    total = 0
+    for role, msg in messages:
+        total += len(enc.encode(role)) + len(enc.encode(msg)) + 4
+    return total
+
 def load_tool_knowledge():
     try:
         with open("knowledge.json", "r", encoding="utf-8") as f:
@@ -63,20 +72,19 @@ def load_tool_knowledge():
             tools = knowledge.get("tools", {})
 
             intro = (
-                f"You are the local AI assistant for Science Hub, a modular science platform created by {about.get('creator', 'an unknown user')}.\n"
-                f"The first tool developed was a terminal velocity and fall time calculator.\n"
-                f"Your purpose is to help users explore, explain, and apply scientific knowledge using the tools available inside the app.\n\n"
-                f"Design goals:\n- " + "\n- ".join(about.get("goals", [])) + "\n\n"
-                f"Core features:\n- " + "\n- ".join(about.get("features", [])) + "\n\n"
-                f"You should suggest specific tools by name when relevant. Never invent tools. Never simulate tool output. Always remain concise and relevant.\n\n"
-                f"The registered tools are:\n"
+                f"You are the local AI assistant for Science Hub, a modular offline science platform created by {about.get('creator', 'Pablo Oeffner Ferreira')}.\n"
+                f"Do not describe the app or its tools unless the user directly asks about them.\n"
+                f"Do not advertise, explain, or summarize Science Hub unless prompted.\n"
+                f"Your job is to assist with science, coding, and reasoning. If a tool could help with a user’s question, you may briefly mention it by name—but only when clearly relevant.\n\n"
+                f"If the user just says hello or greets you casually, respond briefly and do not explain anything unless asked.\n\n"
+                f"The following tools are registered in Science Hub (you may refer to them *only when necessary*):\n"
             )
 
             tool_summary = "\n".join(f"- {name}: {desc}" for name, desc in tools.items())
 
             return intro + tool_summary
     except Exception as e:
-        return "You're a helpful assistant inside Science Hub."
+        return "You are the AI assistant for Science Hub. Tool knowledge is unavailable."
 
 class OllamaWorker(QThread):
     response_ready = pyqtSignal(str)
@@ -168,6 +176,17 @@ class AIAssistantWindow(QWidget):
 
         main_layout.addLayout(top_layout)
 
+        # Load Chat Button
+        self.load_btn = QPushButton("Load Chat")
+        self.load_btn.clicked.connect(self.load_chat)
+        top_layout.addWidget(self.load_btn)
+
+        # Token counter
+        self.token_label = QLabel("Tokens: 0")
+        self.token_label.setStyleSheet("font-size: 12px;")
+        main_layout.addWidget(self.token_label)
+
+
         # Chat display
         from PyQt6.QtWidgets import QTextBrowser
         self.chatbox = QTextBrowser()
@@ -244,6 +263,17 @@ class AIAssistantWindow(QWidget):
 
 
         self.chatbox.verticalScrollBar().setValue(self.chatbox.verticalScrollBar().maximum())
+        tokens = estimate_tokens(self.messages)
+        self.token_label.setText(f"Tokens: {tokens}")
+
+        if tokens > 7000:
+            self.token_label.setStyleSheet("color: red; font-size: 12px;")
+        elif tokens > 3500:
+            self.token_label.setStyleSheet("color: orange; font-size: 12px;")
+        else:
+            self.token_label.setStyleSheet("color: black; font-size: 12px;")
+
+
 
     def save_chat(self):
         filename, _ = QFileDialog.getSaveFileName(self, "Save Chat Log", "", "Text Files (*.txt)")
@@ -256,6 +286,36 @@ class AIAssistantWindow(QWidget):
     def clear_chat(self):
         self.messages = []
         self.update_chat()
+
+    def load_chat(self):
+        filename, _ = QFileDialog.getOpenFileName(self, "Load Chat Log", "", "Text Files (*.txt)")
+        if filename:
+            with open(filename, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+
+            messages = []
+            current_role = None
+            buffer = []
+            for line in lines:
+                line = line.strip()
+                if line == "You:":
+                    if buffer and current_role:
+                        messages.append((current_role, "\n".join(buffer)))
+                    current_role = "user"
+                    buffer = []
+                elif line == "AI:":
+                    if buffer and current_role:
+                        messages.append((current_role, "\n".join(buffer)))
+                    current_role = "ai"
+                    buffer = []
+                else:
+                    buffer.append(line)
+
+            if buffer and current_role:
+                messages.append((current_role, "\n".join(buffer)))
+
+            self.messages = messages
+            self.update_chat()
 
 def open_ai_assistant(parent=None):
     app = QApplication.instance()

@@ -1695,39 +1695,176 @@ def open_force_calculator():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
+)
+from PyQt6.QtGui import QRegularExpressionValidator
+from PyQt6.QtCore import QRegularExpression
+from data_utils import log_event, _open_dialogs
+import numpy as np
 
 def open_kinetic_energy_calculator():
     class KEnergyDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Kinetic Energy Calculator")
+            self.setMinimumWidth(400)
             layout = QVBoxLayout(self)
-            self.mass = QLineEdit()
-            self.velocity = QLineEdit()
-            row1 = QHBoxLayout()
-            row1.addWidget(QLabel("Mass (kg):"))
-            row1.addWidget(self.mass)
-            row2 = QHBoxLayout()
-            row2.addWidget(QLabel("Velocity (m/s):"))
-            row2.addWidget(self.velocity)
-            layout.addLayout(row1)
-            layout.addLayout(row2)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-            btn = QPushButton("Calculate")
-            btn.clicked.connect(self.compute)
-            layout.addWidget(btn)
-            self.setMinimumWidth(300)
+
+            self.mass_units = ["kg", "g", "lb"]
+            self.velocity_units = ["m/s", "km/h", "mph"]
+
+            decimal_regex = QRegularExpression(r"[0-9]*\.?[0-9]*")
+            validator = QRegularExpressionValidator(decimal_regex)
+
+            self.mass_edit = QLineEdit("1")
+            self.mass_edit.setValidator(validator)
+            self.mass_unit = QComboBox()
+            self.mass_unit.addItems(self.mass_units)
+            self.mass_unit.setCurrentText("kg")
+
+            self.velocity_edit = QLineEdit("10")
+            self.velocity_edit.setValidator(validator)
+            self.velocity_unit = QComboBox()
+            self.velocity_unit.addItems(self.velocity_units)
+            self.velocity_unit.setCurrentText("m/s")
+
+            def create_row(label, edit, unit):
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(edit)
+                row.addWidget(unit)
+                return row
+
+            layout.addLayout(create_row("Mass:", self.mass_edit, self.mass_unit))
+            layout.addLayout(create_row("Velocity:", self.velocity_edit, self.velocity_unit))
+
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+
+            btn_layout = QHBoxLayout()
+            self.calc_btn = QPushButton("Calculate")
+            self.clear_btn = QPushButton("Clear")
+            btn_layout.addWidget(self.calc_btn)
+            btn_layout.addWidget(self.clear_btn)
+            layout.addLayout(btn_layout)
+
+            self.figure = plt.figure(figsize=(5, 3))
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            self.last_mass_unit = self.mass_unit.currentText()
+            self.last_velocity_unit = self.velocity_unit.currentText()
+            self.updating = False
+
+            self.mass_unit.currentIndexChanged.connect(
+                lambda idx: self.on_mass_unit_changed(self.mass_unit.currentText())
+            )
+            self.velocity_unit.currentIndexChanged.connect(
+                lambda idx: self.on_velocity_unit_changed(self.velocity_unit.currentText())
+            )
+            self.calc_btn.clicked.connect(self.compute)
+            self.clear_btn.clicked.connect(self.clear_all)
+
+        def convert_to_kg(self, val, unit):
+            if unit == "g":
+                return val / 1000
+            elif unit == "lb":
+                return val * 0.453592
+            return val
+
+        def convert_from_kg(self, val, unit):
+            if unit == "g":
+                return val * 1000
+            elif unit == "lb":
+                return val / 0.453592
+            return val
+
+        def convert_to_m_s(self, val, unit):
+            if unit == "km/h":
+                return val / 3.6
+            elif unit == "mph":
+                return val * 0.44704
+            return val
+
+        def convert_from_m_s(self, val, unit):
+            if unit == "km/h":
+                return val * 3.6
+            elif unit == "mph":
+                return val / 0.44704
+            return val
+
+        def format_clean(self, val):
+            if val.is_integer():
+                return str(int(val))
+            else:
+                return f"{val:.6g}"
+
+        def _update_value_on_unit_change(self, line_edit, old_unit, new_unit, to_base_func, from_base_func):
+            try:
+                val = float(line_edit.text())
+            except ValueError:
+                return
+            base_val = to_base_func(val, old_unit)
+            new_val = from_base_func(base_val, new_unit)
+            line_edit.setText(self.format_clean(new_val))
+
+        def on_mass_unit_changed(self, new_unit):
+            if self.updating:
+                return
+            self.updating = True
+            self._update_value_on_unit_change(self.mass_edit, self.last_mass_unit, new_unit, self.convert_to_kg, self.convert_from_kg)
+            self.last_mass_unit = new_unit
+            self.updating = False
+
+        def on_velocity_unit_changed(self, new_unit):
+            if self.updating:
+                return
+            self.updating = True
+            self._update_value_on_unit_change(self.velocity_edit, self.last_velocity_unit, new_unit, self.convert_to_m_s, self.convert_from_m_s)
+            self.last_velocity_unit = new_unit
+            self.updating = False
+
         def compute(self):
             try:
-                m = float(self.mass.text())
-                v = float(self.velocity.text())
-                KE = 0.5 * m * v**2
-                self.result.setText(f"Kinetic Energy = {KE:.3f} J")
-                log_event("Kinetic Energy Calculator", f"m={m}, v={v}", KE)
+                m = float(self.mass_edit.text())
+                v = float(self.velocity_edit.text())
+
+                m_kg = self.convert_to_kg(m, self.mass_unit.currentText())
+                v_m_s = self.convert_to_m_s(v, self.velocity_unit.currentText())
+
+                KE = 0.5 * m_kg * v_m_s**2
+                self.result_label.setText(f"Kinetic Energy = {KE:.3f} J")
+                log_event("Kinetic Energy Calculator", f"m={m} {self.mass_unit.currentText()}, v={v} {self.velocity_unit.currentText()}", KE)
+
+                # Plot KE vs Velocity for fixed mass +/-50%
+                self.figure.clear()
+                ax = self.figure.add_subplot(111)
+                velocities = np.linspace(v_m_s * 0.5, v_m_s * 1.5, 100)
+                KE_values = 0.5 * m_kg * velocities**2
+                ax.plot(velocities, KE_values, label=f"Mass = {m_kg:.3f} kg")
+                ax.scatter([v_m_s], [KE], color='red', label="Current Value")
+                ax.set_xlabel("Velocity (m/s)")
+                ax.set_ylabel("Kinetic Energy (J)")
+                ax.set_title("Kinetic Energy vs Velocity")
+                ax.legend()
+                ax.grid(True)
+                self.canvas.draw()
+
             except Exception as e:
-                self.result.setText(f"Error: {e}")
+                self.result_label.setText(f"Error: {e}")
+
+        def clear_all(self):
+            self.mass_edit.setText("1")
+            self.mass_unit.setCurrentText("kg")
+            self.velocity_edit.setText("10")
+            self.velocity_unit.setCurrentText("m/s")
+            self.result_label.clear()
+            self.figure.clear()
+            self.canvas.draw()
+
     dlg = KEnergyDialog()
     dlg.show()
     _open_dialogs.append(dlg)

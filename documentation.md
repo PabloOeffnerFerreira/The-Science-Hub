@@ -321,3 +321,33 @@ Each input is paired with a unit dropdown. Results display below inputs. Buttons
 ---
 
 ![Force Calculator](screenshots/screenshot_force.png)
+
+## Kinetic Energy Calculator
+
+Calculates kinetic energy using the formula:
+
+\[
+KE = \frac{1}{2} m v^2
+\]
+
+where \( m \) is mass and \( v \) is velocity.
+
+### Features
+
+- Inputs for mass and velocity with unit selectors:
+  - Mass units: kilograms (kg), grams (g), pounds (lb)  
+  - Velocity units: meters per second (m/s), kilometers per hour (km/h), miles per hour (mph)  
+- Automatic unit conversions to SI units for calculation  
+- Input validation allowing decimal numbers only  
+- Clear and Calculate buttons  
+- Displays kinetic energy in joules (J) formatted to three decimals  
+- Logs inputs and results for reproducibility  
+- Interactive matplotlib plot showing kinetic energy vs velocity for a fixed mass, highlighting the current input value  
+
+### User Interface
+
+Input fields are paired with dropdown selectors for units. The result is displayed below inputs. Buttons for calculation and clearing are provided. The plot dynamically updates after each calculation.
+
+---
+
+![Kinetic Energy Calculator](screenshots/screenshot_ke.png)

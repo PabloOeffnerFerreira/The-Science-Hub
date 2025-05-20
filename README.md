@@ -24,7 +24,8 @@ You can simulate phenomena, solve problems in physics, chemistry, biology, geolo
 - **Full Integration:** All tools, results, and references are connected—save, share, export, and retrieve your discoveries with ease.
 - **Chain Mode:** Tools can pass outputs directly between each other to build custom workflows.
 - **Modern Interface:** Fully redesigned in PyQt6 with unified layouts, reliable error handling, smart filtering and a persistent dark theme.
-- 
+- **Code Editor:** Write, run, and test Python code with syntax highlighting, embedded terminal, and offline AI code generation using Qwen models.
+
 ---
 
 ## Included Tools

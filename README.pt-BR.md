@@ -22,7 +22,7 @@ Você pode simular fenômenos, resolver problemas de física, química, biologia
 - **Integração Total:** Todas as ferramentas, resultados e referências se conectam — salve, compartilhe, exporte, e recupere suas descobertas facilmente.
 - **Chain Mode:** As ferramentas podem enviar resultados diretamente umas às outras para montar fluxos automáticos.
 - **Interface Moderna:** Totalmente redesenhada em PyQt6, com suporte ao Chain Mode, tratamento de erros estável, filtros inteligentes e tema escuro persistente.
-
+- **Editor de Código:** Escreva, execute e teste códigos Python com destaque de sintaxe, terminal integrado e geração de código offline com modelos Qwen.
 ---
 
 ## Ferramentas Incluídas

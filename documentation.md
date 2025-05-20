@@ -71,7 +71,7 @@ The converter supports a broad range of unit categories including but not limite
 
 ---
 
-![Unit Converter for Pressure](screenshots/screenshot_unit_converter.py)
+![Unit Converter for Pressure](screenshots/screenshot_unit_converter.png)
 
 ---
 

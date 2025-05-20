@@ -431,3 +431,27 @@ Clean and simple interface with labeled input, a “Draw & Save” button, a sta
 ---
 
 ![Shell Visualiser](screenshots/screenshot_sv.png)
+
+## Phase Predictor
+
+Predicts the phase (solid, liquid, gas) of an element at a given temperature and pressure based on melting and boiling points.
+
+### Features
+
+- Input element symbol with auto-capitalization and validation  
+- Temperature input accepts °C, °F, or K with optional unit suffix (e.g., 25, 77F, 300K)  
+- Optional pressure input in atmospheres (atm), defaulting to 1 atm  
+- Uses melting and boiling point data from periodic table database (in Kelvin)  
+- Color-coded predicted phase display for easy interpretation  
+- Rich text output with melting/boiling points and phase prediction  
+- Robust input validation with clear error messages  
+- Logs all inputs and predictions for traceability  
+- Simple, clean PyQt6 interface with helpful placeholders and labels
+
+### Usage
+
+Enter an element symbol and temperature with optional unit suffix, optionally specify pressure, then click “Check Phase” to see the predicted phase.
+
+---
+
+![Phase Predictor](screenshots/screenshot_pp.png)

@@ -453,11 +453,31 @@ def open_shell_visualizer(preload=None):
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-
+import re
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
+    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QHBoxLayout
 )
+from data_utils import load_element_data, log_event, _open_dialogs
+
+def parse_temperature(text):
+    text = text.strip().lower()
+    m = re.match(r'^([-+]?\d*\.?\d+)\s*([cfk]?)$', text)
+    if not m:
+        raise ValueError("Invalid temperature format")
+    value, unit = m.groups()
+    value = float(value)
+    unit = unit if unit else 'c'
+    return value, unit
+
+def to_kelvin(value, unit):
+    if unit == 'c':
+        return value + 273.15
+    elif unit == 'f':
+        return (value - 32) * 5/9 + 273.15
+    elif unit == 'k':
+        return value
+    else:
+        raise ValueError("Unknown temperature unit")
 
 def open_phase_predictor(preload=None):
     class PhaseDialog(QDialog):
@@ -467,17 +487,25 @@ def open_phase_predictor(preload=None):
             self.data = load_element_data()
             self.setMinimumWidth(360)
             layout = QVBoxLayout(self)
+
             layout.addWidget(QLabel("Element Symbol:"))
             self.sym_entry = QLineEdit()
             layout.addWidget(self.sym_entry)
 
-            layout.addWidget(QLabel("Temperature (°C):"))
+            layout.addWidget(QLabel("Temperature (°C, °F, or K, e.g. 25, 77F, 300K):"))
             self.temp_entry = QLineEdit()
             self.temp_entry.setText("25")
             layout.addWidget(self.temp_entry)
 
+            layout.addWidget(QLabel("Pressure (atm, optional):"))
+            self.pressure_entry = QLineEdit()
+            self.pressure_entry.setPlaceholderText("Default: 1 atm")
+            layout.addWidget(self.pressure_entry)
+
             self.result = QLabel("")
+            self.result.setWordWrap(True)
             layout.addWidget(self.result)
+
             btn = QPushButton("Check Phase")
             btn.clicked.connect(self.predict)
             layout.addWidget(btn)
@@ -487,36 +515,53 @@ def open_phase_predictor(preload=None):
                 log_event("Phase Predictor (Chain)", preload, "Waiting for check")
 
         def predict(self):
-            sym = self.sym_entry.text().strip()
+            sym = self.sym_entry.text().strip().capitalize()
+            temp_text = self.temp_entry.text()
+            pressure_text = self.pressure_entry.text().strip()
             try:
-                temp_c = float(self.temp_entry.text())
-            except Exception:
-                self.result.setText("Enter a valid temperature.")
+                temp_val, temp_unit = parse_temperature(temp_text)
+                temp_k = to_kelvin(temp_val, temp_unit)
+            except Exception as e:
+                self.result.setText(f"<span style='color:red'>Enter a valid temperature. ({e})</span>")
                 return
+
             try:
-                el = self.data[sym]
-                melt = el.get("MeltingPoint") or el.get("melt")
-                boil = el.get("BoilingPoint") or el.get("boil")
-                if melt is None or boil is None:
-                    msg = "No data available."
-                    self.result.setText(msg)
-                    log_event("Phase Predictor", sym, msg)
-                    return
-                temp_k = temp_c + 273.15
-                msg = f"Melting point: {melt} K<br>Boiling point: {boil} K<br>"
-                if temp_k < melt:
-                    phase = "solid"
-                elif melt <= temp_k < boil:
-                    phase = "liquid"
-                else:
-                    phase = "gas"
-                msg += f"<b>Predicted phase at {temp_c:.1f}°C: {phase}</b>"
-                self.result.setText(msg)
-                log_event("Phase Predictor", f"{sym}, {temp_c}°C", msg)
+                pressure = float(pressure_text) if pressure_text else 1.0
             except Exception:
-                msg = "Invalid input or element not found."
+                self.result.setText("<span style='color:red'>Invalid pressure input. Defaulting to 1 atm.</span>")
+                pressure = 1.0
+
+            if sym not in self.data:
+                self.result.setText(f"<span style='color:red'>Element symbol '{sym}' not found.</span>")
+                return
+
+            el = self.data[sym]
+            melt = el.get("MeltingPoint") or el.get("melt")
+            boil = el.get("BoilingPoint") or el.get("boil")
+
+            if melt is None or boil is None:
+                msg = "No melting or boiling point data available."
                 self.result.setText(msg)
                 log_event("Phase Predictor", sym, msg)
+                return
+
+            # Here pressure is not yet used for phase determination
+
+            phase_colors = {'solid': 'blue', 'liquid': 'orange', 'gas': 'red'}
+
+            msg = f"Melting point: {melt:.2f} K<br>Boiling point: {boil:.2f} K<br>"
+            if temp_k < melt:
+                phase = "solid"
+            elif melt <= temp_k < boil:
+                phase = "liquid"
+            else:
+                phase = "gas"
+
+            msg += f"<b>Predicted phase at {temp_val:.1f}°{temp_unit.upper()} and {pressure} atm: " \
+                   f"<span style='color:{phase_colors[phase]};'>{phase.capitalize()}</span></b>"
+
+            self.result.setText(msg)
+            log_event("Phase Predictor", f"{sym}, {temp_val} {temp_unit.upper()}, {pressure} atm", msg)
 
     dlg = PhaseDialog()
     dlg.show()

@@ -708,53 +708,230 @@ def open_projectile_motion_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
+)
+from PyQt6.QtGui import QRegularExpressionValidator
+from PyQt6.QtCore import QRegularExpression
+from data_utils import log_event, _open_dialogs
+
+
 def open_ohms_law_tool():
     class OhmDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Ohm's Law Calculator")
-            layout = QVBoxLayout(self)
-            self.voltage = QLineEdit()
-            self.current = QLineEdit()
-            self.resistance = QLineEdit()
-            layout.addWidget(QLabel("Enter two known values (leave one blank):"))
-            for label, edit in [
-                ("Voltage (V):", self.voltage),
-                ("Current (A):", self.current),
-                ("Resistance (Ω):", self.resistance)
-            ]:
+            self.setMinimumWidth(350)
+
+            main_layout = QVBoxLayout(self)
+            main_layout.addWidget(QLabel("Enter two known values (leave one blank):"))
+
+            # Units lists
+            self.voltage_units = ['V', 'mV', 'kV']
+            self.current_units = ['A', 'mA', 'kA']
+            self.resistance_units = ['Ω', 'mΩ', 'kΩ', 'MΩ']
+
+            # Input validators: allow digits and dot only
+            regex = QRegularExpression(r"[0-9]*\.?[0-9]*")
+            validator = QRegularExpressionValidator(regex)
+
+            # Voltage input + unit
+            self.voltage_edit = QLineEdit()
+            self.voltage_edit.setValidator(validator)
+            self.voltage_edit.setText("120")  # prefill simple number
+            self.voltage_unit = QComboBox()
+            self.voltage_unit.addItems(self.voltage_units)
+            self.voltage_unit.setCurrentText("V")
+
+            # Current input + unit
+            self.current_edit = QLineEdit()
+            self.current_edit.setValidator(validator)
+            self.current_edit.setText("20")
+            self.current_unit = QComboBox()
+            self.current_unit.addItems(self.current_units)
+            self.current_unit.setCurrentText("mA")
+
+            # Resistance input + unit
+            self.resistance_edit = QLineEdit()
+            self.resistance_edit.setValidator(validator)
+            self.resistance_edit.setText("")
+            self.resistance_unit = QComboBox()
+            self.resistance_unit.addItems(self.resistance_units)
+            self.resistance_unit.setCurrentText("Ω")
+
+            # Layout for each input
+            def create_row(label_text, edit, unit_combo):
                 row = QHBoxLayout()
-                row.addWidget(QLabel(label))
+                row.addWidget(QLabel(label_text))
                 row.addWidget(edit)
-                layout.addLayout(row)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-            btn = QPushButton("Solve")
-            btn.clicked.connect(self.solve)
-            layout.addWidget(btn)
-            self.setMinimumWidth(320)
-        def solve(self):
+                row.addWidget(unit_combo)
+                return row
+
+            main_layout.addLayout(create_row("Voltage:", self.voltage_edit, self.voltage_unit))
+            main_layout.addLayout(create_row("Current:", self.current_edit, self.current_unit))
+            main_layout.addLayout(create_row("Resistance:", self.resistance_edit, self.resistance_unit))
+
+            # Result display
+            self.result_label = QLabel("")
+            main_layout.addWidget(self.result_label)
+
+            # Buttons
+            btn_layout = QHBoxLayout()
+            self.solve_btn = QPushButton("Solve")
+            self.clear_btn = QPushButton("Clear")
+            btn_layout.addWidget(self.solve_btn)
+            btn_layout.addWidget(self.clear_btn)
+            main_layout.addLayout(btn_layout)
+
+            # Connect signals
+            self.solve_btn.clicked.connect(self.solve)
+            self.clear_btn.clicked.connect(self.clear_all)
+
+            # Track last units for conversion
+            self.last_voltage_unit = self.voltage_unit.currentText()
+            self.last_current_unit = self.current_unit.currentText()
+            self.last_resistance_unit = self.resistance_unit.currentText()
+
+            # Flag to prevent recursion on unit change
+            self.updating = False
+
+            # Connect unit changes
+            self.voltage_unit.currentTextChanged.connect(self.on_voltage_unit_changed)
+            self.current_unit.currentTextChanged.connect(self.on_current_unit_changed)
+            self.resistance_unit.currentTextChanged.connect(self.on_resistance_unit_changed)
+
+        # Unit conversion helpers
+        def convert_to_base(self, val, unit):
+            if unit == 'mV':
+                return val / 1000
+            if unit == 'kV':
+                return val * 1000
+            if unit == 'mA':
+                return val / 1000
+            if unit == 'kA':
+                return val * 1000
+            if unit == 'mΩ':
+                return val / 1000
+            if unit == 'kΩ':
+                return val * 1000
+            if unit == 'MΩ':
+                return val * 1e6
+            return val
+
+        def convert_from_base(self, val, unit):
+            if unit == 'mV':
+                return val * 1000
+            if unit == 'kV':
+                return val / 1000
+            if unit == 'mA':
+                return val * 1000
+            if unit == 'kA':
+                return val / 1000
+            if unit == 'mΩ':
+                return val * 1000
+            if unit == 'kΩ':
+                return val / 1000
+            if unit == 'MΩ':
+                return val / 1e6
+            return val
+
+        def format_clean(self, val):
+            if val.is_integer():
+                return str(int(val))
+            else:
+                return f"{val:.6g}"
+
+        # Handle unit changes properly converting the value
+        def _update_value_on_unit_change(self, edit, old_unit, new_unit):
             try:
-                V = self.voltage.text()
-                I = self.current.text()
-                R = self.resistance.text()
-                if V == '':
-                    V = float(I) * float(R)
-                    msg = f"Voltage = {V:.2f} V"
-                elif I == '':
-                    I = float(V) / float(R)
-                    msg = f"Current = {I:.2f} A"
-                elif R == '':
-                    R = float(V) / float(I)
-                    msg = f"Resistance = {R:.2f} Ω"
+                val = float(edit.text())
+            except ValueError:
+                return
+            base_val = self.convert_to_base(val, old_unit)
+            new_val = self.convert_from_base(base_val, new_unit)
+            edit.setText(self.format_clean(new_val))
+
+        def on_voltage_unit_changed(self, new_unit):
+            if self.updating:
+                return
+            self.updating = True
+            self._update_value_on_unit_change(self.voltage_edit, self.last_voltage_unit, new_unit)
+            self.last_voltage_unit = new_unit
+            self.updating = False
+
+        def on_current_unit_changed(self, new_unit):
+            if self.updating:
+                return
+            self.updating = True
+            self._update_value_on_unit_change(self.current_edit, self.last_current_unit, new_unit)
+            self.last_current_unit = new_unit
+            self.updating = False
+
+        def on_resistance_unit_changed(self, new_unit):
+            if self.updating:
+                return
+            self.updating = True
+            self._update_value_on_unit_change(self.resistance_edit, self.last_resistance_unit, new_unit)
+            self.last_resistance_unit = new_unit
+            self.updating = False
+
+        def solve(self):
+            # Grab inputs safely
+            try:
+                V_str = self.voltage_edit.text()
+                I_str = self.current_edit.text()
+                R_str = self.resistance_edit.text()
+
+                V = None if V_str == "" else float(V_str)
+                I = None if I_str == "" else float(I_str)
+                R = None if R_str == "" else float(R_str)
+
+                # Check how many are provided
+                provided = sum(x is not None for x in [V, I, R])
+                if provided != 2:
+                    self.result_label.setText("Please fill exactly two fields.")
+                    return
+
+                # Convert all inputs to base units
+                if V is not None:
+                    V_base = self.convert_to_base(V, self.voltage_unit.currentText())
+                if I is not None:
+                    I_base = self.convert_to_base(I, self.current_unit.currentText())
+                if R is not None:
+                    R_base = self.convert_to_base(R, self.resistance_unit.currentText())
+
+                # Calculate missing value in base units
+                if V is None:
+                    V_base = I_base * R_base
+                    V_out = self.convert_from_base(V_base, self.voltage_unit.currentText())
+                    msg = f"Voltage = {self.format_clean(V_out)} {self.voltage_unit.currentText()}"
+                elif I is None:
+                    I_base = V_base / R_base
+                    I_out = self.convert_from_base(I_base, self.current_unit.currentText())
+                    msg = f"Current = {self.format_clean(I_out)} {self.current_unit.currentText()}"
+                elif R is None:
+                    R_base = V_base / I_base
+                    R_out = self.convert_from_base(R_base, self.resistance_unit.currentText())
+                    msg = f"Resistance = {self.format_clean(R_out)} {self.resistance_unit.currentText()}"
                 else:
                     msg = "Leave one field empty."
-                self.result.setText(msg)
-                log_event("Ohm's Law", f"V={self.voltage.text()}, I={self.current.text()}, R={self.resistance.text()}", msg)
+
+                self.result_label.setText(msg)
+                log_event("Ohm's Law",
+                          f"V={V_str} {self.voltage_unit.currentText()}, "
+                          f"I={I_str} {self.current_unit.currentText()}, "
+                          f"R={R_str} {self.resistance_unit.currentText()}", msg)
+
             except Exception:
-                msg = "Invalid input."
-                self.result.setText(msg)
-                log_event("Ohm's Law", f"V={self.voltage.text()}, I={self.current.text()}, R={self.resistance.text()}", msg)
+                self.result_label.setText("Invalid input.")
+                log_event("Ohm's Law", "error", "Invalid input.")
+
+        def clear_all(self):
+            self.voltage_edit.setText("120")
+            self.current_edit.setText("20")
+            self.resistance_edit.clear()
+            self.result_label.clear()
+
     dlg = OhmDialog()
     dlg.show()
     _open_dialogs.append(dlg)

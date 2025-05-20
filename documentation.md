@@ -193,3 +193,32 @@ Inputs are paired with unit selectors and tooltips. The mirror toggle checkbox i
 ---
 
 ![Mirror & Lens Tool](screenshots/screenshot_lens_mirror.png)
+
+## Ohm's Law Calculator
+
+The Ohm’s Law Calculator computes the missing electrical parameter when given any two of the three: voltage (V), current (I), and resistance (R).
+
+### Features
+
+- Inputs for voltage, current, and resistance with selectable units:
+  - Voltage: V, mV, kV  
+  - Current: A, mA, kA  
+  - Resistance: Ω, mΩ, kΩ, MΩ  
+
+- Automatic unit conversion: when changing a unit, the input number updates to reflect the same physical quantity in the new unit.
+
+- Input validation allowing only decimal numbers (no scientific notation).
+
+- Clear and Solve buttons for convenient user interaction.
+
+- Displays result with proper formatting, maintaining physical correctness with units.
+
+- Logs all calculations with inputs and results for reproducibility.
+
+### User Interface
+
+Each input field is paired with a unit selector dropdown. Tooltips explain each parameter. Results appear below inputs. The interface enforces that exactly two inputs are filled for calculation.
+
+---
+
+![Ohm's Law Tool](screenshots/screenshot_ohm_law.png)

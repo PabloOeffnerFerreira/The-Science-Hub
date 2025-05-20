@@ -1,7 +1,8 @@
 import pandas as pd
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit,
-    QPushButton, QComboBox, QCheckBox, QFileDialog, QMessageBox, QWidget
+    QPushButton, QComboBox, QCheckBox, QFileDialog, QMessageBox, QWidget,
+    QTableWidget, QTableWidgetItem,
 )
 from tools.data_utils import _open_dialogs, log_event
 import json
@@ -14,7 +15,6 @@ from tools.utilities import (
 minerals_df = pd.read_csv(mineral_db_path)
 minerals_df.drop(columns=[col for col in minerals_df.columns if ".ru" in col], inplace=True)
 
-# 1. Mineral Identifier Tool
 def open_mineral_id_tool():
     class MineralIdDialog(QDialog):
         def __init__(self):
@@ -69,7 +69,6 @@ def open_mineral_id_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 2. Radioactive Dating Tool
 def open_radioactive_dating_tool():
     class DatingDialog(QDialog):
         def __init__(self):
@@ -115,7 +114,6 @@ def open_radioactive_dating_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 3. Plate Boundary Tool
 def open_plate_boundary_tool():
     class BoundaryDialog(QDialog):
         def __init__(self):
@@ -149,14 +147,7 @@ def open_plate_boundary_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 4. Mineral Explorer
-import pandas as pd
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QComboBox, QCheckBox, QMessageBox, QTableWidget, QTableWidgetItem
-)
 from PyQt6.QtGui import QColor, QBrush
-import json
 
 MINERAL_DB_PATH = mineral_db_path
 minerals_df = pd.read_csv(MINERAL_DB_PATH)
@@ -341,8 +332,6 @@ def open_mineral_explorer():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-
-# 5. Plate Velocity Calculator
 def open_plate_velocity_calculator():
     class PlateVelDialog(QDialog):
         def __init__(self):

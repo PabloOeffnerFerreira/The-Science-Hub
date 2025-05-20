@@ -13,7 +13,6 @@ from Bio import SeqIO
 from Bio import pairwise2
 from Bio.pairwise2 import format_alignment
 
-# 1. Reverse Complement Tool
 def open_reverse_complement_tool():
     class ReverseDialog(QDialog):
         def __init__(self):
@@ -43,7 +42,6 @@ def open_reverse_complement_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 2. DNA to Protein Translation (all 3 frames)
 def open_translate_dna_tool():
     class TranslateDialog(QDialog):
         def __init__(self):
@@ -73,7 +71,6 @@ def open_translate_dna_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 3. GC Content Calculator
 def open_gc_content_tool():
     class GCDialog(QDialog):
         def __init__(self):
@@ -103,7 +100,6 @@ def open_gc_content_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 4. Sequence File Parser (FASTA/GenBank Viewer)
 def open_seq_file_parser_tool():
     class SeqParserDialog(QDialog):
         def __init__(self):
@@ -142,7 +138,6 @@ def open_seq_file_parser_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 5. Pairwise Sequence Alignment (Needleman-Wunsch, simple global align)
 def open_pairwise_align_tool():
     class AlignDialog(QDialog):
         def __init__(self):

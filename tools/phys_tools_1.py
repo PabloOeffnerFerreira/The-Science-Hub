@@ -8,16 +8,12 @@ from tools.utilities import (
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path
 )
-
-# ---- Unit Converter Data ----
 conversion_data = {
     "Length": {"m": 1, "cm": 100, "mm": 1000, "km": 0.001},
     "Mass": {"kg": 1, "g": 1000, "mg": 1e6},
     "Time": {"s": 1, "min": 1/60, "h": 1/3600},
     "Temperature": {"C": 1, "F": 0, "K": 0}
 }
-
-# ---- Physics Tools ----
 
 def open_unit_converter():
     class UnitConverterDialog(QDialog):
@@ -26,7 +22,6 @@ def open_unit_converter():
             self.setWindowTitle("Unit Converter")
             layout = QVBoxLayout(self)
 
-            # Category selection
             row = QHBoxLayout()
             row.addWidget(QLabel("Category:"))
             self.category = QComboBox()
@@ -34,7 +29,6 @@ def open_unit_converter():
             row.addWidget(self.category)
             layout.addLayout(row)
 
-            # From/To unit
             row2 = QHBoxLayout()
             row2.addWidget(QLabel("From:"))
             self.from_unit = QComboBox()

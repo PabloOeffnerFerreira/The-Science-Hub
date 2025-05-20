@@ -80,5 +80,4 @@ def open_chain_mode(tool_map):
         for meta, output in recent_logs:
             log_listbox.insert(tk.END, f"{meta} → {output}")
 
-    # Refresh Button
     tk.Button(win, text="Refresh", command=refresh_log).pack(pady=5)

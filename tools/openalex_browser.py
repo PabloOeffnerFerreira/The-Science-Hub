@@ -6,12 +6,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from pyalex import Works, config
-from tools.utilities import (
-    results_dir, mineral_favs_path, element_favs_path, ptable_path,
-    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path
-)
-
 
 class EmailDialog(QDialog):
     def __init__(self):
@@ -87,7 +81,6 @@ class OpenAlexBrowser(QWidget):
 
         layout = QVBoxLayout()
 
-        # Search bar
         search_layout = QHBoxLayout()
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Search for scientific works...")
@@ -104,7 +97,6 @@ class OpenAlexBrowser(QWidget):
         search_layout.addWidget(self.email_button)
         layout.addLayout(search_layout)
 
-        # Result list and viewer
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
         self.results_list = QListWidget()

@@ -5,8 +5,6 @@ from tools.utilities import (
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path
 )
-
-# --- TOOL IMPORTS ---
 from tools.mol_assembler import open_molecule_assembler
 from tools.math_tools_1 import (
     open_function_plotter,
@@ -59,9 +57,6 @@ from tools.phys_tools_1 import(
     open_unit_converter
 )
 
-
-# --- TOOLKIT BASE CLASS ---
-
 class ToolkitHub(QDialog):
     def __init__(self, title, tools):
         super().__init__()
@@ -73,8 +68,6 @@ class ToolkitHub(QDialog):
             btn.clicked.connect(tool_func)
             layout.addWidget(btn)
         self.setMinimumWidth(340)
-
-# --- TOOLKIT LAUNCHERS ---
 
 def open_math_tools_hub():
     tools = [

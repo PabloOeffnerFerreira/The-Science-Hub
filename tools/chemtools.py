@@ -1,4 +1,5 @@
 import datetime
+import os
 import tkinter as tk
 from tools.data_utils import _open_dialogs
 from tools.utilities import (
@@ -7,8 +8,6 @@ from tools.utilities import (
     exports_dir, settings_path
 )
 
-
-# 1. Molecular Weight Calculator
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
 from tools.data_utils import load_element_data, parse_formula
 
@@ -60,8 +59,6 @@ def open_mass_calculator():
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 
-
-# 2. Isotopic Notation Tool
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 )
@@ -117,16 +114,12 @@ def open_isotope_tool(preload=None):
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 3. Shell Visualiser
-
 import math
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 )
 from tools.data_utils import load_element_data, log_event
 import matplotlib.pyplot as plt
-import os
-import datetime
 
 def open_shell_visualizer(preload=None):
     class ShellDialog(QDialog):
@@ -188,8 +181,6 @@ def open_shell_visualizer(preload=None):
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-# 4. Phase Predictor
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
@@ -259,8 +250,6 @@ def open_phase_predictor(preload=None):
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-
-# 5. Element Comparator Tool
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,
     QTableWidget, QTableWidgetItem, QCheckBox, QMessageBox, QAbstractItemView
@@ -368,8 +357,6 @@ def open_comparator(preload=None):
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-# 6. Mole-Mass-Volume Tool
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
@@ -479,14 +466,10 @@ def open_unit_multiplier(preload=None):
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 7. Element Property Grapher
-
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QCheckBox
 )
 import matplotlib.pyplot as plt
-import os
-import datetime
 import json
 
 def open_property_grapher(preload=None):

@@ -73,7 +73,6 @@ def open_element_viewer():
             self.setMinimumHeight(450)
             main = QVBoxLayout(self)
 
-            # Search and favorites
             bar = QHBoxLayout()
             self.search = QLineEdit()
             self.search.setPlaceholderText("Search name, symbol, number, etc...")
@@ -85,22 +84,18 @@ def open_element_viewer():
             bar.addWidget(self.refresh_btn)
             main.addLayout(bar)
 
-            # List view
             self.list = QListWidget()
             main.addWidget(self.list)
 
-            # Favorite button
             self.fav_btn = QPushButton("Toggle Favorite")
             main.addWidget(self.fav_btn)
 
-            # Details
             self.details = QTextEdit()
             self.details.setReadOnly(True)
             font = QFont("Consolas", 10)
             self.details.setFont(font)
             main.addWidget(self.details, 1)
 
-            # Events
             self.search.textChanged.connect(self.update_list)
             self.fav_cb.stateChanged.connect(self.update_list)
             self.refresh_btn.clicked.connect(self.update_list)

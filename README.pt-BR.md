@@ -51,7 +51,9 @@ Veja as principais ferramentas disponíveis (agrupadas por área):
 - **Calculadora de Crescimento Populacional:** Modelagem populacional.
 - **Calculadora de Álgebra** - Simplifique e calcule funções algébricas
 - **Conversor de notação científica** - Converta números decimais em notação científica e vice-versa.
-* **Calculadora de Meia-Vida** – Calcula a quantidade restante com base na meia-vida e no tempo decorrido, com gráfico opcional de decaimento.
+- **Calculadora de Meia-Vida** – Calcula a quantidade restante com base na meia-vida e no tempo decorrido, com gráfico opcional de decaimento.
+- **Calculadora Vetorial** – Realize operações vetoriais como produto escalar, produto vetorial, módulo, normalização e cálculo de ângulo, com gráfico 3D opcional.
+
 
 ### Química
 

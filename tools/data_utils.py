@@ -64,8 +64,9 @@ def register_window(name, dialog):
 # ---------------- Writing the Log -------------------
  
 def log_event(tool, input_value, output_value):
+    """Append a formatted log entry to the Science Hub session log."""
     try:
-        with open("calchub_log.txt", "a", encoding="utf-8") as f:
+        with open(log_path, "a", encoding="utf-8") as f:
             timestamp = datetime.datetime.now().strftime("[%Y-%m-%d %H:%M:%S]")
             line = f"{timestamp} {tool} Input: {input_value} Output: {output_value}\n"
             f.write(line)

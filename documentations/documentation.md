@@ -71,4 +71,68 @@ The converter supports a broad range of unit categories including but not limite
 
 ---
 
-*(Add screenshot of the Unit Converter interface here)*  
+![Unit Converter for Pressure](screenshots/screenshot_unit_converter.py)
+
+---
+
+## Terminal Velocity Calculator
+
+The Terminal Velocity Calculator estimates the terminal velocity and fall time of an object dropped from a given height, considering air resistance with customizable parameters.
+
+### Inputs
+
+- **Mass:** The mass of the object. Users can input the value and select units (`kg` or `lb`). Internally converted to kilograms.
+- **Cross-sectional Area:** The effective area facing airflow. Users input the value and select units (`m²`, `cm²`, or `in²`). Internally converted to square meters.
+- **Height:** The drop height. Input value with unit options (`m` or `ft`). Internally converted to meters.
+- **Air Density or Altitude:**
+  - User can choose to enter the air density directly (`kg/m³`),
+  - or provide the altitude in meters to compute air density using a simplified barometric formula,
+  - or enter a custom air density value.
+- **Drag Coefficient:** Select from presets corresponding to common shapes:
+  - Sphere (0.47),
+  - Flat Plate (1.28),
+  - Cylinder (1.2),
+  - Streamlined Body (0.04),
+  - or input a custom drag coefficient.
+
+### Calculations
+
+- **Terminal Velocity:** Calculated using the formula  
+  \[
+  v = \sqrt{\frac{2 m g}{\rho A C_d}}
+  \]
+  where \(m\) is mass, \(g\) is gravity, \(\rho\) is air density, \(A\) is cross-sectional area, and \(C_d\) is drag coefficient.
+  
+- **Fall Time with Drag:** Numerically estimated by integrating the equations of motion considering gravitational force and drag force, using a small time step for accuracy.
+
+- **Fall Time without Drag:** Calculated by the standard formula \(t = \sqrt{\frac{2 h}{g}}\) for reference.
+
+### Outputs
+
+- Terminal velocity (m/s)
+- Fall time with drag (s)
+- Fall time without drag (s)
+- A velocity vs. time plot illustrating how velocity approaches terminal velocity during the fall.
+
+### Plot Export
+
+- The velocity vs. time plot is automatically saved as a PNG image in the user’s results directory.
+- The filename includes a timestamp, e.g., `terminal_velocity_20250520_153045.png`.
+- The saved plot path is displayed alongside calculation results.
+- The export process is integrated with the platform’s logging system to record the event.
+
+### User Interface
+
+- Input fields paired with unit selectors provide flexibility and reduce errors.
+- Dropdown menus allow easy selection of air density mode and drag coefficient presets.
+- The plot updates dynamically upon calculation.
+- Clear error messages are shown for invalid inputs.
+
+### Integration
+
+- The calculator supports logging and session export as part of Science Hub’s unified environment.
+- The saved plot can be referenced or used in reports, presentations, or further analysis.
+
+---
+
+[Terminal Velocity Calculator](screenshots/screenshot_terminal_velocity_calc.png)

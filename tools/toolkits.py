@@ -11,7 +11,8 @@ from tools.math_tools_1 import (
     open_quadratic_solver,
     open_triangle_solver,
     open_algebric_calc,
-    open_scinot_converter
+    open_scinot_converter,
+    open_vector_calculator
 )
 from tools.chemtools import (
     open_mass_calculator,
@@ -79,6 +80,7 @@ def open_math_tools_hub():
         ("Triangle Solver", open_triangle_solver),
         ("Algebric Calculaltor", open_algebric_calc),
         ("Scientific Notation Converter", open_scinot_converter),
+        ("Vector Calculator", open_vector_calculator),
     ]
     dlg = ToolkitHub("Math", tools)
     dlg.show()

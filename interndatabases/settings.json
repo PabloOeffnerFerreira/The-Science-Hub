@@ -1,4 +1,5 @@
 {
-    "clear_log_on_startup": false,
-    "show_half_life_plot": true
+  "clear_log_on_startup": false,
+  "show_half_life_plot": true,
+  "plot_vectors_3d": true
 }

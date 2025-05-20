@@ -168,9 +168,7 @@ The tool provides labeled input fields with unit selectors, a results display ar
 - The exported plot file path is shown in the results area after calculation.
 
 ---
-
-<<<<<<< HEAD
-[Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)
+![Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)
 
 ## Lens & Mirror Calculator
 
@@ -195,6 +193,3 @@ Inputs are paired with unit selectors and tooltips. The mirror toggle checkbox i
 ---
 
 ![Mirror & Lens Tool](screenshots/screenshot_lens_mirror.png)
-=======
-![Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)
->>>>>>> da125ba9a7af777f237e2bd3012d224c95ad57ad

@@ -1,16 +1,14 @@
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QTextEdit,
-        QMessageBox, QWidget, QTableWidget, QTableWidgetItem, QFrame, QCheckBox, QApplication, QListWidget, QListWidgetItem, QComboBox
+    QMessageBox, QWidget, QTableWidget, QTableWidgetItem, QFrame, QCheckBox,
+    QApplication, QListWidget, QListWidgetItem, QComboBox,
 )
-from PyQt6.QtCore import Qt,QTimer
+from PyQt6.QtCore import Qt, QTimer
 import json
 import subprocess
 import sys
 
 import os
-import datetime
-
-#import os
 import datetime
 
 tools_dir = os.path.dirname(os.path.abspath(__file__))
@@ -51,7 +49,6 @@ def log_chain(text):
     with open(chain_log_path, "a", encoding="utf-8") as f:
         f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {text}\n")
 
-# Chemistry tools
 from tools.chemtools import (
     open_mass_calculator,
     open_isotope_tool,
@@ -64,7 +61,6 @@ from tools.chemtools import (
 from tools.element_viewer import open_element_viewer
 from tools.mol_assembler import open_molecule_assembler
 
-# Biology tools
 from tools.bio_tools_1 import (
     open_transcription_tool,
     open_codon_lookup_tool,
@@ -81,7 +77,6 @@ from tools.bio_tools_2 import (
     open_pairwise_align_tool,
 )
 
-# Physics tools
 from tools.phys_tools_1 import (
     open_unit_converter,
     open_terminal_velocity_calculator,
@@ -95,14 +90,12 @@ from tools.phys_tools_1 import (
     open_speed_calculator,
 )
 
-# Math tools
 from tools.math_tools_1 import (
     open_function_plotter,
     open_quadratic_solver,
     open_triangle_solver,
 )
 
-# Geology tools
 from tools.geo_tools_1 import (
     open_mineral_id_tool,
     open_radioactive_dating_tool,
@@ -113,7 +106,6 @@ from tools.geo_tools_1 import (
 
 from tools.data_utils import _open_dialogs, register_window, log_event
 
-# ---------------- Simple Calculator ------------------
 def open_simple_calculator(preload=None):
     class CalculatorDialog(QDialog):
         def __init__(self):
@@ -149,8 +141,6 @@ def open_simple_calculator(preload=None):
     dlg.show()
     register_window("Simple Calculator", dlg)
 
-
-# ---------------- View Log ---------------------------
 
 def open_log():
     class LogDialog(QDialog):
@@ -206,8 +196,6 @@ def open_log():
     dlg.show()
     register_window("Session Log", dlg)
 
-# -------------- Last Used Tool --------------
-
 def show_last_used():
     try:
         with open(log_path, "r", encoding="utf-8") as f:  # Use the built path
@@ -224,7 +212,6 @@ def show_last_used():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# -------------- Favorites --------------------
 def show_favorites():
     class FavoritesDialog(QDialog):
         def __init__(self):
@@ -291,8 +278,6 @@ def show_favorites():
     dlg.show()
     register_window("Favorites", dlg)
 
-# -------------- Export Log --------------
-
 def export_log_to_md():
 
     try:
@@ -334,9 +319,6 @@ def export_log_to_md():
         os.startfile(exports_dir)
     except Exception:
         pass
-
-# -------------- Window Manager --------------
-
 
 def show_window_manager():
     class WindowManagerDialog(QDialog):
@@ -415,9 +397,6 @@ def show_window_manager():
     dlg = WindowManagerDialog()
     dlg.show()
     register_window("Window Manager", dlg)
-
-# -------------- Chain Mode --------------
-
 TOOLS = [
     # Chemistry
     ("Mass Calculator", open_mass_calculator, True),
@@ -576,8 +555,6 @@ def open_chain_mode():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# ----------- Settings Screen -------------
-
 SETTINGS_PATH = "settings.json"
 
 if not os.path.exists(interndb_dir):
@@ -618,7 +595,6 @@ def open_settings():
     dlg = SettingsDialog()
     dlg.show()
     register_window("Settings", dlg)
-# -------------- Gallery, AI Assistant, OpenAlex Browser, etc. --------------
 
 def launch_gallery():
     script_path = os.path.join(os.path.dirname(__file__), "gallery.py")

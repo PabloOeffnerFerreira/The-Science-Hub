@@ -23,7 +23,6 @@ CODON_TABLE = {
     'GGU': 'Gly', 'GGC': 'Gly', 'GGA': 'Gly', 'GGG': 'Gly'
 }
 
-# 1. DNA Transcription & Translation Tool
 def open_transcription_tool():
     class TranscribeDialog(QDialog):
         def __init__(self):
@@ -56,7 +55,6 @@ def open_transcription_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 2. Codon Lookup Tool
 def open_codon_lookup_tool():
     class CodonDialog(QDialog):
         def __init__(self):
@@ -82,7 +80,6 @@ def open_codon_lookup_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 3. Osmosis and Tonicity Tool
 def open_osmosis_tool():
     class OsmosisDialog(QDialog):
         def __init__(self):
@@ -126,7 +123,6 @@ def open_osmosis_tool():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 4. Molecular Weight Calculator (DNA/RNA/Protein)
 def open_molecular_weight_calculator():
     class MWDialog(QDialog):
         def __init__(self):
@@ -172,7 +168,6 @@ def open_molecular_weight_calculator():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 5. pH Calculator
 def open_ph_calculator():
     class PHDialog(QDialog):
         def __init__(self):
@@ -221,7 +216,6 @@ def open_ph_calculator():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# 6. Population Growth Calculator
 def open_population_growth_calculator():
     class PopDialog(QDialog):
         def __init__(self):

@@ -11,7 +11,6 @@ from tools.utilities import (
     exports_dir, settings_path
 )
 
-# Quadratic Solver
 def open_quadratic_solver():
     class QuadDialog(QDialog):
         def __init__(self):
@@ -52,7 +51,6 @@ def open_quadratic_solver():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# Function Plotter
 def open_function_plotter():
     class PlotDialog(QDialog):
         def __init__(self):
@@ -97,7 +95,6 @@ def open_function_plotter():
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-# Triangle Solver
 def open_triangle_solver():
     class TriDialog(QDialog):
         def __init__(self):

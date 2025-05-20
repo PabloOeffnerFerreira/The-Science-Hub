@@ -761,53 +761,263 @@ def open_ohms_law_tool():
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 
+import math
+import datetime
+import os
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QCheckBox, QMessageBox
+)
+from PyQt6.QtGui import QDoubleValidator
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from data_utils import log_event, _open_dialogs, results_dir
+
 def open_lens_calculator():
     class LensDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Lens & Mirror Equation")
+            self.setMinimumWidth(500)
             layout = QVBoxLayout(self)
+
             layout.addWidget(QLabel("Enter two of the three values (leave one blank):"))
-            self.f = QLineEdit()
-            self.do = QLineEdit()
-            self.di = QLineEdit()
-            for label, edit in [
-                ("Focal length (f):", self.f),
-                ("Object distance (do):", self.do),
-                ("Image distance (di):", self.di)
+
+            units = ["m", "cm", "mm", "in", "ft"]
+
+            # Inputs + units
+            self.f_edit = QLineEdit("0.1")  # default focal length 0.1 m
+            self.f_unit = QComboBox()
+            self.f_unit.addItems(units)
+            self.f_unit.setCurrentIndex(0)  # default to meters
+
+            self.do_edit = QLineEdit("0.5")  # default object distance 0.5 m
+            self.do_unit = QComboBox()
+            self.do_unit.addItems(units)
+            self.do_unit.setCurrentIndex(0)
+
+            self.di_edit = QLineEdit("")
+            self.di_unit = QComboBox()
+            self.di_unit.addItems(units)
+            self.di_unit.setCurrentIndex(0)
+
+            # Validators
+            validator = QDoubleValidator(bottom=-1e12, top=1e12, decimals=6)
+            for edit in (self.f_edit, self.do_edit, self.di_edit):
+                edit.setValidator(validator)
+
+            # Tooltips
+            self.f_edit.setToolTip("Focal length of the lens or mirror. Positive for converging lens/mirror, negative for diverging.")
+            self.do_edit.setToolTip("Object distance from the lens or mirror.")
+            self.di_edit.setToolTip("Image distance from the lens or mirror.")
+
+            # Lens or mirror toggle
+
+            self.is_mirror = QCheckBox("Mirror (uncheck for Lens)")
+            layout.addWidget(self.is_mirror)
+            self.is_mirror.setChecked(False)  # default: lens
+            self.is_mirror.setToolTip("Toggle to calculate for mirror (different sign conventions).")
+
+            # Layout inputs
+            for label, edit, unit in [
+                ("Focal length (f):", self.f_edit, self.f_unit),
+                ("Object distance (do):", self.do_edit, self.do_unit),
+                ("Image distance (di):", self.di_edit, self.di_unit),
             ]:
                 row = QHBoxLayout()
                 row.addWidget(QLabel(label))
                 row.addWidget(edit)
+                row.addWidget(unit)
                 layout.addLayout(row)
+
+            # Result label
             self.result = QLabel("")
             layout.addWidget(self.result)
-            btn = QPushButton("Calculate")
-            btn.clicked.connect(self.calculate)
-            layout.addWidget(btn)
-            self.setMinimumWidth(320)
+
+            # Matplotlib figure and canvas
+            self.figure = Figure(figsize=(6, 4))
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            # Buttons row
+            row_buttons = QHBoxLayout()
+            self.btn_calc = QPushButton("Calculate")
+            self.btn_calc.clicked.connect(self.calculate)
+            self.btn_clear = QPushButton("Clear")
+            self.btn_clear.clicked.connect(self.clear_all)
+            row_buttons.addWidget(self.btn_calc)
+            row_buttons.addWidget(self.btn_clear)
+            layout.addLayout(row_buttons)
+
+        def convert_to_meters(self, val_str, unit_str):
+            if val_str == "":
+                return None
+            val = float(val_str)
+            if unit_str == "cm":
+                val *= 0.01
+            elif unit_str == "mm":
+                val *= 0.001
+            elif unit_str == "in":
+                val *= 0.0254
+            elif unit_str == "ft":
+                val *= 0.3048
+            return val
+
+        def convert_from_meters(self, val, unit_str):
+            if unit_str == "cm":
+                return val / 0.01
+            elif unit_str == "mm":
+                return val / 0.001
+            elif unit_str == "in":
+                return val / 0.0254
+            elif unit_str == "ft":
+                return val / 0.3048
+            return val
+
         def calculate(self):
             try:
-                f = self.f.text()
-                do = self.do.text()
-                di = self.di.text()
-                if f == '':
-                    f_val = 1 / (1/float(do) + 1/float(di))
-                    msg = f"Focal length = {f_val:.2f}"
-                elif do == '':
-                    do_val = 1 / (1/float(f) - 1/float(di))
-                    msg = f"Object distance = {do_val:.2f}"
-                elif di == '':
-                    di_val = 1 / (1/float(f) - 1/float(do))
-                    msg = f"Image distance = {di_val:.2f}"
+                f_val = self.convert_to_meters(self.f_edit.text(), self.f_unit.currentText())
+                do_val = self.convert_to_meters(self.do_edit.text(), self.do_unit.currentText())
+                di_val = self.convert_to_meters(self.di_edit.text(), self.di_unit.currentText())
+
+                provided = sum(v is not None for v in [f_val, do_val, di_val])
+                if provided != 2:
+                    self.result.setText("Error: Please fill exactly two fields.")
+                    return
+
+                # Adjust sign convention for mirrors
+                if self.is_mirror.isChecked():
+                    # For mirrors, focal length is negative for converging concave mirrors
+                    if f_val is not None:
+                        f_val = -abs(f_val) if f_val > 0 else f_val
+
+                # Calculate missing value
+                if f_val is None:
+                    f_val = 1 / (1 / do_val + 1 / di_val)
+                    missing_label = "Focal length"
+                    missing_unit = self.f_unit.currentText()
+                    result_val = self.convert_from_meters(f_val, missing_unit)
+                elif do_val is None:
+                    do_val = 1 / (1 / f_val - 1 / di_val)
+                    missing_label = "Object distance"
+                    missing_unit = self.do_unit.currentText()
+                    result_val = self.convert_from_meters(do_val, missing_unit)
+                elif di_val is None:
+                    di_val = 1 / (1 / f_val - 1 / do_val)
+                    missing_label = "Image distance"
+                    missing_unit = self.di_unit.currentText()
+                    result_val = self.convert_from_meters(di_val, missing_unit)
                 else:
-                    msg = "Leave one field empty."
+                    self.result.setText("Error: Leave one field empty.")
+                    return
+
+                # Magnification
+                magnification = -di_val / do_val if do_val != 0 else float('inf')
+
+                # Lens type
+                lens_type = "Converging" if f_val > 0 else "Diverging"
+                if self.is_mirror.isChecked():
+                    lens_type += " Mirror"
+                else:
+                    lens_type += " Lens"
+
+                # Build message
+                msg = (f"{missing_label} = {result_val:.3f} {missing_unit}\n"
+                       f"Magnification = {magnification:.3f}\n"
+                       f"Type: {lens_type}")
+
                 self.result.setText(msg)
-                log_event("Lens Calculator", f"f={f}, do={do}, di={di}", msg)
-            except Exception:
-                msg = "Invalid input."
-                self.result.setText(msg)
-                log_event("Lens Calculator", f"f={self.f.text()}, do={self.do.text()}, di={self.di.text()}", msg)
+
+                # Plot ray diagram
+                self.plot_ray_diagram(f_val, do_val, di_val)
+
+                log_event("Lens Calculator", 
+                          f"f={self.f_edit.text()} {self.f_unit.currentText()}, "
+                          f"do={self.do_edit.text()} {self.do_unit.currentText()}, "
+                          f"di={self.di_edit.text()} {self.di_unit.currentText()}, "
+                          f"type={'Mirror' if self.is_mirror.isChecked() else 'Lens'}", 
+                          msg)
+
+            except Exception as e:
+                self.result.setText("Invalid input.")
+                log_event("Lens Calculator", "error", str(e))
+
+        def plot_ray_diagram(self, f, do, di):
+            # Basic ray diagram for thin lens or mirror on optical axis
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            ax.set_title("Ray Diagram")
+            ax.set_xlabel("Distance (m)")
+            ax.set_ylabel("Height (m)")
+            ax.grid(True)
+            ax.axvline(0, color='black', linewidth=1)  # lens/mirror plane
+
+            # Setup scale
+            max_dist = max(abs(do), abs(di), abs(f)) * 1.5
+            ax.set_xlim(-max_dist*0.5, max_dist)
+            ax.set_ylim(-max_dist*0.5, max_dist*0.5)
+
+            # Draw principal axis
+            ax.axhline(0, color='gray', linestyle='--')
+
+            # Object position and height (assume height 1m)
+            obj_height = 1.0
+            ax.plot([-do, -do], [0, obj_height], 'g', linewidth=3, label='Object')
+
+            # Image position and height
+            img_height = -di/do * obj_height if do != 0 else 0
+            ax.plot([di, di], [0, img_height], 'r', linewidth=3, label='Image')
+
+            # Focal points
+            ax.plot([f, f], [-0.1, 0.1], 'bo', label='Focal Point')
+            ax.plot([-f, -f], [-0.1, 0.1], 'bo')
+
+            # Draw rays (3 principal rays for lens/mirror)
+
+            # Ray 1: parallel to axis then through focal point
+            ax.plot([-do, 0], [obj_height, obj_height], 'b')
+            if not self.is_mirror.isChecked():
+                ax.plot([0, di], [obj_height, 0], 'b')
+            else:
+                # For mirrors ray reflects through focal point
+                ax.plot([0, di], [obj_height, 0], 'b')
+
+            # Ray 2: through center of lens/mirror (undeviated)
+            ax.plot([-do, di], [obj_height, img_height], 'm')
+
+            # Ray 3: through focal point then parallel to axis
+            if not self.is_mirror.isChecked():
+                ax.plot([-do, -f], [obj_height, 0], 'c')
+                ax.plot([-f, di], [0, img_height], 'c')
+            else:
+                ax.plot([-do, 0], [obj_height, 0], 'c')
+                ax.plot([0, di], [0, img_height], 'c')
+
+            ax.legend(loc='upper right')
+
+            self.canvas.draw()
+
+            # Save plot image
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            img_name = f"lens_ray_diagram_{timestamp}.png"
+            img_path = os.path.join(results_dir, img_name)
+            self.figure.savefig(img_path, dpi=150)
+
+            # Append image path to result label
+            current_text = self.result.text()
+            self.result.setText(current_text + f"\nRay diagram saved to {img_path}")
+
+            # Log export event
+            log_event("Lens Calculator", "ray diagram export", img_path)
+
+        def clear_all(self):
+            self.f_edit.clear()
+            self.do_edit.clear()
+            self.di_edit.clear()
+            self.result.clear()
+            self.figure.clear()
+            self.canvas.draw()
+            self.is_mirror.setChecked(False)
+
     dlg = LensDialog()
     dlg.show()
     _open_dialogs.append(dlg)

@@ -170,3 +170,27 @@ The tool provides labeled input fields with unit selectors, a results display ar
 ---
 
 [Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)
+
+## Lens & Mirror Calculator
+
+The Lens & Mirror Calculator solves the lens/mirror equation by requiring two of the three parameters: focal length (f), object distance (do), and image distance (di). It calculates the missing parameter and provides magnification and lens type information.
+
+### Features
+
+- Input focal length, object distance, and image distance, with units (meters, centimeters, millimeters, inches, feet)  
+- Supports toggling between lens and mirror calculations with appropriate sign conventions  
+- Calculates and displays magnification and indicates whether the optical element is converging or diverging  
+- Validates input, requiring exactly two fields filled for calculation  
+- Provides tooltips to guide user input  
+- Includes a checkbox toggle for mirror mode that affects sign conventions  
+- Displays a basic ray diagram showing object, image, focal points, and principal rays  
+- Automatically exports the ray diagram plot as a timestamped PNG to the results directory and logs the export event  
+- Clear/reset button to quickly reset inputs and outputs
+
+### User Interface
+
+Inputs are paired with unit selectors and tooltips. The mirror toggle checkbox is placed prominently above inputs to switch calculation mode. Results and ray diagram appear below inputs with action buttons for calculate and clear.
+
+---
+
+![Mirror & Lens Tool](screenshots/screenshot_lens_mirror.png)

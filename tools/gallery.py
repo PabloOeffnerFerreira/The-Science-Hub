@@ -9,12 +9,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QPixmap, QIcon, QDragEnterEvent, QDropEvent, QFont
 from PyQt6.QtCore import Qt, QMimeData, QSize
-from tools.utilities import (
+from tools.data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path, screenshots_dir, images_dir
+    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir, images_dir, screenshots_dir
 )
-
 GALLERY_DIR = gallery_dir
 META_FILE = gallery_meta_path
 IMPORT_FOLDERS = [images_dir, results_dir, screenshots_dir]

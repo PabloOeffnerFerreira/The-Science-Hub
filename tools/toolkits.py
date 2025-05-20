@@ -1,9 +1,9 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
 from tools.utilities import _open_dialogs
-from tools.utilities import (
+from tools.data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path
+    exports_dir, settings_path, library_file, load_settings, load_element_data
 )
 from tools.mol_assembler import open_molecule_assembler
 from tools.math_tools_1 import (
@@ -44,7 +44,8 @@ from tools.geo_tools_1 import (
     open_plate_boundary_tool,
     open_mineral_explorer,
     open_plate_velocity_calculator,
-    # open_geo_model_tool
+    # open_geo_model_tool,
+    open_half_life_calculator
 )
 from tools.phys_tools_1 import(
     open_acceleration_calculator,
@@ -145,7 +146,8 @@ def open_geology_tools_hub():
         ("Plate Boundary Tool", open_plate_boundary_tool),
         ("Mineral Explorer", open_mineral_explorer),
         ("Plate Velocity Calculator", open_plate_velocity_calculator),
-        # ("Geo Model Tool", open_geo_model_tool), # Uncomment if implemented
+        # ("Geo Model Tool", open_geo_model_tool), # Uncomment if implemented,
+        ("Half Life Calculator", open_half_life_calculator),
     ]
     dlg = ToolkitHub("Geology", tools)
     dlg.show()

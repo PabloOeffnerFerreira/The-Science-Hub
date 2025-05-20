@@ -13,6 +13,12 @@ from tools.utilities import (
     gallery_dir, exports_dir, library_file
 )
 
+from tools.data_utils import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
+)
+
 LIBRARY_FILE = library_file
 GALLERY_DIR = gallery_dir
 
@@ -290,7 +296,10 @@ class LibraryViewer(QWidget):
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication(sys.argv)
     viewer = LibraryViewer()
     viewer.show()
-    sys.exit(app.exec())
+    if not QApplication.instance().startingUp():  # prevents redundant exec()
+        sys.exit(app.exec())

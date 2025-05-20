@@ -4,8 +4,13 @@ from PyQt6.QtWidgets import (
     QLabel, QListWidget, QFrame, QSizePolicy, QMessageBox
 )
 from PyQt6.QtCore import Qt
+import tools.data_utils
 import tools.utilities
-from tools.utilities import load_settings
+from tools.data_utils import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
+)
 
 import tkinter as tk
 _hidden_tk_root = tk.Tk()
@@ -134,7 +139,7 @@ class ScienceHub(QMainWindow):
             ("OpenAlex Browser", tools.utilities.launch_openalex_browser),
             ("Molecule Library", tools.utilities.launch_molecule_library),
             ("Science Library", tools.utilities.launch_library),
-            ("Settings", tools.utilities.open_settings),
+            ("Settings", tools.data_utils.open_settings),
             ("Code Editor", open_coder),
         ]
 
@@ -153,7 +158,11 @@ class ScienceHub(QMainWindow):
         main_layout.addWidget(central_panel_frame)
         main_layout.addWidget(utility_panel_frame)
 
-from tools.utilities import log_path
+from tools.data_utils import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
+)
 
 if load_settings().get("clear_log_on_startup", False):
     try:

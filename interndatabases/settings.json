@@ -1,3 +1,4 @@
 {
-    "clear_log_on_startup": false
+    "clear_log_on_startup": false,
+    "show_half_life_plot": true
 }

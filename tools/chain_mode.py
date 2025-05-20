@@ -1,6 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
 import os
+from tools.data_utils import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
+)
 # Map of tool names to functions that accept preload input
 CHAINABLE_TOOLS = {}  # ← leave this empty, it'll be injected
 

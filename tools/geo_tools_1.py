@@ -6,10 +6,10 @@ from PyQt6.QtWidgets import (
 )
 from tools.data_utils import _open_dialogs, log_event
 import json
-from tools.utilities import (
+from tools.data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path
+    exports_dir, settings_path, library_file, load_settings, load_element_data
 )
 
 minerals_df = pd.read_csv(mineral_db_path)
@@ -368,6 +368,73 @@ def open_plate_velocity_calculator():
             except Exception as e:
                 self.result.setText(f"Error: {e}")
     dlg = PlateVelDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
+def open_half_life_calculator():
+    class HLDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Half-Life Calculator")
+            layout = QVBoxLayout(self)
+            self.half_life = QLineEdit()
+            self.time = QLineEdit()
+            self.amount = QLineEdit()
+            for label, widget in [
+                ("Half-Life (years):", self.half_life),
+                ("Time elapsed:", self.time),
+                ("Initial amount:", self.amount),
+            ]:
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label))
+                row.addWidget(widget)
+                layout.addLayout(row)
+            self.result = QLabel("")
+            layout.addWidget(self.result)
+            btn = QPushButton("Calculate Remaining")
+            btn.clicked.connect(self.calculate_age)
+            layout.addWidget(btn)
+            self.setMinimumWidth(320)
+        def calculate_age(self):
+            try:
+                hl = float(self.half_life.text())
+                t = float(self.time.text())
+                N0 = float(self.amount.text())
+                import math
+                N = N0 * (0.5) ** (t / hl)
+                settings = load_settings()
+                if settings.get("show_half_life_plot", False):
+                    import matplotlib.pyplot as plt
+                    import numpy as np
+                    xs = np.linspace(0, max(t * 1.2, hl * 4), 500)
+                    ys = N0 * 0.5 ** (xs / hl)
+                    plt.plot(xs, ys, label="Decay Curve")
+                    plt.axvline(t, color='red', linestyle='--', label=f"t = {t}")
+                    plt.scatter([t], [N], color='red')
+                    plt.title("Radioactive Decay Over Time")
+                    plt.xlabel("Time")
+                    plt.ylabel("Amount Remaining")
+                    plt.legend()
+                    plt.grid(True)
+                    plt.show(block=False)
+                    plt.annotate(f"{N:.2f}",
+                        xy=(t, N),
+                        xytext=(t, N + N0 * 0.05),
+                        arrowprops=dict(arrowstyle="->", color="red"),
+                        fontsize=10,
+                        color="red")
+                    for i in range(1, int(xs[-1] // hl) + 1):
+                        plt.axvline(i * hl, color='gray', linestyle='--', alpha=0.5)
+                        plt.text(i * hl, N0, f'{i}×½', rotation=90, verticalalignment='top', fontsize=8)
+                msg = f"Remaining amount: {N:.4f}"
+                self.result.setText(msg)
+                log_event("Half-Life Calculator", f"N0={N0}, t={t}, HL={hl}", msg)
+            except Exception:
+                msg = "Invalid input."
+                self.result.setText(msg)
+                log_event("Half-Life Calculator", f"HL={self.half_life.text()}, t={self.time.text()}, N0={self.amount.text()}", msg)
+    dlg = HLDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

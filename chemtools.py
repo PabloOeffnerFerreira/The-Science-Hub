@@ -567,114 +567,293 @@ def open_phase_predictor(preload=None):
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
+import os
+import json
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton,
-    QTableWidget, QTableWidgetItem, QCheckBox, QMessageBox, QAbstractItemView
+    QTableWidget, QTableWidgetItem, QCheckBox, QLineEdit, QMessageBox,
+    QAbstractItemView, QTabWidget, QWidget, QHeaderView
 )
 from PyQt6.QtGui import QBrush, QColor, QFont
+from PyQt6.QtCore import Qt
+from data_utils import load_element_data, log_event, _open_dialogs
+
+PROPERTY_METADATA = {
+    "AtomicNumber": {
+        "label": "Atomic Number",
+        "unit": "",
+        "category": "Atomic",
+        "desc": "Number of protons in the nucleus",
+        "numeric": True
+    },
+    "AtomicMass": {
+        "label": "Atomic Mass",
+        "unit": "u",
+        "category": "Atomic",
+        "desc": "Average atomic mass (unified atomic mass units)",
+        "numeric": True
+    },
+    "Electronegativity": {
+        "label": "Electronegativity",
+        "unit": "",
+        "category": "Chemical",
+        "desc": "Pauling scale electronegativity",
+        "numeric": True
+    },
+    "BoilingPoint": {
+        "label": "Boiling Point",
+        "unit": "K",
+        "category": "Physical",
+        "desc": "Boiling point temperature in Kelvin",
+        "numeric": True
+    },
+    "MeltingPoint": {
+        "label": "Melting Point",
+        "unit": "K",
+        "category": "Physical",
+        "desc": "Melting point temperature in Kelvin",
+        "numeric": True
+    },
+    "Density": {
+        "label": "Density",
+        "unit": "g/cm³",
+        "category": "Physical",
+        "desc": "Density near room temperature",
+        "numeric": True
+    },
+    "Type": {
+        "label": "Type",
+        "unit": "",
+        "category": "Chemical",
+        "desc": "Element category/type (metal, nonmetal, etc.)",
+        "numeric": False
+    },
+    "OxidationStates": {
+        "label": "Oxidation States",
+        "unit": "",
+        "category": "Chemical",
+        "desc": "Common oxidation states",
+        "numeric": False
+    },
+}
+
+CATEGORIES = sorted(set(prop["category"] for prop in PROPERTY_METADATA.values()))
+
+class ElementComparatorDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Element Comparator")
+        self.data = load_element_data()
+        self.setMinimumWidth(700)
+        self.resize(900, 600)
+
+        main_layout = QVBoxLayout(self)
+
+        element_layout = QHBoxLayout()
+        element_layout.addWidget(QLabel("Select Elements:"))
+
+        self.element_boxes = []
+        for i in range(3):
+            box = QComboBox()
+            box.setEditable(True)
+            box.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+            box.addItems(sorted(self.data.keys()))
+            box.setCurrentIndex(i)
+            box.setFixedWidth(150)
+            self.element_boxes.append(box)
+            element_layout.addWidget(box)
+
+        main_layout.addLayout(element_layout)
+
+        self.tabs = QTabWidget()
+        self.prop_checkboxes = {}
+        for category in CATEGORIES:
+            tab = QWidget()
+            tab_layout = QVBoxLayout(tab)
+
+            select_layout = QHBoxLayout()
+            select_all_btn = QPushButton("Select All")
+            select_none_btn = QPushButton("Select None")
+            select_layout.addWidget(select_all_btn)
+            select_layout.addWidget(select_none_btn)
+            tab_layout.addLayout(select_layout)
+
+            checkboxes = []
+            for key, meta in PROPERTY_METADATA.items():
+                if meta["category"] == category:
+                    chk = QCheckBox(meta["label"])
+                    chk.key = key
+                    chk.setChecked(True)
+                    chk.setToolTip(meta["desc"])
+                    checkboxes.append(chk)
+                    tab_layout.addWidget(chk)
+            self.prop_checkboxes[category] = checkboxes
+
+            select_all_btn.clicked.connect(lambda _, c=category: self.set_all_props(c, True))
+            select_none_btn.clicked.connect(lambda _, c=category: self.set_all_props(c, False))
+
+            self.tabs.addTab(tab, category)
+
+        main_layout.addWidget(self.tabs)
+
+        filter_layout = QHBoxLayout()
+        filter_layout.addWidget(QLabel("Filter properties:"))
+        self.filter_input = QLineEdit()
+        filter_layout.addWidget(self.filter_input)
+        main_layout.addLayout(filter_layout)
+
+        self.filter_input.textChanged.connect(self.filter_properties)
+
+        self.compare_btn = QPushButton("Compare")
+        main_layout.addWidget(self.compare_btn)
+
+        self.table = QTableWidget()
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setSortingEnabled(True)
+        main_layout.addWidget(self.table)
+
+        export_layout = QHBoxLayout()
+        self.export_csv_btn = QPushButton("Export CSV")
+        self.copy_clipboard_btn = QPushButton("Copy to Clipboard")
+        export_layout.addWidget(self.export_csv_btn)
+        export_layout.addWidget(self.copy_clipboard_btn)
+        main_layout.addLayout(export_layout)
+
+        self.compare_btn.clicked.connect(self.compare)
+        self.export_csv_btn.clicked.connect(self.export_csv)
+        self.copy_clipboard_btn.clicked.connect(self.copy_clipboard)
+
+    def set_all_props(self, category, checked):
+        for chk in self.prop_checkboxes[category]:
+            chk.setChecked(checked)
+
+    def filter_properties(self, text):
+        text = text.lower()
+        for category, chks in self.prop_checkboxes.items():
+            for chk in chks:
+                chk.setVisible(text in chk.text().lower() or text in chk.toolTip().lower())
+
+    def format_value(self, key, val):
+        if val is None:
+            return "—"
+        meta = PROPERTY_METADATA.get(key, {})
+        unit = meta.get("unit", "")
+        if isinstance(val, (int, float)):
+            return f"{val:,.3f} {unit}".strip()
+        if isinstance(val, list):
+            return ", ".join(str(x) for x in val)
+        return str(val)
+
+    def compare(self):
+        elements = [box.currentText().strip() for box in self.element_boxes]
+        if len(set(elements)) != len(elements):
+            QMessageBox.warning(self, "Invalid Selection", "Please select different elements.")
+            return
+        for el in elements:
+            if el not in self.data:
+                QMessageBox.warning(self, "Invalid Element", f"Element '{el}' not found in database.")
+                return
+        keys = []
+        for chks in self.prop_checkboxes.values():
+            keys.extend(chk.key for chk in chks if chk.isChecked())
+
+        self.table.clear()
+        self.table.setRowCount(len(keys))
+        self.table.setColumnCount(len(elements) + 1)
+        headers = ["Property"] + elements
+        self.table.setHorizontalHeaderLabels(headers)
+
+        for i, key in enumerate(keys):
+            meta = PROPERTY_METADATA.get(key, {})
+            prop_label = meta.get("label", key)
+            item_prop = QTableWidgetItem(prop_label)
+            item_prop.setToolTip(meta.get("desc", ""))
+            self.table.setItem(i, 0, item_prop)
+
+            vals = []
+            for col, el in enumerate(elements, start=1):
+                val = self.data[el].get(key)
+                fmt_val = self.format_value(key, val)
+                item = QTableWidgetItem(fmt_val)
+                self.table.setItem(i, col, item)
+                vals.append(val)
+
+            # Fixed highlight logic:
+            numeric_vals = [v for v in vals if isinstance(v, (int, float))]
+            if numeric_vals:
+                max_val = max(numeric_vals)
+                min_val = min(numeric_vals)
+                for col, v in enumerate(vals, start=1):
+                    if v is None or not isinstance(v, (int, float)):
+                        continue
+                    item = self.table.item(i, col)
+                    font = item.font()
+                    if v == max_val:
+                        font.setBold(True)
+                        item.setForeground(QBrush(QColor("blue")))
+                    elif v == min_val:
+                        font.setItalic(True)
+                        item.setForeground(QBrush(QColor("red")))
+                    item.setFont(font)
+            else:
+                non_null_vals = [v for v in vals if v is not None]
+                if len(set(non_null_vals)) > 1:
+                    for col, v in enumerate(vals, start=1):
+                        if v is None:
+                            continue
+                        item = self.table.item(i, col)
+                        font = item.font()
+                        font.setItalic(True)
+                        item.setFont(font)
+
+        self.table.resizeColumnsToContents()
+        self.table.resizeRowsToContents()
+
+        summary = f"Compared elements: {', '.join(elements)} on properties: {', '.join([PROPERTY_METADATA[k]['label'] for k in keys])}"
+        log_event("Element Comparator", f"{elements}", summary)
+
+    def export_csv(self):
+        import csv
+        from PyQt6.QtWidgets import QFileDialog
+        path, _ = QFileDialog.getSaveFileName(self, "Export CSV", "", "CSV files (*.csv)")
+        if not path:
+            return
+        with open(path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
+            writer.writerow(headers)
+            for row in range(self.table.rowCount()):
+                rowdata = []
+                for col in range(self.table.columnCount()):
+                    item = self.table.item(row, col)
+                    rowdata.append(item.text() if item else "")
+                writer.writerow(rowdata)
+
+    def copy_clipboard(self):
+        from PyQt6.QtGui import QGuiApplication
+        data = []
+        headers = [self.table.horizontalHeaderItem(i).text() for i in range(self.table.columnCount())]
+        data.append('\t'.join(headers))
+        for row in range(self.table.rowCount()):
+            rowdata = []
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                rowdata.append(item.text() if item else "")
+            data.append('\t'.join(rowdata))
+        clipboard = QGuiApplication.clipboard()
+        clipboard.setText('\n'.join(data))
 
 def open_comparator(preload=None):
-    class ComparatorDialog(QDialog):
-        def __init__(self):
-            super().__init__()
-            self.setWindowTitle("Element Comparator")
-            self.data = load_element_data()
-            self.setMinimumWidth(470)
-            vbox = QVBoxLayout(self)
-
-            elements = sorted(self.data.keys())
-            row = QHBoxLayout()
-            row.addWidget(QLabel("Element A:"))
-            self.a_box = QComboBox()
-            self.a_box.addItems(elements)
-            row.addWidget(self.a_box)
-            row.addWidget(QLabel("Element B:"))
-            self.b_box = QComboBox()
-            self.b_box.addItems(elements)
-            row.addWidget(self.b_box)
-            vbox.addLayout(row)
-
-            # Pick properties
-            props = [
-                ("Atomic Number", "AtomicNumber"),
-                ("Atomic Mass", "AtomicMass"),
-                ("Electronegativity", "Electronegativity"),
-                ("Boiling Point", "BoilingPoint"),
-                ("Melting Point", "MeltingPoint"),
-                ("Type", "Type")
-            ]
-            self.props = []
-            row2 = QHBoxLayout()
-            for label, key in props:
-                chk = QCheckBox(label)
-                chk.setChecked(True)
-                chk.key = key
-                self.props.append(chk)
-                row2.addWidget(chk)
-            vbox.addLayout(row2)
-
-            self.compare_btn = QPushButton("Compare")
-            vbox.addWidget(self.compare_btn)
-
-            self.table = QTableWidget()
-            self.table.setColumnCount(3)
-            self.table.setHorizontalHeaderLabels(["Property", "A", "B"])
-            self.table.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-            vbox.addWidget(self.table)
-
-            self.compare_btn.clicked.connect(self.compare)
-
-            if preload and isinstance(preload, tuple) and len(preload) == 2:
-                self.a_box.setCurrentText(preload[0])
-                self.b_box.setCurrentText(preload[1])
-                log_event("Comparator (Chain)", f"{preload}", "Waiting for compare")
-
-        def compare(self):
-            a = self.a_box.currentText()
-            b = self.b_box.currentText()
-            if a not in self.data or b not in self.data:
-                QMessageBox.warning(self, "Invalid", "Invalid element selection.")
-                log_event("Element Comparator", f"{a} vs {b}", "Invalid element selection.")
-                return
-            keys = [chk.key for chk in self.props if chk.isChecked()]
-            self.table.setRowCount(len(keys))
-            log_lines = []
-            for i, key in enumerate(keys):
-                prop_label = [chk.text() for chk in self.props if chk.key == key][0]
-                a_val = self.data[a].get(key)
-                b_val = self.data[b].get(key)
-                # Pretty formatting
-                def fmt(x): return "—" if x is None else f"{x}"
-                item_prop = QTableWidgetItem(prop_label)
-                item_a = QTableWidgetItem(fmt(a_val))
-                item_b = QTableWidgetItem(fmt(b_val))
-                # Highlight largest value (if numeric)
-                try:
-                    va = float(a_val)
-                    vb = float(b_val)
-                    if va > vb:
-                        item_a.setFont(QFont("", weight=QFont.Weight.Bold))
-                        item_a.setForeground(QBrush(QColor("blue")))
-                    elif vb > va:
-                        item_b.setFont(QFont("", weight=QFont.Weight.Bold))
-                        item_b.setForeground(QBrush(QColor("blue")))
-                except:
-                    # For non-numeric: bold if not equal
-                    if a_val != b_val and None not in (a_val, b_val):
-                        item_a.setFont(QFont("", italic=True))
-                        item_b.setFont(QFont("", italic=True))
-                self.table.setItem(i, 0, item_prop)
-                self.table.setItem(i, 1, item_a)
-                self.table.setItem(i, 2, item_b)
-                log_lines.append(f"{prop_label}: {a}={a_val}, {b}={b_val}")
-            summary = f"Compared {a} and {b}"
-            log_event("Element Comparator", f"{a} vs {b}", summary + " | " + " | ".join(log_lines))
-
-    dlg = ComparatorDialog()
+    dlg = ElementComparatorDialog()
+    if preload and isinstance(preload, (list, tuple)):
+        for i, val in enumerate(preload[:3]):
+            dlg.element_boxes[i].setCurrentText(val)
+        log_event("Comparator (Chain)", f"{preload}", "Waiting for compare")
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox

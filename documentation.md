@@ -455,3 +455,31 @@ Enter an element symbol and temperature with optional unit suffix, optionally sp
 ---
 
 ![Phase Predictor](screenshots/screenshot_pp.png)
+
+## Element Comparator
+
+Compare multiple elements side-by-side across various physical, chemical, and atomic properties.
+
+### Features
+
+- Select 3 elements by default (expandable) with searchable combo boxes  
+- Properties grouped into categories with tabs: Atomic, Chemical, Physical  
+- Select properties via checkboxes with “Select All” and “Select None” buttons per category  
+- Filter properties by text input for quick searching  
+- Displays a sortable table comparing selected elements’ properties side-by-side  
+- Automatic units and formatted numeric values  
+- Highlights max values in blue bold font and min values in red italic font for numeric properties  
+- Italicizes categorical differences for easy visual spotting  
+- Tooltips on property names provide scientific descriptions  
+- Export comparison table to CSV file  
+- Copy table contents to clipboard for easy pasting  
+- Robust input validation and error handling  
+- Logs user actions and comparison summaries
+
+### User Interface
+
+Simple, clean UI with tabs for property categories, multiple element selectors, and a feature-rich comparison table.
+
+---
+
+![Comparator](screenshots/screenshot_comparator.png)

@@ -243,3 +243,35 @@ The interface provides labeled fields with dropdowns for units, a clear Calculat
 ---
 
 ![Speed Calculator](screenshots/screenshot_speed_calc.png)
+
+## Drag Force Calculator
+
+Calculates the drag force \( F_d \) experienced by an object moving through a fluid using the formula:
+
+\[
+F_d = \frac{1}{2} \rho v^2 C_d A
+\]
+
+where:
+- \( \rho \) is the air density,
+- \( v \) is the velocity,
+- \( C_d \) is the drag coefficient,
+- \( A \) is the cross-sectional area.
+
+### Features
+
+- Inputs for air density, velocity, drag coefficient, and cross-sectional area  
+- Unit selectors for air density (kg/m³, g/cm³), velocity (m/s, km/h, mph), and area (m², cm², ft²)  
+- Automatic conversion of all inputs to SI units for calculation  
+- Validates inputs and displays clear error messages  
+- Displays drag force in Newtons (N) with three decimal places  
+- Includes Clear button to reset inputs to defaults  
+- Logs inputs and calculated drag force for reproducibility  
+
+### User Interface
+
+Inputs are organized in labeled rows with unit selectors. The result is shown below inputs, with action buttons for calculation and clearing.
+
+---
+
+![Drag Force Calculator](screenshots/screenshot_drag_force.png)

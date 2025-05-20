@@ -1305,49 +1305,122 @@ def open_speed_calculator():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-
 def open_drag_force_calculator():
     class DragDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Drag Force Calculator")
+            self.setMinimumWidth(350)
             layout = QVBoxLayout(self)
-            self.density = QLineEdit()
-            self.velocity = QLineEdit()
-            self.cd = QLineEdit()
-            self.area = QLineEdit()
-            for label, edit in [
-                ("Air Density ρ (kg/m³):", self.density),
-                ("Velocity v (m/s):", self.velocity),
-                ("Drag Coefficient Cd:", self.cd),
-                ("Cross-sectional Area A (m²):", self.area)
-            ]:
+
+            # Units options
+            self.density_units = ["kg/m³", "g/cm³"]
+            self.velocity_units = ["m/s", "km/h", "mph"]
+            self.area_units = ["m²", "cm²", "ft²"]
+
+            # Input fields with validators and prefill
+            decimal_regex = QRegularExpression(r"[0-9]*\.?[0-9]*")
+            validator = QRegularExpressionValidator(decimal_regex)
+
+            self.density_edit = QLineEdit("1.225")  # air density at sea level in kg/m³
+            self.density_edit.setValidator(validator)
+            self.density_unit = QComboBox()
+            self.density_unit.addItems(self.density_units)
+
+            self.velocity_edit = QLineEdit("10")
+            self.velocity_edit.setValidator(validator)
+            self.velocity_unit = QComboBox()
+            self.velocity_unit.addItems(self.velocity_units)
+
+            self.cd_edit = QLineEdit("1.0")
+            self.cd_edit.setValidator(validator)
+
+            self.area_edit = QLineEdit("0.5")
+            self.area_edit.setValidator(validator)
+            self.area_unit = QComboBox()
+            self.area_unit.addItems(self.area_units)
+
+            # Layout helper
+            def make_row(label_text, edit_widget, unit_combo=None):
                 row = QHBoxLayout()
-                row.addWidget(QLabel(label))
-                row.addWidget(edit)
-                layout.addLayout(row)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-            btn = QPushButton("Calculate Drag Force")
-            btn.clicked.connect(self.compute)
-            layout.addWidget(btn)
-            self.setMinimumWidth(320)
+                row.addWidget(QLabel(label_text))
+                row.addWidget(edit_widget)
+                if unit_combo:
+                    row.addWidget(unit_combo)
+                return row
+
+            layout.addLayout(make_row("Air Density ρ:", self.density_edit, self.density_unit))
+            layout.addLayout(make_row("Velocity v:", self.velocity_edit, self.velocity_unit))
+            layout.addLayout(make_row("Drag Coefficient Cd:", self.cd_edit))
+            layout.addLayout(make_row("Cross-sectional Area A:", self.area_edit, self.area_unit))
+
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+
+            btn_layout = QHBoxLayout()
+            self.calc_btn = QPushButton("Calculate Drag Force")
+            self.clear_btn = QPushButton("Clear")
+            btn_layout.addWidget(self.calc_btn)
+            btn_layout.addWidget(self.clear_btn)
+            layout.addLayout(btn_layout)
+
+            # Connections
+            self.calc_btn.clicked.connect(self.compute)
+            self.clear_btn.clicked.connect(self.clear_all)
+
+        def convert_to_SI_density(self, val, unit):
+            if unit == "g/cm³":
+                return val * 1000  # 1 g/cm³ = 1000 kg/m³
+            return val
+
+        def convert_to_SI_velocity(self, val, unit):
+            if unit == "km/h":
+                return val / 3.6
+            elif unit == "mph":
+                return val * 0.44704
+            return val
+
+        def convert_to_SI_area(self, val, unit):
+            if unit == "cm²":
+                return val / 10000
+            elif unit == "ft²":
+                return val * 0.092903
+            return val
+
         def compute(self):
             try:
-                rho = float(self.density.text())
-                v = float(self.velocity.text())
-                cd = float(self.cd.text())
-                A = float(self.area.text())
-                Fd = 0.5 * rho * v**2 * cd * A
-                self.result.setText(f"Drag Force = {Fd:.3f} N")
-                log_event("Drag Force Calculator", f"ρ={rho}, v={v}, Cd={cd}, A={A}", Fd)
+                rho = float(self.density_edit.text())
+                v = float(self.velocity_edit.text())
+                cd = float(self.cd_edit.text())
+                A = float(self.area_edit.text())
+
+                rho_si = self.convert_to_SI_density(rho, self.density_unit.currentText())
+                v_si = self.convert_to_SI_velocity(v, self.velocity_unit.currentText())
+                A_si = self.convert_to_SI_area(A, self.area_unit.currentText())
+
+                Fd = 0.5 * rho_si * v_si**2 * cd * A_si
+                self.result_label.setText(f"Drag Force = {Fd:.3f} N")
+                log_event("Drag Force Calculator",
+                          f"ρ={rho} {self.density_unit.currentText()}, "
+                          f"v={v} {self.velocity_unit.currentText()}, "
+                          f"Cd={cd}, "
+                          f"A={A} {self.area_unit.currentText()}",
+                          f"{Fd:.3f} N")
             except Exception as e:
-                self.result.setText(f"Error: {e}")
+                self.result_label.setText(f"Error: {e}")
+
+        def clear_all(self):
+            self.density_edit.setText("1.225")
+            self.velocity_edit.setText("10")
+            self.cd_edit.setText("1.0")
+            self.area_edit.setText("0.5")
+            self.result_label.clear()
+
     dlg = DragDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
 
 
 def open_acceleration_calculator():

@@ -122,8 +122,8 @@ You can switch models at any time, track token usage live, and load previous con
 ## Learn More
 
 - [README em Português Brasileiro](README.pt-BR.md)
-- [Guia de Instalação em Português](INSTALL.pt-BR.md)
-- [English Install Guide](INSTALL.md)
+- [Guia de Instalação em Português](documentations/INSTALL.pt-BR.md)
+- [English Install Guide](documentations/INSTALL.md)
 - Report issues or suggest improvements at: [GitHub Issues](https://github.com/PabloOeffnerFerreira/The-Science-Hub/issues)
 
 ---

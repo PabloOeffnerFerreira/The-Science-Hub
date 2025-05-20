@@ -535,42 +535,178 @@ def open_projectile_motion_tool():
             super().__init__()
             self.setWindowTitle("Projectile Motion")
             layout = QVBoxLayout(self)
-            self.v = QLineEdit("20")
-            self.angle = QLineEdit("45")
-            for label, edit in [
-                ("Initial Velocity (m/s):", self.v),
-                ("Angle (degrees):", self.angle)
-            ]:
-                row = QHBoxLayout()
-                row.addWidget(QLabel(label))
-                row.addWidget(edit)
-                layout.addLayout(row)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-            btn = QPushButton("Calculate")
-            btn.clicked.connect(self.calculate)
-            layout.addWidget(btn)
-            self.setMinimumWidth(300)
+
+            # Initial velocity input + unit selector
+            row_v = QHBoxLayout()
+            row_v.addWidget(QLabel("Initial Velocity:"))
+            self.v_edit = QLineEdit("20")
+            self.v_unit = QComboBox()
+            self.v_unit.addItems(["m/s", "km/h", "mph"])
+            row_v.addWidget(self.v_edit)
+            row_v.addWidget(self.v_unit)
+            layout.addLayout(row_v)
+
+            # Angle input + unit selector
+            row_angle = QHBoxLayout()
+            row_angle.addWidget(QLabel("Launch Angle:"))
+            self.angle_edit = QLineEdit("45")
+            self.angle_unit = QComboBox()
+            self.angle_unit.addItems(["degrees", "radians"])
+            row_angle.addWidget(self.angle_edit)
+            row_angle.addWidget(self.angle_unit)
+            layout.addLayout(row_angle)
+
+            # Initial height input + unit selector
+            row_h = QHBoxLayout()
+            row_h.addWidget(QLabel("Initial Height:"))
+            self.h_edit = QLineEdit("0")
+            self.h_unit = QComboBox()
+            self.h_unit.addItems(["m", "ft"])
+            row_h.addWidget(self.h_edit)
+            row_h.addWidget(self.h_unit)
+            layout.addLayout(row_h)
+
+            # Result display
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+
+            # Matplotlib plot area
+            self.figure = Figure(figsize=(6, 4))
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            # Buttons
+            btn_calc = QPushButton("Calculate")
+            btn_calc.clicked.connect(self.calculate)
+            layout.addWidget(btn_calc)
+
+            btn_anim = QPushButton("Start Animation")
+            btn_anim.clicked.connect(self.start_animation)
+            layout.addWidget(btn_anim)
+
+            # Timer for animation
+            from PyQt6.QtCore import QTimer
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.animate_step)
+            self.anim_index = 0
+
+            self.x_vals = []
+            self.y_vals = []
+
         def calculate(self):
             try:
-                v = float(self.v.text())
-                angle = math.radians(float(self.angle.text()))
+                v = float(self.v_edit.text())
+                angle = float(self.angle_edit.text())
+                h = float(self.h_edit.text())
                 g = 9.81
-                range_ = (v ** 2) * math.sin(2 * angle) / g
-                height = (v ** 2) * (math.sin(angle) ** 2) / (2 * g)
-                time = 2 * v * math.sin(angle) / g
-                msg = f"Range: {range_:.2f} m\nMax Height: {height:.2f} m\nFlight Time: {time:.2f} s"
-                self.result.setText(msg)
-                log_event("Projectile Motion", f"v={v}, angle={math.degrees(angle)}°", msg.replace('\n', ' | '))
-            except Exception:
-                msg = "Invalid input."
-                self.result.setText(msg)
-                log_event("Projectile Motion", f"v={self.v.text()}, angle={self.angle.text()}", msg)
+
+                # Convert units to SI
+                if self.v_unit.currentText() == "km/h":
+                    v /= 3.6
+                elif self.v_unit.currentText() == "mph":
+                    v *= 0.44704
+
+                if self.angle_unit.currentText() == "degrees":
+                    angle = math.radians(angle)
+
+                if self.h_unit.currentText() == "ft":
+                    h *= 0.3048
+
+                # Time to max height
+                t_max_height = v * math.sin(angle) / g
+
+                # Max height
+                max_height = h + (v ** 2) * (math.sin(angle) ** 2) / (2 * g)
+
+                # Flight time by solving quadratic for y=0
+                a = -0.5 * g
+                b = v * math.sin(angle)
+                c = h
+                discriminant = b ** 2 - 4 * a * c
+                if discriminant < 0:
+                    self.result_label.setText("No valid flight time (check inputs).")
+                    return
+                t_flight = (-b - math.sqrt(discriminant)) / (2 * a)
+                if t_flight < 0:
+                    t_flight = (-b + math.sqrt(discriminant)) / (2 * a)
+
+                # Range
+                range_ = v * math.cos(angle) * t_flight
+
+                # Impact velocity components
+                vx_impact = v * math.cos(angle)
+                vy_impact = -g * t_flight + v * math.sin(angle)
+                impact_speed = math.sqrt(vx_impact ** 2 + vy_impact ** 2)
+
+                # Prepare trajectory for plotting
+                import numpy as np
+                self.x_vals = np.linspace(0, range_, num=500)
+                self.y_vals = h + self.x_vals * math.tan(angle) - (g * self.x_vals ** 2) / (2 * (v * math.cos(angle)) ** 2)
+                self.y_vals = np.maximum(self.y_vals, 0)  # Clamp to ground
+
+                msg = (f"Range: {range_:.2f} m\n"
+                       f"Max Height: {max_height:.2f} m\n"
+                       f"Flight Time: {t_flight:.2f} s\n"
+                       f"Time to Max Height: {t_max_height:.2f} s\n"
+                       f"Impact Velocity: {impact_speed:.2f} m/s\n"
+                       f"Velocity X at Impact: {vx_impact:.2f} m/s\n"
+                       f"Velocity Y at Impact: {vy_impact:.2f} m/s")
+
+                self.result_label.setText(msg)
+
+                self.figure.clear()
+                ax = self.figure.add_subplot(111)
+                ax.plot(self.x_vals, self.y_vals)
+                ax.set_xlabel("Horizontal Distance (m)")
+                ax.set_ylabel("Vertical Height (m)")
+                ax.set_title("Projectile Trajectory")
+                ax.grid(True)
+                self.canvas.draw()
+
+                self.anim_index = 0
+
+                import datetime
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                img_name = f"projectile_trajectory_{timestamp}.png"
+                img_path = os.path.join(results_dir, img_name)
+                self.figure.savefig(img_path, dpi=150)
+
+                # Optionally update the result label to include the saved file path:
+                self.result_label.setText(self.result_label.text() + f"\nPlot saved to {img_path}")
+
+                # Log the export event
+                log_event("Projectile Motion", f"v={v}, angle={math.degrees(angle):.2f}°, h={h}, plot={img_path}", "Plot saved")
+
+            except Exception as e:
+                self.result_label.setText("Invalid input.")
+                log_event("Projectile Motion", f"error: {str(e)}", "")
+
+        def start_animation(self):
+            if len(self.x_vals) == 0 or len(self.y_vals) == 0:
+                self.result_label.setText("Calculate first.")
+                return
+            self.anim_index = 0
+            self.figure.clear()
+            self.ax = self.figure.add_subplot(111)
+            self.ax.set_xlim(0, max(self.x_vals) * 1.1)
+            self.ax.set_ylim(0, max(self.y_vals) * 1.1)
+            self.point, = self.ax.plot([], [], 'ro')
+            self.ax.plot(self.x_vals, self.y_vals, 'b-')
+            self.canvas.draw()
+            self.timer.start(30)  # 30 ms update interval
+
+        def animate_step(self):
+            if self.anim_index >= len(self.x_vals):
+                self.timer.stop()
+                return
+            self.point.set_data([self.x_vals[self.anim_index]], [self.y_vals[self.anim_index]])
+            self.anim_index += 1
+            self.canvas.draw_idle()
+
     dlg = ProjectileDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
 
 def open_ohms_law_tool():
     class OhmDialog(QDialog):

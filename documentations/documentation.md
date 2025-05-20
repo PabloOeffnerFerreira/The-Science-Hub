@@ -136,3 +136,37 @@ The Terminal Velocity Calculator estimates the terminal velocity and fall time o
 ---
 
 [Terminal Velocity Calculator](screenshots/screenshot_terminal_velocity_calc.png)
+
+## Projectile Motion Tool
+
+The Projectile Motion tool calculates the trajectory and key parameters of a projectile launched at an initial velocity and angle from a specified height.
+
+### Features
+
+- Input initial velocity with units (m/s, km/h, mph)  
+- Input launch angle with units (degrees, radians)  
+- Input initial height above ground with units (meters, feet)  
+- Calculates:  
+  - Range  
+  - Maximum height  
+  - Total flight time  
+  - Time to maximum height  
+  - Impact velocity magnitude and components  
+- Plots the projectile trajectory (horizontal distance vs. height)  
+- Includes an animation of the projectile motion on the plot  
+- Automatically saves the trajectory plot as a PNG image in the results folder with a timestamped filename  
+- Logs calculation details and export events for reproducibility  
+
+### User Interface
+
+The tool provides labeled input fields with unit selectors, a results display area, and an embedded matplotlib plot. Buttons allow calculation and animation control.
+
+### Usage Notes
+
+- Ensure inputs are valid numbers; units are automatically converted to SI for calculations.  
+- The animation visualizes the projectile’s path based on the calculated trajectory points.  
+- The exported plot file path is shown in the results area after calculation.
+
+---
+
+[Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)

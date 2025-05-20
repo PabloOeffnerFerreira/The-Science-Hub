@@ -48,6 +48,7 @@ Here are the main included tools, grouped by subject:
 - **Unit Multiplier** – Mass, moles, volume (STP) from any two values.
 - **Property Grapher** – Interactive element graphs, hover data.
 - **Comparator Tool** – Property comparison between elements.
+- **Algebric Calculator** - Simplify and calculate algebric function
 
 ### Chemistry
 

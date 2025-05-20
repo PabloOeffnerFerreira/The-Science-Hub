@@ -49,6 +49,7 @@ Veja as principais ferramentas disponíveis (agrupadas por área):
 - **Multiplicador de Unidades:** Calcule fatores multiplicativos.
 - **Calculadora de pH:** Soluções químicas.
 - **Calculadora de Crescimento Populacional:** Modelagem populacional.
+- **Calculadora de Álgebra** - Simplifique e calcule funções algébricas
 
 ### Química
 

@@ -50,6 +50,7 @@ Here are the main included tools, grouped by subject:
 - **Comparator Tool** – Property comparison between elements.
 - **Algebric Calculator** - Simplify and calculate algebric function
 - **Scientific Notation Converter** - Convert decimal Numbers to scientific notation and vice versa.
+* **Half-Life Calculator** – Calculate remaining quantity based on half-life and elapsed time, with optional decay plot.
 
 ### Chemistry
 

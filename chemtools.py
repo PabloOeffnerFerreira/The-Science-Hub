@@ -326,6 +326,20 @@ from PyQt6.QtWidgets import (
 )
 from data_utils import load_element_data, log_event
 import matplotlib.pyplot as plt
+import os
+import datetime
+import math
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QHBoxLayout, QSizePolicy
+)
+from PyQt6.QtCore import Qt
+from data_utils import load_element_data, log_event, _open_dialogs
+
+results_dir = os.path.join(os.path.dirname(__file__), 'results')
 
 def open_shell_visualizer(preload=None):
     class ShellDialog(QDialog):
@@ -333,60 +347,113 @@ def open_shell_visualizer(preload=None):
             super().__init__()
             self.setWindowTitle("Shell Visualizer")
             self.data = load_element_data()
-            self.setMinimumWidth(320)
+            self.setMinimumWidth(450)
+            self.resize(600, 650)
+
             layout = QVBoxLayout(self)
+
             layout.addWidget(QLabel("Element Symbol:"))
             self.entry = QLineEdit()
+            self.entry.setPlaceholderText("Example: H, He, Fe")
             layout.addWidget(self.entry)
 
-            btn = QPushButton("Draw & Save")
-            btn.clicked.connect(self.draw)
-            layout.addWidget(btn)
+            btn_layout = QHBoxLayout()
+            self.draw_btn = QPushButton("Draw & Save")
+            btn_layout.addWidget(self.draw_btn)
+            layout.addLayout(btn_layout)
+
+            self.status_label = QLabel("")
+            layout.addWidget(self.status_label)
+
+            self.figure = plt.figure(figsize=(5, 5), dpi=100)
+            self.canvas = FigureCanvas(self.figure)
+            self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            self.canvas.updateGeometry()
+            # Debug border: uncomment to see canvas boundaries
+            # self.canvas.setStyleSheet("border: 2px solid red;")
+            layout.addWidget(self.canvas)
+
+            self.toolbar = NavigationToolbar(self.canvas, self)
+            layout.addWidget(self.toolbar)
+
+            self.draw_btn.clicked.connect(self.draw)
 
             if preload:
                 self.entry.setText(preload)
                 log_event("Shell Visualizer (Chain)", preload, "Waiting for draw")
 
         def draw(self):
-            sym = self.entry.text().strip()
+            sym = self.entry.text().strip().capitalize()
             if sym not in self.data or "shells" not in self.data[sym]:
                 QMessageBox.warning(self, "Not found", f"No shell data for element '{sym}'")
                 return
+
             shells = self.data[sym]["shells"]
-            fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
+            max_shells = len(shells)
+            max_electrons = max(shells) if shells else 1
+
+            base_radius = 0.6
+
+            def radius_func(i):
+                return base_radius + np.sqrt(i + 1) * 0.7
+
+            radii = np.array([radius_func(i) for i in range(max_shells)])
+            max_radius = radii[-1] if len(radii) > 0 else base_radius
+
+            max_allowed_radius = 8
+            scale = 1.0
+            if max_radius > max_allowed_radius:
+                scale = max_allowed_radius / max_radius
+                radii = radii * scale
+                max_radius = max_allowed_radius
+
+            fig_size = 5 + max_radius * 0.8
+            self.figure.set_size_inches(fig_size, fig_size)
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+
             cx, cy = 0, 0
             colors = ["#b0c4de", "#add8e6", "#90ee90", "#ffa07a", "#ffd700", "#e9967a", "#dda0dd"]
+
             for i, count in enumerate(shells):
-                r = 0.6 + i * 0.7
+                r = radii[i]
                 circ = plt.Circle((cx, cy), r, fill=False, color=colors[i % len(colors)], linewidth=2)
                 ax.add_patch(circ)
+
                 for j in range(count):
                     angle = 2 * math.pi * j / count
                     ex = cx + r * math.cos(angle)
                     ey = cy + r * math.sin(angle)
-                    electron = plt.Circle((ex, ey), 0.06, color="black")
+                    electron = plt.Circle((ex, ey), 0.06 * scale, color="black")
                     ax.add_patch(electron)
-            ax.text(cx, cy, sym, fontsize=16, fontweight="bold", ha='center', va='center')
-            ax.set_xlim(-2.5, 2.5)
-            ax.set_ylim(-2.5, 2.5)
-            ax.axis('off')
-            plt.tight_layout()
 
-            # Save to results folder
+            ax.text(cx, cy, sym, fontsize=16 * scale, fontweight="bold", ha='center', va='center')
+
+            padding = max_radius * 0.6 + 1.0  # Increased padding
+            ax.set_xlim(-max_radius - padding, max_radius + padding)
+            ax.set_ylim(-max_radius - padding, max_radius + padding)
+
+            ax.set_aspect('equal', adjustable='box')  # Aspect set last
+            ax.axis('off')
+
+            self.canvas.draw()
+            self.canvas.resize(self.canvas.sizeHint())  # Force canvas resize
+
             if not os.path.exists(results_dir):
                 os.makedirs(results_dir)
 
             fname = f"shells_{sym}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
             full_path = os.path.join(results_dir, fname)
-            plt.savefig(full_path)
-            plt.show()
+            self.figure.savefig(full_path)
+
+            self.status_label.setText(f"Shell visualization saved as: {full_path}")
             log_event("Shell Visualizer", sym, f"Shells: {shells} [IMG:{full_path}]")
-            QMessageBox.information(self, "Saved", f"Shell visualization saved as:\n{full_path}")
 
     dlg = ShellDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox

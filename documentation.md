@@ -407,3 +407,27 @@ Clean layout with labeled inputs, action buttons (Calculate, Copy Result, Export
 ---
 
 ![Isotope Tool](screenshots/screenshot_isotope.png)
+
+## Shell Visualizer
+
+Visualizes the electron shell structure of elements using data from the periodic table database.
+
+### Features
+
+- Input field for element symbol (e.g., H, He, Fe) with placeholder and auto-capitalization  
+- Electron shells drawn as concentric colored circles with electrons positioned evenly on each shell  
+- Dynamic radius scaling using square root spacing to handle large atoms gracefully  
+- Automatic scaling and clamping of shell radii to fit within the visualization window  
+- Embedded matplotlib canvas with interactive navigation toolbar for zooming, panning, and saving  
+- Visualization saved automatically as a timestamped PNG file in the `results` folder  
+- Status label shows saved image path instead of popup messages  
+- Responsive PyQt6 layout with expanding canvas for better viewing experience  
+- Logs all actions and saved image paths for traceability
+
+### User Interface
+
+Clean and simple interface with labeled input, a “Draw & Save” button, a status label, and the embedded interactive plot with navigation toolbar.
+
+---
+
+![Shell Visualiser](screenshots/screenshot_sv.png)

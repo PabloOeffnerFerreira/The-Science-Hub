@@ -116,17 +116,23 @@ Você pode trocar de modelo a qualquer momento, acompanhar uso de tokens em temp
 
 ## Capturas de Tela
 
-![Janela Principal](screenshots/main_window.png)  
+![Main Window](screenshots/main_window.png)
 *Janela principal do Science Hub*
 
-![Galeria Científica](screenshots/screenshot_gallery.png)  
-*Galeria de imagens, resultados e experimentos científicos*
+![Scientific Gallery](screenshots/screenshot_gallery.png)
+*Galeria de imagens científicas, resultados e experimentos*
 
-![Biblioteca Científica](screenshots/screenshot_library.png)  
+![Science Library](screenshots/screenshot_library.png)
 *Biblioteca para fórmulas, conceitos, tags e descrições*
 
-![Assistente de IA](screenshots/AI.png)  
-*Assistente de IA local e offline, integrado ao Science Hub*
+![AI Assistant](screenshots/AI.png)
+*Assistente de IA local e offline integrado ao Science Hub*
+
+![Mineral Explorer](screenshots/screenshot_mineral_explorer.png)
+*Grande base de dados para consulta de informações sobre minerais*
+
+![Code Editor](screenshots/screenshot_code_editor.png)
+*Seu próprio IDE com shell integrado, terminal e assistência de IA para programação*
 
 ---
 

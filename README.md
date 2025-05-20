@@ -131,6 +131,11 @@ You can switch models at any time, track token usage live, and load previous con
 ![AI Assistant](screenshots/AI.png)  
 *Local offline AI assistant integrated into Science Hub*
 
+![Mineral Explorer](screenshots/screenshot_mineral_explorer.png)
+*Huge Database checker for mineral info*
+
+![Code Editor](screenshots/screenshot_code_editor.png)
+*Your very own IDE with integrated shell, terminal and coding AI assistance*
 ---
 
 ## Learn More

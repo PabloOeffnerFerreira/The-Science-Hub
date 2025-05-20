@@ -297,3 +297,27 @@ Labeled input fields paired with unit dropdown selectors. Results appear below i
 ---
 
 ![Acceleration Calculator](screenshots/screenshot_acc_calc.png)
+
+## Force Calculator
+
+Calculates the force \( F = m \times a \) given mass and acceleration inputs.
+
+### Features
+
+- Inputs for mass and acceleration with unit selectors:
+  - Mass: kilograms (kg), grams (g), pounds (lb)  
+  - Acceleration: meters per second squared (m/s²), feet per second squared (ft/s²)  
+- Automatic conversion between units to SI base units for calculation  
+- Input validation allowing decimal numbers only  
+- Clear and Calculate buttons  
+- Displays calculated force in Newtons (N) with three decimal places  
+- Logs all inputs and results  
+- Interactive matplotlib graph showing Force vs. Acceleration for a range around the current input, highlighting the current value
+
+### User Interface
+
+Each input is paired with a unit dropdown. Results display below inputs. Buttons for calculation and clearing are provided. The graph updates dynamically after each calculation.
+
+---
+
+![Force Calculator](screenshots/screenshot_force.png)

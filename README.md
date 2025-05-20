@@ -11,6 +11,8 @@
 You can simulate phenomena, solve problems in physics, chemistry, biology, geology, and math, save results, organize formulas, manage scientific images, and search for articles—all in a single system designed to let you explore science your way.
 
 ---
+- [README em Português Brasileiro](README.pt-BR.md)
+---
 
 ## Main Features
 

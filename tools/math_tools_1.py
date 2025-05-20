@@ -145,3 +145,46 @@ def open_triangle_solver():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
+# Algebric Calculator
+
+def open_algebric_calc():
+    class AlgDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Algebric Calculator")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter function of x (e.g., x**2 + 3*x - 2):"))
+            self.func_input = QLineEdit()
+            layout.addWidget(self.func_input)
+            layout.addWidget(QLabel("Enter the Value of X"))
+            self.x_input = QLineEdit()
+            layout.addWidget(self.x_input)
+            btn = QPushButton("Calculate")
+            btn.clicked.connect(self.calculate)
+            layout.addWidget(btn)
+            self.result = QLabel()
+            layout.addWidget(self.result)
+            self.setMinimumWidth(350)
+        def calculate(self):
+            user_input = self.func_input.text()
+            user_x_input = self.x_input.text()
+            try:
+                expr = sp.sympify(user_input)
+                x = sp.Symbol('x')
+                value = float(user_x_input)
+                result = expr.subs(x, value).evalf(4)
+                if result == int(result):
+                    msg = f"f({value}) = {int(result)}"
+                else:
+                    msg = f"f({value}) = {result.evalf(4)}"
+                self.result.setText(msg)
+                log_event("Algebric Calculator", expr, msg)
+            except Exception:
+                msg = "Error with the function"
+                self.result.setText(msg)
+                log_event("Algebric Calculator", self.func_input.text(), msg)
+    dlg = AlgDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

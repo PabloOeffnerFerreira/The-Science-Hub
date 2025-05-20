@@ -11,7 +11,8 @@ from tools.mol_assembler import open_molecule_assembler
 from tools.math_tools_1 import (
     open_function_plotter,
     open_quadratic_solver,
-    open_triangle_solver
+    open_triangle_solver,
+    open_algebric_calc
 )
 from tools.chemtools import (
     open_mass_calculator,
@@ -81,6 +82,7 @@ def open_math_tools_hub():
         ("Function Plotter", open_function_plotter),
         ("Quadratic Solver", open_quadratic_solver),
         ("Triangle Solver", open_triangle_solver),
+        ("Algebric Calculaltor", open_algebric_calc),
     ]
     dlg = ToolkitHub("Math", tools)
     dlg.show()

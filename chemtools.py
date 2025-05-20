@@ -11,49 +11,131 @@ from data_utils import (
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
 from data_utils import load_element_data, parse_formula
 
-class MassCalculatorDialog(QDialog):
-    def __init__(self):
+import re
+import os
+import json
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QHBoxLayout
+from data_utils import _open_dialogs, log_event
+
+class MolecularWeightCalculatorDialog(QDialog):
+    def __init__(self, element_data):
         super().__init__()
         self.setWindowTitle("Molecular Weight Calculator")
-        self.setMinimumWidth(360)
-        layout = QVBoxLayout(self)
+        self.setMinimumWidth(400)
+        self.element_data = element_data
 
-        layout.addWidget(QLabel("Enter Formula:"))
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Enter molecular formula (e.g. H2O, C6H12O6, CuSO4·5H2O):"))
         self.formula_entry = QLineEdit()
+        self.formula_entry.setPlaceholderText("Example: C6H12O6 or CuSO4·5H2O")
         layout.addWidget(self.formula_entry)
+
+        btn_layout = QHBoxLayout()
+        calc_btn = QPushButton("Calculate")
+        clear_btn = QPushButton("Clear")
+        btn_layout.addWidget(calc_btn)
+        btn_layout.addWidget(clear_btn)
+        layout.addLayout(btn_layout)
 
         self.result_box = QTextEdit()
         self.result_box.setReadOnly(True)
         layout.addWidget(self.result_box)
 
-        calc_btn = QPushButton("Calculate")
         calc_btn.clicked.connect(self.calculate)
-        layout.addWidget(calc_btn)
+        clear_btn.clicked.connect(self.clear)
+
+    def clear(self):
+        self.formula_entry.clear()
+        self.result_box.clear()
 
     def calculate(self):
-        data = load_element_data()
         formula = self.formula_entry.text().strip()
+        if not formula:
+            self.result_box.setText("Please enter a molecular formula.")
+            return
+
         try:
-            counts = parse_formula(formula)
-            total = 0
-            result_lines = []
-            for el, count in counts.items():
-                el_data = data.get(el)
-                if el_data:
-                    mass = el_data.get("AtomicMass") or el_data.get("atomic_mass")
+            parts = formula.split('·')  # split on hydrate dot
+            total_counts = {}
+            for part in parts:
+                m = re.match(r'^(\d+)(.*)$', part)
+                if m:
+                    multiplier = int(m.group(1))
+                    subformula = m.group(2)
+                    counts = self.parse_formula(subformula)
+                    for el, cnt in counts.items():
+                        total_counts[el] = total_counts.get(el, 0) + cnt * multiplier
                 else:
-                    self.result_box.append(f"{el}: unknown")
-                    continue
-                subtotal = count * mass
-                result_lines.append(f"{el} × {count} = {subtotal:.3f} g/mol")
-                total += subtotal
-            result_lines.append(f"\nTotal = {total:.3f} g/mol")
-            self.result_box.setText('\n'.join(result_lines))
+                    counts = self.parse_formula(part)
+                    for el, cnt in counts.items():
+                        total_counts[el] = total_counts.get(el, 0) + cnt
         except Exception as e:
-            self.result_box.setText(f"Error: {e}")
+            self.result_box.setText(f"Error parsing formula: {e}")
+            return
+
+        total_mass = 0
+        lines = []
+        unknown_elements = []
+
+        for el, count in sorted(total_counts.items()):
+            data = self.element_data.get(el)
+            if not data:
+                unknown_elements.append(el)
+                continue
+            atomic_mass = data.get("AtomicMass") or data.get("atomic_mass")
+            subtotal = atomic_mass * count
+            total_mass += subtotal
+            name = data.get("Element", "Unknown")
+            lines.append(f"{el} ({name}) × {count} = {subtotal:.4f} g/mol")
+
+        if unknown_elements:
+            lines.append("\nUnknown elements: " + ", ".join(unknown_elements))
+
+        lines.append(f"\nTotal Molecular Weight: {total_mass:.4f} g/mol")
+        self.result_box.setText("\n".join(lines))
+        log_event("Molecular Weight Calculator", f"Formula={formula}", f"{total_mass:.4f} g/mol")
+
+    def parse_formula(self, formula):
+        # Tokenize (elements, digits, parentheses)
+        tokens = re.findall(r'([A-Z][a-z]?|\d+|\(|\))', formula)
+        stack = [{}]
+        i = 0
+        while i < len(tokens):
+            token = tokens[i]
+            if token == '(':
+                stack.append({})
+                i += 1
+            elif token == ')':
+                group = stack.pop()
+                i += 1
+                multiplier = 1
+                if i < len(tokens) and tokens[i].isdigit():
+                    multiplier = int(tokens[i])
+                    i += 1
+                for el, cnt in group.items():
+                    stack[-1][el] = stack[-1].get(el, 0) + cnt * multiplier
+            elif re.match(r'[A-Z][a-z]?', token):
+                el = token
+                cnt = 1
+                i += 1
+                if i < len(tokens) and tokens[i].isdigit():
+                    cnt = int(tokens[i])
+                    i += 1
+                stack[-1][el] = stack[-1].get(el, 0) + cnt
+            else:
+                raise ValueError(f"Unexpected token: {token}")
+        if len(stack) != 1:
+            raise ValueError("Mismatched parentheses in formula")
+        return stack.pop()
 
 def open_mass_calculator():
-    dlg = MassCalculatorDialog()
+    base_dir = os.path.dirname(__file__)
+    data_path = os.path.join(base_dir, 'databases', 'PeriodicTableJSON.json')
+    with open(data_path, 'r', encoding='utf-8') as f:
+        element_data_raw = json.load(f)
+    element_data = {el['symbol']: el for el in element_data_raw['elements']} if 'elements' in element_data_raw else element_data_raw
+
+    dlg = MolecularWeightCalculatorDialog(element_data)
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

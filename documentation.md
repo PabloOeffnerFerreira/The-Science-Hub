@@ -351,3 +351,28 @@ Input fields are paired with dropdown selectors for units. The result is display
 ---
 
 ![Kinetic Energy Calculator](screenshots/screenshot_ke.png)
+
+## Molecular Weight Calculator
+
+Calculates the molecular weight of a compound given its chemical formula.
+
+### Features
+
+- Accepts molecular formulas with:
+  - Nested parentheses for grouping (e.g. `(NH4)2SO4`)  
+  - Hydrate notation using `·` or `.` (e.g. `CuSO4·5H2O`)  
+- Parses and counts atoms accurately, including multipliers  
+- Uses comprehensive element data from the periodic table JSON  
+- Displays a detailed breakdown of each element’s count, atomic mass, and subtotal contribution  
+- Lists unknown elements if input symbols do not match the database  
+- Shows the total molecular weight in grams per mole (g/mol)  
+- Provides Clear and Calculate buttons for easy interaction  
+- Logs every calculation with formula and result for traceability
+
+### User Interface
+
+Input field for molecular formula with example placeholder. Result box shows formatted breakdown and total. Buttons below for calculate and clear actions.
+
+---
+
+![Molecular Weight Calculator](screenshots/screenshot_mass_calc.png)

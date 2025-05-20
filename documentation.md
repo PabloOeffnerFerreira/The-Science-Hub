@@ -71,7 +71,7 @@ The converter supports a broad range of unit categories including but not limite
 
 ---
 
-![Unit Converter for Pressure](screenshots/screenshot_unit_converter.py)
+![Unit Converter for Pressure](screenshots/screenshot_unit_converter.png)
 
 ---
 
@@ -135,7 +135,7 @@ The Terminal Velocity Calculator estimates the terminal velocity and fall time o
 
 ---
 
-[Terminal Velocity Calculator](screenshots/screenshot_terminal_velocity_calc.png)
+![Terminal Velocity Calculator](screenshots/screenshot_terminal_velocity_calc.png)
 
 ## Projectile Motion Tool
 
@@ -169,6 +169,7 @@ The tool provides labeled input fields with unit selectors, a results display ar
 
 ---
 
+<<<<<<< HEAD
 [Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)
 
 ## Lens & Mirror Calculator
@@ -194,3 +195,6 @@ Inputs are paired with unit selectors and tooltips. The mirror toggle checkbox i
 ---
 
 ![Mirror & Lens Tool](screenshots/screenshot_lens_mirror.png)
+=======
+![Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)
+>>>>>>> da125ba9a7af777f237e2bd3012d224c95ad57ad

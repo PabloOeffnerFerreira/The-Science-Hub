@@ -222,3 +222,24 @@ Each input field is paired with a unit selector dropdown. Tooltips explain each 
 ---
 
 ![Ohm's Law Tool](screenshots/screenshot_ohm_law.png)
+
+## Speed Calculator
+
+The Speed Calculator computes the speed given a distance and time, supporting multiple units for inputs and outputs.
+
+### Features
+
+- Input distance with unit selection: meters (m), kilometers (km), miles (mile), feet (ft)  
+- Input time with unit selection: seconds (s), minutes (min), hours (hr)  
+- Output speed selectable in meters per second (m/s), kilometers per hour (km/h), or miles per hour (mph)  
+- Input validation and error handling (e.g., time cannot be zero)  
+- Displays the calculated speed formatted to three decimal places  
+- Logs inputs and computed speed for reproducibility  
+
+### User Interface
+
+The interface provides labeled fields with dropdowns for units, a clear Calculate button, and a result display area.
+
+---
+
+![Speed Calculator](screenshots/screenshot_speed_calc.png)

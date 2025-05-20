@@ -1206,34 +1206,101 @@ def open_speed_calculator():
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Speed Calculator")
+            self.setMinimumWidth(350)
             layout = QVBoxLayout(self)
-            self.dist = QLineEdit()
-            self.time = QLineEdit()
-            row1 = QHBoxLayout()
-            row1.addWidget(QLabel("Distance (m):"))
-            row1.addWidget(self.dist)
-            row2 = QHBoxLayout()
-            row2.addWidget(QLabel("Time (s):"))
-            row2.addWidget(self.time)
-            layout.addLayout(row1)
-            layout.addLayout(row2)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
+
+            # Units options
+            self.dist_units = ["m", "km", "mile", "ft"]
+            self.time_units = ["s", "min", "hr"]
+            self.speed_units = ["m/s", "km/h", "mph"]
+
+            # Distance input + units
+            dist_row = QHBoxLayout()
+            dist_row.addWidget(QLabel("Distance:"))
+            self.dist_edit = QLineEdit("100")
+            dist_row.addWidget(self.dist_edit)
+            self.dist_unit = QComboBox()
+            self.dist_unit.addItems(self.dist_units)
+            dist_row.addWidget(self.dist_unit)
+            layout.addLayout(dist_row)
+
+            # Time input + units
+            time_row = QHBoxLayout()
+            time_row.addWidget(QLabel("Time:"))
+            self.time_edit = QLineEdit("10")
+            time_row.addWidget(self.time_edit)
+            self.time_unit = QComboBox()
+            self.time_unit.addItems(self.time_units)
+            time_row.addWidget(self.time_unit)
+            layout.addLayout(time_row)
+
+            # Output unit selector (optional)
+            output_row = QHBoxLayout()
+            output_row.addWidget(QLabel("Output speed unit:"))
+            self.speed_unit = QComboBox()
+            self.speed_unit.addItems(self.speed_units)
+            output_row.addWidget(self.speed_unit)
+            layout.addLayout(output_row)
+
+            # Result label
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+
+            # Calculate button
             btn = QPushButton("Calculate Speed")
             btn.clicked.connect(self.compute)
             layout.addWidget(btn)
-            self.setMinimumWidth(300)
+
+        def convert_distance_to_meters(self, val, unit):
+            if unit == "m":
+                return val
+            elif unit == "km":
+                return val * 1000
+            elif unit == "mile":
+                return val * 1609.344
+            elif unit == "ft":
+                return val * 0.3048
+
+        def convert_time_to_seconds(self, val, unit):
+            if unit == "s":
+                return val
+            elif unit == "min":
+                return val * 60
+            elif unit == "hr":
+                return val * 3600
+
+        def convert_speed_from_m_s(self, speed_m_s, unit):
+            if unit == "m/s":
+                return speed_m_s
+            elif unit == "km/h":
+                return speed_m_s * 3.6
+            elif unit == "mph":
+                return speed_m_s * 2.23694
+
         def compute(self):
             try:
-                dist = float(self.dist.text())
-                time = float(self.time.text())
+                dist = float(self.dist_edit.text())
+                time = float(self.time_edit.text())
+
                 if time == 0:
                     raise ValueError("Time cannot be zero")
-                speed = dist / time
-                self.result.setText(f"Speed = {speed:.3f} m/s")
-                log_event("Speed Calculator", f"Distance={dist}, Time={time}", speed)
+
+                dist_m = self.convert_distance_to_meters(dist, self.dist_unit.currentText())
+                time_s = self.convert_time_to_seconds(time, self.time_unit.currentText())
+                speed_m_s = dist_m / time_s
+
+                speed_out = self.convert_speed_from_m_s(speed_m_s, self.speed_unit.currentText())
+                self.result_label.setText(f"Speed = {speed_out:.3f} {self.speed_unit.currentText()}")
+
+                log_event(
+                    "Speed Calculator",
+                    f"Distance={dist} {self.dist_unit.currentText()}, Time={time} {self.time_unit.currentText()}",
+                    f"Speed={speed_out:.3f} {self.speed_unit.currentText()}"
+                )
+
             except Exception as e:
-                self.result.setText(f"Error: {e}")
+                self.result_label.setText(f"Error: {e}")
+
     dlg = SpeedDialog()
     dlg.show()
     _open_dialogs.append(dlg)

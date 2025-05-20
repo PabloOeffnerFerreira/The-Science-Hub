@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
 )
-from data_utils import _open_dialogs, log_event
+from tools.data_utils import _open_dialogs, log_event
 import math
 
 CODON_TABLE = {

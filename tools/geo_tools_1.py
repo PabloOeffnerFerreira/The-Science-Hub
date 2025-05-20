@@ -3,10 +3,15 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit,
     QPushButton, QComboBox, QCheckBox, QFileDialog, QMessageBox, QWidget
 )
-from data_utils import _open_dialogs, log_event
+from tools.data_utils import _open_dialogs, log_event
 import json
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
-minerals_df = pd.read_csv("Minerals_Database.csv")
+minerals_df = pd.read_csv(mineral_db_path)
 minerals_df.drop(columns=[col for col in minerals_df.columns if ".ru" in col], inplace=True)
 
 # 1. Mineral Identifier Tool
@@ -153,7 +158,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QColor, QBrush
 import json
 
-MINERAL_DB_PATH = "Minerals_Database.csv"
+MINERAL_DB_PATH = mineral_db_path
 minerals_df = pd.read_csv(MINERAL_DB_PATH)
 
 def safe(val):
@@ -214,7 +219,7 @@ def open_mineral_explorer():
             layout.addWidget(self.table)
             layout.addWidget(self.toggle_fav_btn)
 
-            self.favorites_path = "mineral_favorites.json"
+            self.favorites_path = mineral_favs_path
             try:
                 with open(self.favorites_path, "r") as f:
                     self.favorites = set(json.load(f))

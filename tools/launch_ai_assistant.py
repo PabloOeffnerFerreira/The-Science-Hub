@@ -1,6 +1,11 @@
 import sys
 from PyQt6.QtWidgets import QApplication
-from ai_assistant import AIAssistantWindow
+from tools.ai_assistant import AIAssistantWindow
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
 def launch_with_args():
     # Parse command-line arguments

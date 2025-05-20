@@ -2,10 +2,14 @@ import os
 import json
 import re
 import datetime
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path, library_file
+)
 
 def load_element_data():
-    path = os.path.join(os.path.dirname(__file__), "PeriodicTableJSON.json")
-    with open(path, "r", encoding="utf-8") as f:
+    with open(ptable_path, "r", encoding="utf-8") as f:
         return {el["symbol"]: el for el in json.load(f)["elements"]}
 
 def parse_formula(formula):

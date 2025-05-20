@@ -5,9 +5,14 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont, QBrush, QColor, QIcon
 import os
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
-ELEMENTS_PATH = "PeriodicTableJSON.json"
-FAVS_PATH = "element_favorites.json"
+ELEMENTS_PATH = ptable_path
+FAVS_PATH = element_favs_path
 
 def load_elements():
     with open(ELEMENTS_PATH, encoding="utf-8") as f:

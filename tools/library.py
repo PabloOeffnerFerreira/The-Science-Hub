@@ -9,9 +9,12 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QIcon, QPixmap, QFont
 from PyQt6.QtCore import Qt, QSize
+from tools.utilities import (
+    gallery_dir, exports_dir, library_file
+)
 
-LIBRARY_FILE = "library_entries.json"
-GALLERY_DIR = "gallery"
+LIBRARY_FILE = library_file
+GALLERY_DIR = gallery_dir
 
 class LibraryData:
     def __init__(self):
@@ -191,12 +194,22 @@ class EntryViewer(QDialog):
 
         self.setLayout(layout)
 
+    from utilities import exports_dir  # Make sure this is imported!
+
     def export_entry(self):
-        path, _ = QFileDialog.getSaveFileName(self, "Export Entry", f"{self.entry['title']}.json", "JSON Files (*.json)")
+        import os
+        default_name = f"{self.entry['title']}.json"
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Export Entry",
+            os.path.join(exports_dir, default_name),  # Start in the exports folder!
+            "JSON Files (*.json)"
+        )
         if path:
             with open(path, "w") as f:
                 json.dump(self.entry, f, indent=2)
             QMessageBox.information(self, "Exported", "Entry exported successfully.")
+
 
 
 class LibraryViewer(QWidget):
@@ -280,8 +293,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     viewer = LibraryViewer()
     viewer.show()
-<<<<<<< HEAD
     sys.exit(app.exec())
-=======
-    sys.exit(app.exec())
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

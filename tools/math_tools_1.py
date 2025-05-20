@@ -1,10 +1,15 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 import sympy as sp
-from data_utils import log_event, _open_dialogs
+from tools.data_utils import log_event, _open_dialogs
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import datetime
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
 # Quadratic Solver
 def open_quadratic_solver():
@@ -76,9 +81,9 @@ def open_function_plotter():
                 ax.grid(True)
                 fig.tight_layout()
 
-                if not os.path.exists("results"):
-                    os.makedirs("results")
-                filename = f"results/graph_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+                if not os.path.exists(results_dir):
+                    os.makedirs(results_dir)
+                filename = f"graph_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
                 fig.savefig(filename)
                 plt.show()
                 msg = f"Plotted on x ∈ [-10, 10] [IMG:{filename}]"

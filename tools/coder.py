@@ -5,11 +5,16 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont, QColor, QAction, QTextCursor
 from PyQt6.QtCore import Qt
-from data_utils import register_window
+from tools.data_utils import register_window
 import io
 import contextlib
 import subprocess
 import json
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
 from PyQt6.QtCore import QThread, pyqtSignal
 

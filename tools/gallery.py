@@ -9,10 +9,15 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QPixmap, QIcon, QDragEnterEvent, QDropEvent, QFont
 from PyQt6.QtCore import Qt, QMimeData, QSize
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path, screenshots_dir, images_dir
+)
 
-GALLERY_DIR = "gallery"
-META_FILE = os.path.join(GALLERY_DIR, "gallery_meta.json")
-IMPORT_FOLDERS = ["images", "results", "screenshots"]
+GALLERY_DIR = gallery_dir
+META_FILE = gallery_meta_path
+IMPORT_FOLDERS = [images_dir, results_dir, screenshots_dir]
 
 class MetadataManager:
     def __init__(self):

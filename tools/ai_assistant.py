@@ -10,6 +10,11 @@ import markdown2
 import json
 import os
 from PyQt6.QtGui import QTextCursor  # at the top if not already
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path, ai_chatlogs_dir
+)
 
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
@@ -68,7 +73,9 @@ def estimate_tokens(messages, model="gpt-3.5-turbo"):  # Works with GPT-style mo
 
 def load_tool_knowledge():
     try:
-        with open("knowledge.json", "r", encoding="utf-8") as f:
+        from utilities import knowledge_path
+        with open(knowledge_path, "r", encoding="utf-8") as f:
+
             knowledge = json.load(f)
             about = knowledge.get("about", {})
             tools = knowledge.get("tools", {})
@@ -324,7 +331,12 @@ class AIAssistantWindow(QWidget):
 
 
     def save_chat(self):
-        filename, _ = QFileDialog.getSaveFileName(self, "Save Chat Log", "", "Text Files (*.txt)")
+        filename, _ = QFileDialog.getSaveFileName(
+            self, 
+            "Save Chat Log", 
+            ai_chatlogs_dir,  # <-- default location
+            "Text Files (*.txt)"
+        )
         if filename:
             with open(filename, "w", encoding="utf-8") as f:
                 for who, msg in self.messages:
@@ -336,11 +348,15 @@ class AIAssistantWindow(QWidget):
         self.update_chat()
 
     def load_chat(self):
-        filename, _ = QFileDialog.getOpenFileName(self, "Load Chat Log", "", "Text Files (*.txt)")
+        filename, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Load Chat Log", 
+            ai_chatlogs_dir,  # <-- default location
+            "Text Files (*.txt)"
+        )
         if filename:
             with open(filename, "r", encoding="utf-8") as f:
                 lines = f.readlines()
-
             messages = []
             current_role = None
             buffer = []

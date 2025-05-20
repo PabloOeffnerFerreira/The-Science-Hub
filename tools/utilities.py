@@ -1,22 +1,58 @@
-# utilities.py
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QTextEdit,
-    QMessageBox, QWidget, QTableWidget, QTableWidgetItem, QFrame, QCheckBox
+        QMessageBox, QWidget, QTableWidget, QTableWidgetItem, QFrame, QCheckBox, QApplication, QListWidget, QListWidgetItem, QComboBox
 )
-from PyQt6.QtCore import Qt
-import os
+from PyQt6.QtCore import Qt,QTimer
 import json
 import subprocess
 import sys
+
+import os
 import datetime
+
+#import os
+import datetime
+
+tools_dir = os.path.dirname(os.path.abspath(__file__))
+hub_dir = os.path.normpath(os.path.join(tools_dir, '..'))
+
+# Key folders
+logs_dir = os.path.join(hub_dir, 'logs')
+exports_dir = os.path.join(hub_dir, "exports")
+interndb_dir = os.path.join(hub_dir, 'interndatabases')
+databases_dir = os.path.join(hub_dir, 'databases')
+results_dir = os.path.join(hub_dir, 'results')
+gallery_dir = os.path.join(hub_dir, 'gallery')
+screenshots_dir = os.path.join(gallery_dir, 'screenshots')
+images_dir = os.path.join(gallery_dir, 'images')
+library_file = os.path.join(hub_dir, 'library_entries.json')
+ai_chatlogs_dir = os.path.join(exports_dir, "ai_chats")
+
+# Ensure all directories exist when writing files
+for directory in [
+    logs_dir, exports_dir, interndb_dir, databases_dir, results_dir, gallery_dir,
+    screenshots_dir, images_dir, library_file, ai_chatlogs_dir
+]:
+    os.makedirs(directory, exist_ok=True)
+
+# File paths
+log_path = os.path.join(logs_dir, 'calchub_log.txt')
+chain_log_path = os.path.join(logs_dir, 'chainmode_log.txt')
+settings_path = os.path.join(interndb_dir, 'settings.json')
+mineral_favs_path = os.path.join(interndb_dir, "mineral_favorites.json")
+element_favs_path = os.path.join(interndb_dir, "element_favorites.json")
+ptable_path = os.path.join(databases_dir, "PeriodicTableJSON.json")
+mineral_db_path = os.path.join(databases_dir, "Minerals_Database.csv")
+gallery_meta_path = os.path.join(interndb_dir, "gallery_meta.json")
+knowledge_path = os.path.join(hub_dir, "knowledge.json")
 
 
 def log_chain(text):
-    with open("chainmode_log.txt", "a", encoding="utf-8") as f:
+    with open(chain_log_path, "a", encoding="utf-8") as f:
         f.write(f"[{datetime.datetime.now().strftime('%H:%M:%S')}] {text}\n")
 
 # Chemistry tools
-from chemtools import (
+from tools.chemtools import (
     open_mass_calculator,
     open_isotope_tool,
     open_shell_visualizer,
@@ -25,12 +61,11 @@ from chemtools import (
     open_unit_multiplier,
     open_property_grapher,
 )
-
-from element_viewer import open_element_viewer
-from mol_assembler import open_molecule_assembler
+from tools.element_viewer import open_element_viewer
+from tools.mol_assembler import open_molecule_assembler
 
 # Biology tools
-from bio_tools_1 import (
+from tools.bio_tools_1 import (
     open_transcription_tool,
     open_codon_lookup_tool,
     open_osmosis_tool,
@@ -38,7 +73,7 @@ from bio_tools_1 import (
     open_ph_calculator,
     open_population_growth_calculator,
 )
-from bio_tools_2 import (
+from tools.bio_tools_2 import (
     open_reverse_complement_tool,
     open_translate_dna_tool,
     open_gc_content_tool,
@@ -47,7 +82,7 @@ from bio_tools_2 import (
 )
 
 # Physics tools
-from phys_tools_1 import (
+from tools.phys_tools_1 import (
     open_unit_converter,
     open_terminal_velocity_calculator,
     open_projectile_motion_tool,
@@ -61,14 +96,14 @@ from phys_tools_1 import (
 )
 
 # Math tools
-from math_tools_1 import (
+from tools.math_tools_1 import (
     open_function_plotter,
     open_quadratic_solver,
     open_triangle_solver,
 )
 
 # Geology tools
-from geo_tools_1 import (
+from tools.geo_tools_1 import (
     open_mineral_id_tool,
     open_radioactive_dating_tool,
     open_plate_boundary_tool,
@@ -76,7 +111,7 @@ from geo_tools_1 import (
     open_plate_velocity_calculator,
 )
 
-from data_utils import _open_dialogs, register_window, log_event
+from tools.data_utils import _open_dialogs, register_window, log_event
 
 # ---------------- Simple Calculator ------------------
 def open_simple_calculator(preload=None):
@@ -141,14 +176,16 @@ def open_log():
             vbox.addWidget(self.log_box)
             self.load_log()
             self.search_input.textChanged.connect(self.filter_log)
+
         def load_log(self):
             try:
-                with open("calchub_log.txt", "r", encoding="utf-8") as f:
+                with open(log_path, "r", encoding="utf-8") as f:
                     content = f.read()
             except FileNotFoundError:
                 content = "No logs found."
             self.full_log = content
             self.log_box.setText(content)
+
         def filter_log(self):
             keyword = self.search_input.text().strip().lower()
             if not keyword:
@@ -159,10 +196,12 @@ def open_log():
                 if keyword in line.lower()
             )
             self.log_box.setText(filtered)
+
         def clear_log(self):
-            with open("calchub_log.txt", "w", encoding="utf-8") as f:
+            with open(log_path, "w", encoding="utf-8") as f:
                 f.write("")
             self.load_log()
+
     dlg = LogDialog()
     dlg.show()
     register_window("Session Log", dlg)
@@ -171,13 +210,13 @@ def open_log():
 
 def show_last_used():
     try:
-        with open("calchub_log.txt", "r", encoding="utf-8") as f:
+        with open(log_path, "r", encoding="utf-8") as f:  # Use the built path
             lines = f.readlines()
         msg = lines[-1].strip() if lines else "No entries found."
-        print("MSG:", repr(msg))  # <-- Add this line for debugging
+        print("MSG:", repr(msg))  # For debugging
     except FileNotFoundError:
         msg = "No log available."
-        print("MSG:", repr(msg))  # <-- Add this line for debugging
+        print("MSG:", repr(msg))  # For debugging
     dlg = QMessageBox()
     dlg.setWindowTitle("Last Used Tool")
     dlg.setText(msg)
@@ -196,7 +235,7 @@ def show_favorites():
 
             # Mineral favorites
             try:
-                with open("mineral_favorites.json", "r") as f:
+                with open(mineral_favs_path, "r") as f:
                     mineral_favs = json.load(f)
             except FileNotFoundError:
                 mineral_favs = []
@@ -209,14 +248,14 @@ def show_favorites():
 
             # Element favorites
             try:
-                with open("element_favorites.json", "r") as f:
+                with open(element_favs_path, "r") as f:
                     elem_syms = json.load(f)
             except FileNotFoundError:
                 elem_syms = []
             # Map from symbol to full element name, using your element data
             if elem_syms:
                 try:
-                    with open("PeriodicTableJSON.json", encoding="utf-8") as f:
+                    with open(ptable_path, encoding="utf-8") as f:
                         table = json.load(f)
                         sym2name = {el["symbol"]: el["name"] for el in table["elements"]}
                 except Exception:
@@ -229,7 +268,7 @@ def show_favorites():
                 vbox.addWidget(QLabel("No starred elements."))
 
             # Science Library favorites
-            library_path = "library_entries"
+            library_path = library_file
             library_favs = []
             if os.path.exists(library_path):
                 for file in os.listdir(library_path):
@@ -255,15 +294,16 @@ def show_favorites():
 # -------------- Export Log --------------
 
 def export_log_to_md():
+
     try:
-        with open("calchub_log.txt", "r", encoding="utf-8") as f:
+        with open(log_path, "r", encoding="utf-8") as f:
             log = f.readlines()
     except FileNotFoundError:
         return
-    if not os.path.exists("exports"):
-        os.makedirs("exports")
+    if not os.path.exists(exports_dir):
+        os.makedirs(exports_dir)
     date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    filename = f"exports/session_log_{date_str}.md"
+    filename = os.path.join(exports_dir, f"session_log_{date_str}.md")
     with open(filename, "w", encoding="utf-8") as out:
         out.write(f"# Science Hub Log Export\n**Date:** {date_str}\n\n---\n\n")
         for line in log:
@@ -291,15 +331,12 @@ def export_log_to_md():
             else:
                 out.write(line + "\n")
     try:
-        os.startfile("exports")
+        os.startfile(exports_dir)
     except Exception:
         pass
 
 # -------------- Window Manager --------------
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QApplication, QFrame
-)
-from PyQt6.QtCore import QTimer, Qt
+
 
 def show_window_manager():
     class WindowManagerDialog(QDialog):
@@ -381,13 +418,6 @@ def show_window_manager():
 
 # -------------- Chain Mode --------------
 
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox, QListWidget, QListWidgetItem, QMessageBox
-)
-from PyQt6.QtCore import Qt
-
-# Mapping of tool names to (open_function, human_name)
-# Add your actual open functions here!
 TOOLS = [
     # Chemistry
     ("Mass Calculator", open_mass_calculator, True),
@@ -440,8 +470,6 @@ TOOLS = [
     # Other
     ("Simple Calculator", open_simple_calculator, True),  # No preload
 ]
-
-
 
 def open_chain_mode():
     class ChainDialog(QDialog):
@@ -499,8 +527,6 @@ def open_chain_mode():
                 QMessageBox.warning(self, "Empty", "Add tools to the chain first!")
                 return
 
-            from utilities import _open_dialogs
-
             self.chain_index = 0
             self.current_preload = None
 
@@ -518,11 +544,8 @@ def open_chain_mode():
                 fn(preload=self.current_preload)
             except TypeError:
                 fn()
-
-            from utilities import _open_dialogs
             dlg = _open_dialogs[-1]
             dlg.finished.connect(lambda _: self.after_step(dlg))
-
 
         def extract_output(self, dlg):
             log_chain(f"Scanning output widgets from: {dlg.windowTitle()}")
@@ -548,31 +571,26 @@ def open_chain_mode():
             # If we get here, no 'Result:' label was found
             return fallback if 'fallback' in locals() else None
 
-
-
-
-
-
-
-
     dlg = ChainDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
-
 # ----------- Settings Screen -------------
 
 SETTINGS_PATH = "settings.json"
 
+if not os.path.exists(interndb_dir):
+    os.makedirs(interndb_dir)
+
 def load_settings():
-    if not os.path.exists(SETTINGS_PATH):
+    if not os.path.exists(settings_path):
         return {"clear_log_on_startup": False}
-    with open(SETTINGS_PATH, "r", encoding="utf-8") as f:
+    with open(settings_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def save_settings(settings):
-    with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
+    with open(settings_path, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=4)
 
 def open_settings():

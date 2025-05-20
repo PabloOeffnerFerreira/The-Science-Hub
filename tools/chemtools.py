@@ -1,10 +1,16 @@
 import datetime
 import tkinter as tk
-from data_utils import _open_dialogs
+from tools.data_utils import _open_dialogs
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
+
 
 # 1. Molecular Weight Calculator
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
-from data_utils import load_element_data, parse_formula
+from tools.data_utils import load_element_data, parse_formula
 
 class MassCalculatorDialog(QDialog):
     def __init__(self):
@@ -59,7 +65,7 @@ def open_mass_calculator():
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 )
-from data_utils import load_element_data, log_event
+from tools.data_utils import load_element_data, log_event
 
 def open_isotope_tool(preload=None):
     class IsotopeDialog(QDialog):
@@ -117,7 +123,7 @@ import math
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 )
-from data_utils import load_element_data, log_event
+from tools.data_utils import load_element_data, log_event
 import matplotlib.pyplot as plt
 import os
 import datetime
@@ -168,13 +174,15 @@ def open_shell_visualizer(preload=None):
             plt.tight_layout()
 
             # Save to results folder
-            if not os.path.exists("results"):
-                os.makedirs("results")
-            fname = f"results/shells_{sym}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
-            plt.savefig(fname)
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+
+            fname = f"shells_{sym}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+            full_path = os.path.join(results_dir, fname)
+            plt.savefig(full_path)
             plt.show()
-            log_event("Shell Visualizer", sym, f"Shells: {shells} [IMG:{fname}]")
-            QMessageBox.information(self, "Saved", f"Shell visualization saved as:\n{fname}")
+            log_event("Shell Visualizer", sym, f"Shells: {shells} [IMG:{full_path}]")
+            QMessageBox.information(self, "Saved", f"Shell visualization saved as:\n{full_path}")
 
     dlg = ShellDialog()
     dlg.show()
@@ -495,7 +503,7 @@ def open_property_grapher(preload=None):
             self.all_props = sorted(k for k in any_el.keys() if k.lower() != "symbol" and not isinstance(any_el[k], list))
             # Favorite element symbols
             try:
-                with open("element_favorites.json", "r") as f:
+                with open(element_favs_path, "r") as f:
                     self.favs = set(json.load(f))
             except:
                 self.favs = set()
@@ -559,9 +567,9 @@ def open_property_grapher(preload=None):
             fig.tight_layout()
 
             # Save to results folder
-            if not os.path.exists("results"):
-                os.makedirs("results")
-            filename = f"results/{prop}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+            filename = f"{prop}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
             fig.savefig(filename)
 
             # Interactive hover
@@ -597,9 +605,12 @@ def open_property_grapher(preload=None):
             fig.canvas.mpl_connect("motion_notify_event", hover)
 
             plt.show()
+            full_path = os.path.join(results_dir, filename)
+            fig.savefig(full_path)
 
             summary = f"Plotted {len(xs_sorted)} elements ({symbols_sorted[0]} to {symbols_sorted[-1]})"
-            log_event("Property Grapher", prop, f"{summary} [IMG:{filename}]")
+            log_event("Property Grapher", prop, f"{summary} [IMG:{full_path}]")
+
 
     dlg = GrapherDialog()
     dlg.show()

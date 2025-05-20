@@ -11,7 +11,12 @@ RDLogger.DisableLog('rdApp.*')  # Hides ALL warnings, errors, and info from RDKi
 from rdkit import Chem
 from rdkit.Chem import Draw
 
-from data_utils import log_event, _open_dialogs
+from tools.data_utils import log_event, _open_dialogs
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
 SMILES_URL_TEMPLATE = 'http://cactus.nci.nih.gov/chemical/structure/{}/smiles'
 

@@ -1,28 +1,19 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
-from utilities import _open_dialogs
+from tools.utilities import _open_dialogs
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
 # --- TOOL IMPORTS ---
-from mol_assembler import open_molecule_assembler
-from math_tools_1 import (
+from tools.mol_assembler import open_molecule_assembler
+from tools.math_tools_1 import (
     open_function_plotter,
     open_quadratic_solver,
     open_triangle_solver
 )
-
-from phys_tools_1 import (
-    open_unit_converter,
-    open_terminal_velocity_calculator,
-    open_projectile_motion_tool,
-    open_ohms_law_tool,
-    open_lens_calculator,
-    open_acceleration_calculator,
-    open_drag_force_calculator,
-    open_force_calculator,
-    open_kinetic_energy_calculator,
-    open_speed_calculator
-)
-
-from chemtools import (
+from tools.chemtools import (
     open_mass_calculator,
     open_shell_visualizer,
     open_property_grapher,
@@ -31,9 +22,8 @@ from chemtools import (
     open_comparator,
     open_unit_multiplier,
 )
-from element_viewer import open_element_viewer
-
-from bio_tools_1 import (
+from tools.element_viewer import open_element_viewer
+from tools.bio_tools_1 import (
     open_transcription_tool,
     open_codon_lookup_tool,
     open_osmosis_tool,
@@ -41,23 +31,34 @@ from bio_tools_1 import (
     open_ph_calculator,
     open_population_growth_calculator,
 )
-
-from bio_tools_2 import (
+from tools.bio_tools_2 import (
     open_reverse_complement_tool,
     open_translate_dna_tool,
     open_gc_content_tool,
     open_seq_file_parser_tool,
     open_pairwise_align_tool,
 )
-
-from geo_tools_1 import (
+from tools.geo_tools_1 import (
     open_mineral_id_tool,
     open_radioactive_dating_tool,
     open_plate_boundary_tool,
     open_mineral_explorer,
     open_plate_velocity_calculator,
-    # open_geo_model_tool   # Uncomment if you have it implemented
+    # open_geo_model_tool
 )
+from tools.phys_tools_1 import(
+    open_acceleration_calculator,
+    open_drag_force_calculator,
+    open_force_calculator,
+    open_kinetic_energy_calculator,
+    open_lens_calculator,
+    open_ohms_law_tool,
+    open_projectile_motion_tool,
+    open_speed_calculator,
+    open_terminal_velocity_calculator,
+    open_unit_converter
+)
+
 
 # --- TOOLKIT BASE CLASS ---
 

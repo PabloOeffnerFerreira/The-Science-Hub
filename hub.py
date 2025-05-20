@@ -6,23 +6,23 @@ from PyQt6.QtWidgets import (
     QLabel, QListWidget, QFrame, QSizePolicy, QMessageBox
 )
 from PyQt6.QtCore import Qt
-import utilities
-from utilities import load_settings
+import tools.utilities
+from tools.utilities import load_settings
 
 import tkinter as tk
 _hidden_tk_root = tk.Tk()
 _hidden_tk_root.withdraw()
 
-import toolkits
-from coder import open_coder
+import tools.toolkits
+from tools.coder import open_coder
 
 
 TOOLKIT_LAUNCHERS = {
-    "Math": toolkits.open_math_tools_hub,
-    "Physics": toolkits.open_physics_tools_hub,
-    "Chemistry": toolkits.open_chemistry_tools_hub,
-    "Biology": toolkits.open_biology_tools_hub,
-    "Geology": toolkits.open_geology_tools_hub,
+    "Math": tools.toolkits.open_math_tools_hub,
+    "Physics": tools.toolkits.open_physics_tools_hub,
+    "Chemistry": tools.toolkits.open_chemistry_tools_hub,
+    "Biology": tools.toolkits.open_biology_tools_hub,
+    "Geology": tools.toolkits.open_geology_tools_hub,
 }
 class ScienceHub(QMainWindow):
     def __init__(self):
@@ -130,19 +130,19 @@ class ScienceHub(QMainWindow):
         utility_panel.addWidget(QLabel("Utility Panel"))
 
         util_buttons = [
-            ("Simple Calculator", utilities.open_simple_calculator),
-            ("View Log", utilities.open_log),
-            ("Last Used Tool", utilities.show_last_used),
-            ("View Favorites", utilities.show_favorites),
-            ("Export Log", utilities.export_log_to_md),
-            ("Window Manager", utilities.show_window_manager),
-            ("Chain Mode", utilities.open_chain_mode),
-            ("Gallery", utilities.launch_gallery),
-            ("AI Assistant", utilities.launch_ai_assistant_subprocess),
-            ("OpenAlex Browser", utilities.launch_openalex_browser),
-            ("Molecule Library", utilities.launch_molecule_library),
-            ("Science Library", utilities.launch_library),
-            ("Settings", utilities.open_settings),
+            ("Simple Calculator", tools.utilities.open_simple_calculator),
+            ("View Log", tools.utilities.open_log),
+            ("Last Used Tool", tools.utilities.show_last_used),
+            ("View Favorites", tools.utilities.show_favorites),
+            ("Export Log", tools.utilities.export_log_to_md),
+            ("Window Manager", tools.utilities.show_window_manager),
+            ("Chain Mode", tools.utilities.open_chain_mode),
+            ("Gallery", tools.utilities.launch_gallery),
+            ("AI Assistant", tools.utilities.launch_ai_assistant_subprocess),
+            ("OpenAlex Browser", tools.utilities.launch_openalex_browser),
+            ("Molecule Library", tools.utilities.launch_molecule_library),
+            ("Science Library", tools.utilities.launch_library),
+            ("Settings", tools.utilities.open_settings),
             ("Code Editor", open_coder),
         ]
 
@@ -162,9 +162,11 @@ class ScienceHub(QMainWindow):
         main_layout.addWidget(central_panel_frame)
         main_layout.addWidget(utility_panel_frame)
 
+from tools.utilities import log_path  # At the top with other imports
+
 if load_settings().get("clear_log_on_startup", False):
     try:
-        with open("calchub_log.txt", "w", encoding="utf-8") as f:
+        with open(log_path, "w", encoding="utf-8") as f:
             f.write("")
     except Exception:
         pass

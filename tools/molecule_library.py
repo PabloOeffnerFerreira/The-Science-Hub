@@ -5,6 +5,11 @@ from PyQt6.QtWidgets import (
     QPushButton, QTextBrowser, QLabel, QMessageBox
 )
 from PyQt6.QtCore import Qt
+from tools.utilities import (
+    results_dir, mineral_favs_path, element_favs_path, ptable_path,
+    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
+    exports_dir, settings_path
+)
 
 
 class MoleculeLibrary(QWidget):

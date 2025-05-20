@@ -1,7 +1,7 @@
 import sys
 import types
 
-# Create dummy PyQt6 modules to satisfy imports in tools.utilities
+# Create dummy PyQt6 modules to satisfy imports in utilities
 qtwidgets = types.ModuleType("PyQt6.QtWidgets")
 qtcore = types.ModuleType("PyQt6.QtCore")
 # Define minimal attributes used in utilities
@@ -19,7 +19,7 @@ sys.modules.setdefault("PyQt6", types.ModuleType("PyQt6"))
 sys.modules["PyQt6.QtWidgets"] = qtwidgets
 sys.modules["PyQt6.QtCore"] = qtcore
 
-from tools.data_utils import parse_formula
+from data_utils import parse_formula
 
 
 def test_simple_formula():

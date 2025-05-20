@@ -13,7 +13,7 @@
       "Offline-first: all features work locally, even the AI assistant.",
       "Modular and extensible: users can add tools as simple Python scripts.",
       "Cross-discipline: integrates chemistry, biology, math, physics, and geology.",
-      "Personalized: includes an AI assistant aware of all built-in tools.",
+      "Personalized: includes an AI assistant aware of all built-in ",
       "Minimal overhead: fast to load, simple to maintain, and system-friendly."
     ],
     "features": [
@@ -21,7 +21,7 @@
       "Gallery: manage scientific diagrams, experiment photos, and plots with tags and metadata.",
       "Tool Launcher: quick access to modular tools (calculators, solvers, visualizers).",
       "Result Storage: save and attach outputs to experiments or library entries.",
-      "AI Assistant: runs fully offline with Ollama, aware of all Science Hub tools.",
+      "AI Assistant: runs fully offline with Ollama, aware of all Science Hub ",
       "Model Tooltips: users can hover over each AI model to learn its strengths.",
       "Batch Import/Export: migrate or back up entire libraries and galleries.",
       "Markdown rendering in chat, emoji-free output, and a clean, local GUI."
@@ -63,7 +63,7 @@
     "Drag Force Calculator": "Estimates aerodynamic drag using fluid density, velocity, drag coefficient, and cross-section area.",
     "Acceleration Calculator": "Computes acceleration using initial/final velocity and time (a = Δv / t).",
     "Force Calculator": "Newton’s second law calculator (F = ma). Helps verify force, mass, or acceleration values.",
-    "Kinetic Energy Calculator": "Calculates kinetic energy with KE = 0.5 * m * v^2. Often paired with momentum or force tools.",
+    "Kinetic Energy Calculator": "Calculates kinetic energy with KE = 0.5 * m * v^2. Often paired with momentum or force ",
     "DNA Transcription Tool": "Transcribes DNA to mRNA strands and shows base-pair changes. Biology + molecular focus.",
     "Codon Lookup Tool": "Translates RNA codons into their amino acid outputs. Works in batch or single mode.",
     "Osmosis Tool": "Explains how cells behave in hypotonic, hypertonic, and isotonic environments. Great for bio simulations.",

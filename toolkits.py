@@ -1,12 +1,12 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
-from tools.utilities import _open_dialogs
-from tools.data_utils import (
+from utilities import _open_dialogs
+from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path, library_file, load_settings, load_element_data
 )
-from tools.mol_assembler import open_molecule_assembler
-from tools.math_tools_1 import (
+from mol_assembler import open_molecule_assembler
+from math_tools_1 import (
     open_function_plotter,
     open_quadratic_solver,
     open_triangle_solver,
@@ -14,7 +14,7 @@ from tools.math_tools_1 import (
     open_scinot_converter,
     open_vector_calculator
 )
-from tools.chemtools import (
+from chemtools import (
     open_mass_calculator,
     open_shell_visualizer,
     open_property_grapher,
@@ -23,8 +23,8 @@ from tools.chemtools import (
     open_comparator,
     open_unit_multiplier,
 )
-from tools.element_viewer import open_element_viewer
-from tools.bio_tools_1 import (
+from element_viewer import open_element_viewer
+from bio_tools_1 import (
     open_transcription_tool,
     open_codon_lookup_tool,
     open_osmosis_tool,
@@ -32,14 +32,14 @@ from tools.bio_tools_1 import (
     open_ph_calculator,
     open_population_growth_calculator,
 )
-from tools.bio_tools_2 import (
+from bio_tools_2 import (
     open_reverse_complement_tool,
     open_translate_dna_tool,
     open_gc_content_tool,
     open_seq_file_parser_tool,
     open_pairwise_align_tool,
 )
-from tools.geo_tools_1 import (
+from geo_tools_1 import (
     open_mineral_id_tool,
     open_radioactive_dating_tool,
     open_plate_boundary_tool,
@@ -48,7 +48,7 @@ from tools.geo_tools_1 import (
     # open_geo_model_tool,
     open_half_life_calculator
 )
-from tools.phys_tools_1 import(
+from phys_tools_1 import(
     open_acceleration_calculator,
     open_drag_force_calculator,
     open_force_calculator,

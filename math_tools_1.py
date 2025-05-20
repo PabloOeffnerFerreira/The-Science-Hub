@@ -1,11 +1,11 @@
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
 import sympy as sp
-from tools.data_utils import log_event, _open_dialogs
+from data_utils import log_event, _open_dialogs
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import datetime
-from tools.data_utils import (
+from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
@@ -275,7 +275,7 @@ def open_vector_calculator():
             self.setMinimumWidth(350)
         def calculate(self):
             try:
-                from tools.data_utils import load_settings  # ensures settings can be read
+                from data_utils import load_settings  # ensures settings can be read
                 settings = load_settings()
 
                 A = self.parse_vector(self.vector_a_input.text())

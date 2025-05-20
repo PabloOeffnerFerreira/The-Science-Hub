@@ -7,25 +7,24 @@ from PyQt6.QtWidgets import (
     QMessageBox, QWidget, QTableWidget, QTableWidgetItem, QFrame, QCheckBox,
     QApplication, QListWidget, QListWidgetItem, QComboBox,)
 
-tools_dir = os.path.dirname(os.path.abspath(__file__))
-hub_dir = os.path.normpath(os.path.join(tools_dir, '..'))
+base_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Key folders
-logs_dir = os.path.join(hub_dir, 'logs')
-exports_dir = os.path.join(hub_dir, "exports")
-interndb_dir = os.path.join(hub_dir, 'interndatabases')
-databases_dir = os.path.join(hub_dir, 'databases')
-results_dir = os.path.join(hub_dir, 'results')
-gallery_dir = os.path.join(hub_dir, 'gallery')
+# Key folders - all in Code/Hub
+logs_dir = os.path.join(base_dir, 'logs')
+exports_dir = os.path.join(base_dir, 'exports')
+interndb_dir = os.path.join(base_dir, 'interndatabases')
+databases_dir = os.path.join(base_dir, 'databases')
+results_dir = os.path.join(base_dir, 'results')
+gallery_dir = os.path.join(base_dir, 'gallery')
 screenshots_dir = os.path.join(gallery_dir, 'screenshots')
 images_dir = os.path.join(gallery_dir, 'images')
-library_file = os.path.join(hub_dir, 'library_entries.json')
+library_file = os.path.join(interndb_dir, 'library_entries.json')
 ai_chatlogs_dir = os.path.join(exports_dir, "ai_chats")
 
-# Ensure all directories exist when writing files
+# Ensure all directories exist when writing files (leave out library_file!)
 for directory in [
     logs_dir, exports_dir, interndb_dir, databases_dir, results_dir, gallery_dir,
-    screenshots_dir, images_dir, library_file, ai_chatlogs_dir
+    screenshots_dir, images_dir, ai_chatlogs_dir
 ]:
     os.makedirs(directory, exist_ok=True)
 
@@ -38,7 +37,8 @@ element_favs_path = os.path.join(interndb_dir, "element_favorites.json")
 ptable_path = os.path.join(databases_dir, "PeriodicTableJSON.json")
 mineral_db_path = os.path.join(databases_dir, "Minerals_Database.csv")
 gallery_meta_path = os.path.join(interndb_dir, "gallery_meta.json")
-knowledge_path = os.path.join(hub_dir, "knowledge.json")
+knowledge_path = os.path.join(base_dir, "knowledge.json")
+
 def load_element_data():
     with open(ptable_path, "r", encoding="utf-8") as f:
         return {el["symbol"]: el for el in json.load(f)["elements"]}

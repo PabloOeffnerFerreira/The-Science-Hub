@@ -4,9 +4,9 @@ from PyQt6.QtWidgets import (
     QLabel, QListWidget, QFrame, QSizePolicy, QMessageBox
 )
 from PyQt6.QtCore import Qt
-import tools.data_utils
-import tools.utilities
-from tools.data_utils import (
+import data_utils
+import utilities
+from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
@@ -16,16 +16,16 @@ import tkinter as tk
 _hidden_tk_root = tk.Tk()
 _hidden_tk_root.withdraw()
 
-import tools.toolkits
-from tools.coder import open_coder
+import toolkits
+from coder import open_coder
 
 
 TOOLKIT_LAUNCHERS = {
-    "Math": tools.toolkits.open_math_tools_hub,
-    "Physics": tools.toolkits.open_physics_tools_hub,
-    "Chemistry": tools.toolkits.open_chemistry_tools_hub,
-    "Biology": tools.toolkits.open_biology_tools_hub,
-    "Geology": tools.toolkits.open_geology_tools_hub,
+    "Math": toolkits.open_math_tools_hub,
+    "Physics": toolkits.open_physics_tools_hub,
+    "Chemistry": toolkits.open_chemistry_tools_hub,
+    "Biology": toolkits.open_biology_tools_hub,
+    "Geology": toolkits.open_geology_tools_hub,
 }
 class ScienceHub(QMainWindow):
     def __init__(self):
@@ -127,19 +127,19 @@ class ScienceHub(QMainWindow):
         utility_panel.addWidget(QLabel("Utility Panel"))
 
         util_buttons = [
-            ("Simple Calculator", tools.utilities.open_simple_calculator),
-            ("View Log", tools.utilities.open_log),
-            ("Last Used Tool", tools.utilities.show_last_used),
-            ("View Favorites", tools.utilities.show_favorites),
-            ("Export Log", tools.utilities.export_log_to_md),
-            ("Window Manager", tools.utilities.show_window_manager),
-            ("Chain Mode", tools.utilities.open_chain_mode),
-            ("Gallery", tools.utilities.launch_gallery),
-            ("AI Assistant", tools.utilities.launch_ai_assistant_subprocess),
-            ("OpenAlex Browser", tools.utilities.launch_openalex_browser),
-            ("Molecule Library", tools.utilities.launch_molecule_library),
-            ("Science Library", tools.utilities.launch_library),
-            ("Settings", tools.data_utils.open_settings),
+            ("Simple Calculator", utilities.open_simple_calculator),
+            ("View Log", utilities.open_log),
+            ("Last Used Tool", utilities.show_last_used),
+            ("View Favorites", utilities.show_favorites),
+            ("Export Log", utilities.export_log_to_md),
+            ("Window Manager", utilities.show_window_manager),
+            ("Chain Mode", utilities.open_chain_mode),
+            ("Gallery", utilities.launch_gallery),
+            ("AI Assistant", utilities.launch_ai_assistant_subprocess),
+            ("OpenAlex Browser", utilities.launch_openalex_browser),
+            ("Molecule Library", utilities.launch_molecule_library),
+            ("Science Library", utilities.launch_library),
+            ("Settings", data_utils.open_settings),
             ("Code Editor", open_coder),
         ]
 
@@ -158,7 +158,7 @@ class ScienceHub(QMainWindow):
         main_layout.addWidget(central_panel_frame)
         main_layout.addWidget(utility_panel_frame)
 
-from tools.data_utils import (
+from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir

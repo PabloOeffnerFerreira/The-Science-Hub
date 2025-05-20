@@ -1,15 +1,15 @@
 import datetime
 import os
 import tkinter as tk
-from tools.data_utils import _open_dialogs
-from tools.data_utils import (
+from data_utils import _open_dialogs
+from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
 )
 
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
-from tools.data_utils import load_element_data, parse_formula
+from data_utils import load_element_data, parse_formula
 
 class MassCalculatorDialog(QDialog):
     def __init__(self):
@@ -62,7 +62,7 @@ def open_mass_calculator():
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
 )
-from tools.data_utils import load_element_data, log_event
+from data_utils import load_element_data, log_event
 
 def open_isotope_tool(preload=None):
     class IsotopeDialog(QDialog):
@@ -118,7 +118,7 @@ import math
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
 )
-from tools.data_utils import load_element_data, log_event
+from data_utils import load_element_data, log_event
 import matplotlib.pyplot as plt
 
 def open_shell_visualizer(preload=None):

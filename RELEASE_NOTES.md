@@ -7,7 +7,7 @@
   - `/logs`, `/exports`, `/gallery`, `/images`, `/screenshots`, `/results` for outputs
   - `/documentations`, `/Fixers`, and others as needed
 - Centralized all path references via `utilities.py`
-- Converted all scripts to use absolute imports (`from tools.xyz import ...`)
+- Converted all scripts to use absolute imports (`from xyz import ...`)
 - Enforced script execution from project root (`python hub.py`)
 - Auto-creation of all needed folders on runtime
 - Cleaned up `.gitignore` and eliminated leftover or orphaned files

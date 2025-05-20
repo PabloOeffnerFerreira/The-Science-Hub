@@ -9,7 +9,7 @@ import re
 import markdown2
 import json
 import os
-from PyQt6.QtGui import QTextCursor  # at the top if not already
+from PyQt6.QtGui import QTextCursor
 from tools.utilities import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
@@ -170,7 +170,6 @@ class AIAssistantWindow(QWidget):
 
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
 
-        # Top: Model picker, mode selector, save, and clear
         top_layout = QHBoxLayout()
         top_layout.addWidget(QLabel("Model:"))
         self.model_picker = QComboBox()
@@ -183,7 +182,6 @@ class AIAssistantWindow(QWidget):
         self.model_picker.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         top_layout.addWidget(self.model_picker)
 
-        # Add three-mode selector
         self.mode_selector = QComboBox()
         self.mode_selector.addItems([
             "Learn (explanation, teacher mode)",
@@ -193,29 +191,24 @@ class AIAssistantWindow(QWidget):
         self.mode_selector.setCurrentIndex(2)
         top_layout.addWidget(self.mode_selector)
 
-        # Save log button
         self.save_btn = QPushButton("Save Chat")
         self.save_btn.clicked.connect(self.save_chat)
         top_layout.addWidget(self.save_btn)
 
-        # Clear chat button
         self.clear_btn = QPushButton("Clear Chat")
         self.clear_btn.clicked.connect(self.clear_chat)
         top_layout.addWidget(self.clear_btn)
 
         main_layout.addLayout(top_layout)
 
-        # Load Chat Button
         self.load_btn = QPushButton("Load Chat")
         self.load_btn.clicked.connect(self.load_chat)
         top_layout.addWidget(self.load_btn)
 
-        # Token counter
         self.token_label = QLabel("Tokens: 0")
         self.token_label.setStyleSheet("font-size: 12px;")
         main_layout.addWidget(self.token_label)
 
-                # Input and send button layout
         input_layout = QHBoxLayout()
         self.input = QLineEdit()
         self.input.setPlaceholderText("Type your question here and press Enter...")
@@ -228,9 +221,7 @@ class AIAssistantWindow(QWidget):
 
         main_layout.addLayout(input_layout)
 
-
-
-        # Chat display
+        
         from PyQt6.QtWidgets import QTextBrowser
         self.chatbox = QTextBrowser()
         self.chatbox.setReadOnly(True)

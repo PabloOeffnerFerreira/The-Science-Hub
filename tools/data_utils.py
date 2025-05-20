@@ -44,8 +44,6 @@ def parse_formula(formula):
 
     return parse_chunk(formula)[0]
 
-# --------- Dialog Management for Non-Modal Windows ---------
-
 _open_dialogs = []
 _open_windows_registry = {}  # name: dialog instance
 
@@ -61,8 +59,6 @@ def register_window(name, dialog):
     dialog.finished.connect(lambda _: cleanup())
 
 
-# ---------------- Writing the Log -------------------
- 
 def log_event(tool, input_value, output_value):
     """Append a formatted log entry to the Science Hub session log."""
     try:

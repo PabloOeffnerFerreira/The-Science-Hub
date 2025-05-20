@@ -1,5 +1,3 @@
-# hub.py (PyQt version)
-
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
@@ -74,13 +72,10 @@ class ScienceHub(QMainWindow):
 
 
     def initUI(self):
-        # Main central widget
         central_widget = QWidget()
         main_layout = QHBoxLayout()
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
-
-        # Sidebar: Toolkits/Categories
 
         sidebar = QVBoxLayout()
         sidebar.addWidget(QLabel("Categories"))
@@ -95,7 +90,6 @@ class ScienceHub(QMainWindow):
         self.launch_btn.setEnabled(False)
         sidebar.addWidget(self.launch_btn)
 
-        # Enable button only when a category is selected
         self.category_list.itemSelectionChanged.connect(self.update_launch_btn_state)
         self.launch_btn.clicked.connect(self.launch_toolkit)
 
@@ -106,7 +100,6 @@ class ScienceHub(QMainWindow):
         sidebar_frame.setFixedWidth(200)
 
 
-        # Central panel: Main content / Welcome / Screenshots
         central_panel = QVBoxLayout()
         headline = QLabel("Welcome to Science Hub")
         headline.setStyleSheet("font-size: 28px; font-weight: bold;")
@@ -125,7 +118,6 @@ class ScienceHub(QMainWindow):
         central_panel_frame.setLayout(central_panel)
         central_panel_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # Right panel: Utilities
         utility_panel = QVBoxLayout()
         utility_panel.addWidget(QLabel("Utility Panel"))
 
@@ -157,12 +149,11 @@ class ScienceHub(QMainWindow):
         utility_panel_frame.setObjectName("UtilityPanel")
         utility_panel_frame.setFixedWidth(240)
 
-        # Assemble main layout
         main_layout.addWidget(sidebar_frame)
         main_layout.addWidget(central_panel_frame)
         main_layout.addWidget(utility_panel_frame)
 
-from tools.utilities import log_path  # At the top with other imports
+from tools.utilities import log_path
 
 if load_settings().get("clear_log_on_startup", False):
     try:

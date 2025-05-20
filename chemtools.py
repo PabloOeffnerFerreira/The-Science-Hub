@@ -139,62 +139,186 @@ def open_mass_calculator():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-
+import os
+import json
+import re
+import datetime
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QFileDialog
 )
-from data_utils import load_element_data, log_event
+from PyQt6.QtGui import QRegularExpressionValidator
+from PyQt6.QtCore import QRegularExpression, Qt
+from data_utils import log_event, _open_dialogs
+
 
 def open_isotope_tool(preload=None):
     class IsotopeDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Isotopic Notation")
-            self.data = load_element_data()
-            self.setMinimumWidth(350)
+            self.setMinimumWidth(480)
             layout = QVBoxLayout(self)
-            layout.addWidget(QLabel("Element Symbol:"))
+
+            # Load element data
+            base_dir = os.path.dirname(__file__)
+            data_path = os.path.join(base_dir, 'databases', 'PeriodicTableJSON.json')
+            with open(data_path, 'r', encoding='utf-8') as f:
+                raw_data = json.load(f)
+            self.element_data = {el['symbol']: el for el in raw_data.get('elements', [])}
+
+            # Element symbol input
             self.symbol_entry = QLineEdit()
+            self.symbol_entry.setPlaceholderText("Element symbol (e.g., H, He, Fe)")
+            self.symbol_entry.setMaxLength(2)
+            symbol_regex = QRegularExpression("^[A-Za-z]{0,2}$")
+            self.symbol_entry.setValidator(QRegularExpressionValidator(symbol_regex))
+            layout.addWidget(QLabel("Element Symbol:"))
             layout.addWidget(self.symbol_entry)
 
-            layout.addWidget(QLabel("Mass Number:"))
+            # Mass number input
             self.mass_entry = QLineEdit()
+            self.mass_entry.setPlaceholderText("Mass number (integer)")
+            mass_regex = QRegularExpression("^[0-9]*$")
+            self.mass_entry.setValidator(QRegularExpressionValidator(mass_regex))
+            layout.addWidget(QLabel("Mass Number (unitless):"))
             layout.addWidget(self.mass_entry)
+
+            # Buttons
+            btn_layout = QHBoxLayout()
+            self.calc_btn = QPushButton("Calculate")
+            self.copy_btn = QPushButton("Copy Result")
+            self.export_btn = QPushButton("Export Chart")
+            btn_layout.addWidget(self.calc_btn)
+            btn_layout.addWidget(self.copy_btn)
+            btn_layout.addWidget(self.export_btn)
+            layout.addLayout(btn_layout)
+
+            # Result display
+            self.result_display = QTextEdit()
+            self.result_display.setReadOnly(True)
+            self.result_display.setMinimumHeight(150)
+            layout.addWidget(self.result_display)
+
+            # Matplotlib figure and canvas
+            self.figure = plt.figure(figsize=(4, 3))
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            # Connect signals
+            self.calc_btn.clicked.connect(self.calculate)
+            self.copy_btn.clicked.connect(self.copy_result)
+            self.export_btn.clicked.connect(self.export_chart)
 
             if preload and isinstance(preload, tuple) and len(preload) == 2:
                 self.symbol_entry.setText(str(preload[0]))
                 self.mass_entry.setText(str(preload[1]))
-                log_event("Isotopic Notation (Chain)", f"{preload}", "Waiting for confirmation")
+                log_event("Isotopic Notation (Preload)", f"{preload}", "Waiting for calculation")
 
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-
-            btn = QPushButton("Calculate")
-            btn.clicked.connect(self.calculate)
-            layout.addWidget(btn)
+            # To track last saved image path for adding to result
+            self.last_img_path = None
 
         def calculate(self):
-            sym = self.symbol_entry.text().strip()
+            symbol = self.symbol_entry.text().capitalize()
+            mass_str = self.mass_entry.text()
+            if not symbol or not mass_str:
+                self.show_error("Please enter both element symbol and mass number.")
+                return
+
+            if symbol not in self.element_data:
+                self.show_error(f"Element symbol '{symbol}' not found.")
+                return
+
             try:
-                mass = int(self.mass_entry.text())
-                if sym in self.data:
-                    Z = self.data[sym].get("AtomicNumber") or self.data[sym].get("number")
-                else:
-                    raise ValueError
-                neutrons = mass - Z
-                output = f"Notation: <b>{mass}{sym}</b><br>Protons: <b>{Z}</b><br>Neutrons: <b>{neutrons}</b>"
-                self.result.setText(output)
-                log_event("Isotopic Notation", f"{sym}, mass={mass}", output)
-            except Exception as e:
-                error_msg = "Invalid input or element not found."
-                self.result.setText(error_msg)
-                log_event("Isotopic Notation", f"{sym}, mass={self.mass_entry.text()}", error_msg)
+                mass_num = int(mass_str)
+            except ValueError:
+                self.show_error("Mass number must be a valid integer.")
+                return
+
+            element = self.element_data[symbol]
+            Z = element.get("number") or element.get("AtomicNumber")
+            if Z is None:
+                self.show_error(f"Atomic number not found for element '{symbol}'.")
+                return
+
+            neutrons = mass_num - Z
+            if neutrons < 0:
+                self.show_error("Mass number cannot be less than atomic number (protons).")
+                return
+
+            # Find isotope info if available
+            isotope_info = None
+            isotopes = element.get("isotopes", [])
+            for iso in isotopes:
+                if iso.get("mass_number") == mass_num or iso.get("massNumber") == mass_num:
+                    isotope_info = iso
+                    break
+
+            atomic_mass = isotope_info.get("atomic_mass") if isotope_info else element.get("atomic_mass") or element.get("AtomicMass")
+
+            abundance = isotope_info.get("abundance") if isotope_info else None
+            abundance_str = f"{abundance:.3%}" if abundance is not None else "Unknown"
+
+            result_html = (
+                f"<b>Isotopic Notation:</b> {mass_num}<sub>{symbol}</sub><br>"
+                f"<b>Element:</b> {element.get('name', 'Unknown')} ({symbol})<br>"
+                f"<b>Atomic Number (Protons):</b> {Z}<br>"
+                f"<b>Neutrons:</b> {neutrons}<br>"
+                f"<b>Atomic Mass:</b> {atomic_mass:.5f} u<br>"
+                f"<b>Natural Abundance:</b> {abundance_str}<br>"
+            )
+
+            # Draw pie chart and save image
+            self.draw_pie_chart(Z, neutrons)
+            img_path = self.save_chart_image()
+            self.last_img_path = img_path
+            result_html += f'<br><i>Chart saved to:</i><br><small>{img_path}</small>'
+
+            self.result_display.setHtml(result_html)
+            log_event("Isotopic Notation", f"{symbol}, mass={mass_num}", result_html)
+
+        def draw_pie_chart(self, protons, neutrons):
+            self.figure.clear()
+            ax = self.figure.add_subplot(111)
+            labels = ['Protons', 'Neutrons']
+            sizes = [protons, neutrons]
+            colors = ['#1f77b4', '#ff7f0e']
+            ax.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90, colors=colors)
+            ax.axis('equal')
+            ax.set_title('Nucleon Composition')
+            self.canvas.draw()
+
+        def save_chart_image(self):
+            results_dir = os.path.join(os.path.dirname(__file__), 'results')
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            img_path = os.path.join(results_dir, f"isotope_chart_{timestamp}.png")
+            self.figure.savefig(img_path, dpi=150)
+            return img_path
+
+        def copy_result(self):
+            clipboard = self.clipboard()
+            clipboard.setText(self.result_display.toPlainText())
+
+        def export_chart(self):
+            fname, _ = QFileDialog.getSaveFileName(self, "Save Chart Image", "", "PNG Files (*.png);;All Files (*)")
+            if fname:
+                try:
+                    self.figure.savefig(fname, dpi=150)
+                except Exception as e:
+                    self.show_error(f"Failed to save image: {e}")
+
+        def show_error(self, message):
+            self.result_display.setHtml(f'<span style="color: red;">{message}</span>')
+            log_event("Isotopic Notation", "Error", message)
 
     dlg = IsotopeDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
 
 import math
 from PyQt6.QtWidgets import (

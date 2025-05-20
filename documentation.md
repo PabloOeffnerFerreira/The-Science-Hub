@@ -376,3 +376,34 @@ Input field for molecular formula with example placeholder. Result box shows for
 ---
 
 ![Molecular Weight Calculator](screenshots/screenshot_mass_calc.png)
+
+## Isotopic Notation Tool
+
+Calculates and displays isotopic notation details for a given element symbol and mass number.
+
+### Features
+
+- Input for element symbol (e.g., H, He, Fe) with validation and auto-capitalization  
+- Input for mass number (integer only) with validation  
+- Displays isotopic notation including:
+  - Proton count (atomic number)  
+  - Neutron count  
+  - Atomic mass (from isotope data if available)  
+  - Natural abundance percentage (if known)  
+  - Element name and symbol  
+
+- Visual nucleon composition pie chart (protons vs. neutrons) rendered via matplotlib  
+- Automatic saving of the isotope composition chart image with timestamp in a `results` folder  
+- Saved image path displayed alongside calculation results  
+- Export chart image manually via file dialog  
+- Copy result text to clipboard button  
+- Clear error messages and input validation feedback  
+- Logs all input and output events for traceability  
+
+### User Interface
+
+Clean layout with labeled inputs, action buttons (Calculate, Copy Result, Export Chart), a rich-text result display, and an embedded matplotlib chart canvas.
+
+---
+
+![Isotope Tool](screenshots/screenshot_isotope.png)

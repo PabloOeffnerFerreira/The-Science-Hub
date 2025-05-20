@@ -22,11 +22,8 @@ You can simulate phenomena, solve problems in physics, chemistry, biology, geolo
 - **Academic Search:** Find scientific articles directly via OpenAlex, including title, authors, DOI, abstract, and open-access links.
 - **Local AI Assistant:** A true science assistant running offline via Ollama, with multiple models and modes (explanation, direct answer, or casual conversation).
 - **Full Integration:** All tools, results, and references are connected—save, share, export, and retrieve your discoveries with ease.
-<<<<<<< HEAD
-- **Chain Mode:** Tools can now pass outputs directly between each other. Build custom workflows with no user interaction needed between steps.
-- **Modern Interface:** Modern Interface: Fully redesigned in PyQt6, with chain-mode support, unified layouts, stable error handling, smart filtering, and a persistent dark theme.
-=======
-- **Modern Interface:** A few windows use PyQt6, with a dark theme, Unicode-safe rendering, and smart search and filters.
+- **Chain Mode:** Tools can pass outputs directly between each other to build custom workflows.
+- **Modern Interface:** Fully redesigned in PyQt6 with unified layouts, reliable error handling, smart filtering and a persistent dark theme.
 
 ---
 
@@ -82,8 +79,15 @@ Here are the main included tools, grouped by subject:
 - **Plate Velocity**
 - **Mineral ID Tool**
 
+
 ### Miscellaneous
 
+- **Code Editor** – Full Python editor with an embedded terminal and local code generation.
+- **Window Manager** – List and focus or close any open Science Hub window.
+- **Log Exporter** – Save your session history directly to Markdown.
+- **Molecule Library** – Search PubChem and keep molecule data offline.
+- **OpenAlex Browser** – Dedicated interface for exploring scientific articles.
+- **Settings** – Configure options like clearing logs on startup.
 - **Chain Mode Log Viewer** – See saved workflow outputs.
 
 ---
@@ -95,9 +99,12 @@ Available models include:
 
 - **TinyLlama:** Ultra-fast, perfect for short answers and simple tasks.
 - **Phi4, Phi4-Reasoning:** Logic analysis and mathematical problem solving.
+- **Phi4-Mini:** Lightweight version for quick reasoning.
 - **Dolphin3:** General chat and science.
 - **Qwen3:** Advanced language modeling.
 - **Gemma3:** Lightweight and efficient for scientific dialogue.
+- **DeepSeek-R1:** Reasoning-focused models in 7B and 14B sizes.
+- **Mistral Small 3.1:** Fast and fluent with long context.
 - **Mathstral:** Advanced math and calculation solving.
 - **Code Assistants:** Specific models for programming and scientific automation.
 

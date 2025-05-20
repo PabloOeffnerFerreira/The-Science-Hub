@@ -20,7 +20,8 @@ Você pode simular fenômenos, resolver problemas de física, química, biologia
 - **Buscador Acadêmico:** Pesquise artigos científicos diretamente pelo OpenAlex, com títulos, autores, DOI, resumo e link aberto.
 - **Assistente de IA Local:** Um verdadeiro assistente científico, rodando offline pelo Ollama, com múltiplos modelos e modos (explicação, resposta direta ou conversa).
 - **Integração Total:** Todas as ferramentas, resultados e referências se conectam — salve, compartilhe, exporte, e recupere suas descobertas facilmente.
-- **Interface Moderna:** Algumas janelas usam PyQt6, visual escuro, Unicode seguro, busca e filtros inteligentes.
+- **Chain Mode:** As ferramentas podem enviar resultados diretamente umas às outras para montar fluxos automáticos.
+- **Interface Moderna:** Totalmente redesenhada em PyQt6, com suporte ao Chain Mode, tratamento de erros estável, filtros inteligentes e tema escuro persistente.
 
 ---
 
@@ -76,6 +77,16 @@ Veja as principais ferramentas disponíveis (agrupadas por área):
 - **Explorador de Minerais:** Navegue por dados de minerais.
 - **Calculadora de Velocidade de Placas:** Cálculos tectônicos.
 
+### Diversos
+
+- **Editor de Código** – Ambiente Python completo com terminal embutido e geração de código local.
+- **Gerenciador de Janelas** – Liste e foque ou feche qualquer janela aberta do Science Hub.
+- **Exportar Log** – Salve o histórico da sessão diretamente em Markdown.
+- **Biblioteca de Moléculas** – Pesquise no PubChem e mantenha dados offline.
+- **Navegador OpenAlex** – Interface dedicada para explorar artigos científicos.
+- **Configurações** – Defina opções como limpar o log ao iniciar.
+- **Visualizador de Log do Chain Mode** – Veja os resultados de fluxos salvos.
+
 ---
 
 ## Modelos de IA Suportados
@@ -85,9 +96,12 @@ Modelos disponíveis incluem:
 
 - **TinyLlama:** Ultra rápido, ideal para respostas curtas e tarefas simples.
 - **Phi4, Phi4-Reasoning:** Análise lógica e resolução de problemas matemáticos.
+- **Phi4-Mini:** Versão leve para raciocínio rápido.
 - **Dolphin3:** Chat geral e ciência.
 - **Qwen3:** Modelagem de linguagem avançada.
 - **Gemma3:** Leve e eficiente para diálogos científicos.
+- **DeepSeek-R1:** Modelos focados em raciocínio (7B e 14B).
+- **Mistral Small 3.1:** Rápido e fluente, com contexto longo.
 - **Mathstral:** Resolução avançada de matemática e cálculos.
 - **Code Assistants:** Modelos específicos para programação e automação de tarefas científicas.
 

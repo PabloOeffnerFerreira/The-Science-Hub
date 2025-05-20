@@ -27,11 +27,7 @@
     "title": "Law of Universal Gravitation",
     "formula": "F = G * (m1 * m2) / r^2",
     "tags": ["gravity", "forces", "physics"],
-<<<<<<< HEAD
     "description": "Newton's Law of Universal Gravitation states that every mass attracts every other mass in the universe, and the force between two bodies is proportional to the product of their masses and inversely proportional to the square of the distance between them. It laid the foundation for gravitational theory.",
-=======
-    "description": "Newton’s Law of Universal Gravitation states that every mass attracts every other mass in the universe, and the force between two bodies is proportional to the product of their masses and inversely proportional to the square of the distance between them. It laid the foundation for gravitational theory.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -39,11 +35,7 @@
     "title": "Ohm's Law",
     "formula": "V = I * R",
     "tags": ["electricity", "circuits", "physics"],
-<<<<<<< HEAD
     "description": "Ohm's Law relates voltage (V), current (I), and resistance (R) in an electrical circuit. It states that the current through a conductor between two points is directly proportional to the voltage across the two points, provided the temperature remains constant. It is fundamental to circuit design.",
-=======
-    "description": "Ohm’s Law relates voltage (V), current (I), and resistance (R) in an electrical circuit. It states that the current through a conductor between two points is directly proportional to the voltage across the two points, provided the temperature remains constant. It is fundamental to circuit design.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": true,
     "image": ""
   },
@@ -51,11 +43,7 @@
     "title": "Avogadro's Number",
     "formula": "N_A = 6.022e23",
     "tags": ["chemistry", "constants", "moles"],
-<<<<<<< HEAD
     "description": "Avogadro's number defines the number of atoms, ions, or molecules in one mole of a substance. It is a fundamental constant used to relate the macroscopic scale of matter to the number of constituent particles. It's critical in stoichiometric calculations and unit conversions in chemistry.",
-=======
-    "description": "Avogadro’s number defines the number of atoms, ions, or molecules in one mole of a substance. It is a fundamental constant used to relate the macroscopic scale of matter to the number of constituent particles. It's critical in stoichiometric calculations and unit conversions in chemistry.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -71,11 +59,7 @@
     "title": "Boyle's Law",
     "formula": "P1 * V1 = P2 * V2",
     "tags": ["gas laws", "chemistry", "pressure"],
-<<<<<<< HEAD
     "description": "Boyle's Law states that the pressure of a gas is inversely proportional to its volume when temperature and quantity remain constant. This means compressing a gas increases its pressure, and allowing it to expand decreases pressure. It is a fundamental principle in fluid dynamics.",
-=======
-    "description": "Boyle’s Law states that the pressure of a gas is inversely proportional to its volume when temperature and quantity remain constant. This means compressing a gas increases its pressure, and allowing it to expand decreases pressure. It is a fundamental principle in fluid dynamics.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -83,11 +67,7 @@
     "title": "Charles's Law",
     "formula": "V1 / T1 = V2 / T2",
     "tags": ["chemistry", "gas", "temperature"],
-<<<<<<< HEAD
     "description": "Charles's Law states that the volume of an ideal gas is directly proportional to its absolute temperature at constant pressure. As the temperature of a gas increases, so does its volume. This principle is critical in understanding thermal expansion and balloon behavior.",
-=======
-    "description": "Charles’s Law states that the volume of an ideal gas is directly proportional to its absolute temperature at constant pressure. As the temperature of a gas increases, so does its volume. This principle is critical in understanding thermal expansion and balloon behavior.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -119,11 +99,7 @@
     "title": "Snell's Law",
     "formula": "n1 * sin(θ1) = n2 * sin(θ2)",
     "tags": ["optics", "refraction", "physics"],
-<<<<<<< HEAD
     "description": "Snell's Law describes how light bends when it passes through media of different refractive indices. It quantifies the angle of refraction using sine functions and the respective indices. It's critical in lens design, fiber optics, and understanding how light behaves in water or glass.",
-=======
-    "description": "Snell’s Law describes how light bends when it passes through media of different refractive indices. It quantifies the angle of refraction using sine functions and the respective indices. It’s critical in lens design, fiber optics, and understanding how light behaves in water or glass.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -131,11 +107,7 @@
     "title": "Hooke's Law",
     "formula": "F = -k * x",
     "tags": ["elasticity", "forces", "physics"],
-<<<<<<< HEAD
     "description": "Hooke's Law explains how the force needed to extend or compress a spring is proportional to the distance it is stretched. The negative sign indicates that the force is restorative. It is a key concept in mechanical engineering and structural design.",
-=======
-    "description": "Hooke’s Law explains how the force needed to extend or compress a spring is proportional to the distance it is stretched. The negative sign indicates that the force is restorative. It is a key concept in mechanical engineering and structural design.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -143,11 +115,7 @@
     "title": "Coulomb's Law",
     "formula": "F = k * (q1 * q2) / r^2",
     "tags": ["electrostatics", "forces", "physics"],
-<<<<<<< HEAD
     "description": "Coulomb's Law describes the force between two charged particles. The force is proportional to the product of the charges and inversely proportional to the square of the distance between them. It underpins electrostatic interactions and fields in classical physics.",
-=======
-    "description": "Coulomb’s Law describes the force between two charged particles. The force is proportional to the product of the charges and inversely proportional to the square of the distance between them. It underpins electrostatic interactions and fields in classical physics.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -155,11 +123,7 @@
     "title": "Bernoulli's Principle",
     "formula": null,
     "tags": ["fluids", "physics", "pressure"],
-<<<<<<< HEAD
     "description": "Bernoulli's Principle states that for an incompressible, frictionless fluid, the total mechanical energy remains constant. In practical terms, faster moving fluids exert less pressure. This principle explains flight, carburetors, and many fluid motion phenomena.",
-=======
-    "description": "Bernoulli’s Principle states that for an incompressible, frictionless fluid, the total mechanical energy remains constant. In practical terms, faster moving fluids exert less pressure. This principle explains flight, carburetors, and many fluid motion phenomena.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -167,11 +131,7 @@
     "title": "Planck's Equation",
     "formula": "E = h * f",
     "tags": ["quantum", "physics", "photons"],
-<<<<<<< HEAD
     "description": "Planck's Equation relates the energy of a photon to its frequency via Planck's constant. This concept is foundational in quantum theory, particularly in understanding quantized energy levels, blackbody radiation, and the photoelectric effect.",
-=======
-    "description": "Planck’s Equation relates the energy of a photon to its frequency via Planck’s constant. This concept is foundational in quantum theory, particularly in understanding quantized energy levels, blackbody radiation, and the photoelectric effect.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -179,11 +139,7 @@
     "title": "Einstein's Mass-Energy Equivalence",
     "formula": "E = m * c^2",
     "tags": ["relativity", "energy", "mass"],
-<<<<<<< HEAD
     "description": "Einstein's famous equation reveals that mass can be converted to energy and vice versa. It is foundational to nuclear physics and explains how immense energy is released from small amounts of mass in fission and fusion.",
-=======
-    "description": "Einstein’s famous equation reveals that mass can be converted to energy and vice versa. It is foundational to nuclear physics and explains how immense energy is released from small amounts of mass in fission and fusion.",
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc
     "favorite": false,
     "image": ""
   },
@@ -203,8 +159,4 @@
     "favorite": false,
     "image": ""
   }
-<<<<<<< HEAD
 ]
-=======
-]
->>>>>>> 5896feb1d2c409629c464efb94cc07fa25f91bbc

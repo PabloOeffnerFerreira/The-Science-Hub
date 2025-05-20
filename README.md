@@ -49,6 +49,7 @@ Here are the main included tools, grouped by subject:
 - **Property Grapher** – Interactive element graphs, hover data.
 - **Comparator Tool** – Property comparison between elements.
 - **Algebric Calculator** - Simplify and calculate algebric function
+- **Scientific Notation Converter** - Convert decimal Numbers to scientific notation and vice versa.
 
 ### Chemistry
 

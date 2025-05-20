@@ -50,6 +50,7 @@ Veja as principais ferramentas disponíveis (agrupadas por área):
 - **Calculadora de pH:** Soluções químicas.
 - **Calculadora de Crescimento Populacional:** Modelagem populacional.
 - **Calculadora de Álgebra** - Simplifique e calcule funções algébricas
+- **Conversor de notação científica** - Converta números decimais em notação científica e vice-versa.
 
 ### Química
 

@@ -185,3 +185,61 @@ def open_algebric_calc():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
+def open_scinot_converter():
+    class SciNotDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Scientific Notation Converter")
+            layout = QVBoxLayout(self)
+            layout.addWidget(QLabel("Enter Decimal Number"))
+            self.decimal_input = QLineEdit()
+            layout.addWidget(self.decimal_input)
+            layout.addWidget(QLabel("Enter Scientific Notation"))
+            self.sci_input = QLineEdit()
+            layout.addWidget(self.sci_input)
+            btn = QPushButton("Convert")
+            btn.clicked.connect(self.convert)
+            layout.addWidget(btn)
+            self.result = QLabel()
+            layout.addWidget(self.result)
+            self.setMinimumWidth(350)
+        def convert(self):
+            dec = self.decimal_input.text().strip()
+            sci = self.sci_input.text().strip()
+
+            if dec and not sci:
+                try:
+                    number = float(dec)
+                    result = f"{number:.4e}"
+                    msg = result
+                    self.result.setText(result)
+                    log_event("Scientific Notation Converter", f"dec={dec}, sci={sci}", msg)
+                except Exception:
+                    msg = "Invalid decimal number"
+                    self.result.setText(msg)
+                    log_event("Scientific Notation Converter", f"dec={dec}, sci={sci}", msg)
+            elif sci and not dec:
+                try:
+                    number = float(sci)
+                    result = str(number)
+                    msg = result
+                    self.result.setText(result)
+                    log_event("Scientific Notation Converter", f"dec={dec}, sci={sci}", msg)
+                except Exception:
+                    msg = "Invalid scientific notation"
+                    self.result.setText(msg)
+                    log_event("Scientific Notation Converter", f"dec={dec}, sci={sci}", msg)
+            elif dec and sci:
+                msg = "Enter only one number"
+                self.result.setText(msg)
+                log_event("Scientific Notation Converter", f"dec={dec}, sci={sci}", msg)
+            else:
+                msg = "You must enter a number"
+                self.result.setText(msg)
+                log_event("Scientific Notation Converter", f"dec={dec}, sci={sci}", msg)
+
+    dlg = SciNotDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

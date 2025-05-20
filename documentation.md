@@ -275,3 +275,25 @@ Inputs are organized in labeled rows with unit selectors. The result is shown be
 ---
 
 ![Drag Force Calculator](screenshots/screenshot_drag_force.png)
+
+## Acceleration Calculator
+
+Calculates acceleration given the change in velocity (Δv) over a time interval.
+
+### Features
+
+- Input change in velocity with unit options: meters per second (m/s), kilometers per hour (km/h), miles per hour (mph)  
+- Input time with unit options: seconds (s), minutes (min), hours (hr)  
+- Automatic conversion of all inputs to SI units (m/s and seconds) for calculation  
+- Validates input and prevents division by zero  
+- Displays acceleration in meters per second squared (m/s²) with three decimal places  
+- Clear and Calculate buttons for user convenience  
+- Logs all inputs and calculation results for reproducibility  
+
+### User Interface
+
+Labeled input fields paired with unit dropdown selectors. Results appear below inputs. Buttons for calculation and clearing are clearly arranged.
+
+---
+
+![Acceleration Calculator](screenshots/screenshot_acc_calc.png)

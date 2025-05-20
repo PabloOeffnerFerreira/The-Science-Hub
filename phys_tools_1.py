@@ -1420,47 +1420,107 @@ def open_drag_force_calculator():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-
-
 def open_acceleration_calculator():
     class AccelDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Acceleration Calculator")
+            self.setMinimumWidth(350)
             layout = QVBoxLayout(self)
-            self.dv = QLineEdit()
-            self.time = QLineEdit()
-            row1 = QHBoxLayout()
-            row1.addWidget(QLabel("Change in Velocity Δv (m/s):"))
-            row1.addWidget(self.dv)
-            row2 = QHBoxLayout()
-            row2.addWidget(QLabel("Time (s):"))
-            row2.addWidget(self.time)
-            layout.addLayout(row1)
-            layout.addLayout(row2)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-            btn = QPushButton("Calculate")
-            btn.clicked.connect(self.compute)
-            layout.addWidget(btn)
-            self.setMinimumWidth(320)
+
+            # Units options
+            self.velocity_units = ["m/s", "km/h", "mph"]
+            self.time_units = ["s", "min", "hr"]
+
+            # Input fields with validator
+            decimal_regex = QRegularExpression(r"[0-9]*\.?[0-9]*")
+            validator = QRegularExpressionValidator(decimal_regex)
+
+            self.dv_edit = QLineEdit("10")
+            self.dv_edit.setValidator(validator)
+            self.dv_unit = QComboBox()
+            self.dv_unit.addItems(self.velocity_units)
+            self.dv_unit.setCurrentText("m/s")
+
+            self.time_edit = QLineEdit("5")
+            self.time_edit.setValidator(validator)
+            self.time_unit = QComboBox()
+            self.time_unit.addItems(self.time_units)
+            self.time_unit.setCurrentText("s")
+
+            # Layout helpers
+            def make_row(label_text, edit_widget, unit_combo):
+                row = QHBoxLayout()
+                row.addWidget(QLabel(label_text))
+                row.addWidget(edit_widget)
+                row.addWidget(unit_combo)
+                return row
+
+            layout.addLayout(make_row("Change in Velocity Δv:", self.dv_edit, self.dv_unit))
+            layout.addLayout(make_row("Time:", self.time_edit, self.time_unit))
+
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+
+            btn_layout = QHBoxLayout()
+            self.calc_btn = QPushButton("Calculate")
+            self.clear_btn = QPushButton("Clear")
+            btn_layout.addWidget(self.calc_btn)
+            btn_layout.addWidget(self.clear_btn)
+            layout.addLayout(btn_layout)
+
+            # Connect signals
+            self.calc_btn.clicked.connect(self.compute)
+            self.clear_btn.clicked.connect(self.clear_all)
+
+        def convert_to_m_s(self, val, unit):
+            if unit == "km/h":
+                return val / 3.6
+            elif unit == "mph":
+                return val * 0.44704
+            return val
+
+        def convert_to_seconds(self, val, unit):
+            if unit == "min":
+                return val * 60
+            elif unit == "hr":
+                return val * 3600
+            return val
+
+        def convert_from_m_s2(self, val, unit):
+            # Converts acceleration in m/s² to unit / s² if needed (usually m/s² output is standard)
+            # You can expand this if you want other acceleration units
+            return val
+
         def compute(self):
             try:
-                dv = float(self.dv.text())
-                t = float(self.time.text())
+                dv = float(self.dv_edit.text())
+                t = float(self.time_edit.text())
                 if t == 0:
                     raise ValueError("Time cannot be zero")
-                a = dv / t
-                self.result.setText(f"Acceleration = {a:.3f} m/s²")
-                log_event("Acceleration Calculator", f"Δv={dv}, t={t}", a)
+
+                dv_m_s = self.convert_to_m_s(dv, self.dv_unit.currentText())
+                t_s = self.convert_to_seconds(t, self.time_unit.currentText())
+
+                a = dv_m_s / t_s
+                a_out = self.convert_from_m_s2(a, "m/s²")  # Keep m/s² output for now
+
+                self.result_label.setText(f"Acceleration = {a_out:.3f} m/s²")
+                log_event("Acceleration Calculator", f"Δv={dv} {self.dv_unit.currentText()}, t={t} {self.time_unit.currentText()}", a_out)
             except Exception as e:
-                self.result.setText(f"Error: {e}")
+                self.result_label.setText(f"Error: {e}")
+
+        def clear_all(self):
+            self.dv_edit.setText("10")
+            self.dv_unit.setCurrentText("m/s")
+            self.time_edit.setText("5")
+            self.time_unit.setCurrentText("s")
+            self.result_label.clear()
+
     dlg = AccelDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
 
 def open_force_calculator():
     class ForceDialog(QDialog):

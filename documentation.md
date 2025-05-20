@@ -135,7 +135,7 @@ The Terminal Velocity Calculator estimates the terminal velocity and fall time o
 
 ---
 
-[Terminal Velocity Calculator](screenshots/screenshot_terminal_velocity_calc.png)
+![Terminal Velocity Calculator](screenshots/screenshot_terminal_velocity_calc.png)
 
 ## Projectile Motion Tool
 
@@ -169,4 +169,4 @@ The tool provides labeled input fields with unit selectors, a results display ar
 
 ---
 
-[Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)
+![Projectile Motion Tool during an Animation](screenshots/screenshot_proj_mot.png)

@@ -60,6 +60,7 @@ from phys_tools_1 import (
     open_force_calculator,
     open_kinetic_energy_calculator,
     open_speed_calculator,
+    open_ferromagnetism_helper
 )
 
 from math_tools_1 import (
@@ -405,6 +406,7 @@ TOOLS = [
     ("Force Calculator", open_force_calculator, True),
     ("Kinetic Energy Calculator", open_kinetic_energy_calculator, True),
     ("Speed Calculator", open_speed_calculator, True),
+    ("Ferromagnetism Helper", open_ferromagnetism_helper, False),
 
     # Math
     ("Function Plotter", open_function_plotter, False),  # Graph only

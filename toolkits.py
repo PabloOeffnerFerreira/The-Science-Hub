@@ -58,7 +58,8 @@ from phys_tools_1 import(
     open_projectile_motion_tool,
     open_speed_calculator,
     open_terminal_velocity_calculator,
-    open_unit_converter
+    open_unit_converter,
+    open_ferromagnetism_helper
 )
 
 class ToolkitHub(QDialog):
@@ -99,6 +100,7 @@ def open_physics_tools_hub():
         ("Force Calculator", open_force_calculator),
         ("Kinetic Energy Calculator", open_kinetic_energy_calculator),
         ("Speed Calculator", open_speed_calculator),
+        ("Ferromagnetism Tool", open_ferromagnetism_helper)
     ]
     dlg = ToolkitHub("Physics", tools)
     dlg.show()

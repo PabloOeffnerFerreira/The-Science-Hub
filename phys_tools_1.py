@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QFileDialog
 )
 from data_utils import log_event, _open_dialogs
 import math
@@ -1866,6 +1866,115 @@ def open_kinetic_energy_calculator():
             self.canvas.draw()
 
     dlg = KEnergyDialog()
+    dlg.show()
+    _open_dialogs.append(dlg)
+    dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
+def open_ferromagnetism_helper():
+    class FerroDialog(QDialog):
+        def __init__(self):
+            super().__init__()
+            self.setWindowTitle("Ferromagnetism Helper")
+            self.setMinimumWidth(600)
+            layout = QVBoxLayout(self)
+
+            note = "This tool was created because my exam is tomorrow."
+            self.note_label = QLabel(note)
+            self.note_label.setWordWrap(True)
+            layout.addWidget(self.note_label)
+
+            input_layout = QHBoxLayout()
+
+            self.tc_edit = QLineEdit("770")  # Curie temp of iron approx
+            self.tc_edit.setToolTip("Curie Temperature (K)")
+            input_layout.addWidget(QLabel("Curie Temperature (K):"))
+            input_layout.addWidget(self.tc_edit)
+
+            self.m0_edit = QLineEdit("1.0")
+            self.m0_edit.setToolTip("Saturation Magnetization (arbitrary units)")
+            input_layout.addWidget(QLabel("Saturation Magnetization M₀:"))
+            input_layout.addWidget(self.m0_edit)
+
+            self.tmax_edit = QLineEdit("1000")
+            self.tmax_edit.setToolTip("Max Temperature to plot (K)")
+            input_layout.addWidget(QLabel("Max Temperature (K):"))
+            input_layout.addWidget(self.tmax_edit)
+
+            layout.addLayout(input_layout)
+
+            btn_layout = QHBoxLayout()
+            self.plot_btn = QPushButton("Plot Magnetization")
+            self.export_btn = QPushButton("Export Plot")
+            btn_layout.addWidget(self.plot_btn)
+            btn_layout.addWidget(self.export_btn)
+            layout.addLayout(btn_layout)
+
+            self.figure, self.ax = plt.subplots(figsize=(7, 4), dpi=100)
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            self.saved_img_path = None
+
+            self.plot_btn.clicked.connect(self.plot_magnetization)
+            self.export_btn.clicked.connect(self.export_plot)
+
+        def plot_magnetization(self):
+            try:
+                tc = float(self.tc_edit.text())
+                m0 = float(self.m0_edit.text())
+                tmax = float(self.tmax_edit.text())
+                if tc <= 0 or m0 <= 0 or tmax <= 0:
+                    raise ValueError("Inputs must be positive")
+
+                import numpy as np
+
+                temps = np.linspace(0, tmax, 500)
+                beta = 0.33
+
+                m = np.piecewise(
+                    temps,
+                    [temps < tc, temps >= tc],
+                    [lambda T: m0 * (1 - T/tc)**beta, 0]
+                )
+
+                self.ax.clear()
+                self.ax.plot(temps, m, label=f"Curie Temp = {tc} K")
+                self.ax.set_xlabel("Temperature (K)")
+                self.ax.set_ylabel("Magnetization (arb. units)")
+                self.ax.set_title("Magnetization vs Temperature (Ferromagnetism)")
+                self.ax.legend()
+                self.ax.grid(True)
+                self.canvas.draw()
+
+                if not os.path.exists(results_dir):
+                    os.makedirs(results_dir)
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"ferromagnetism_{timestamp}.png"
+                self.saved_img_path = os.path.join(results_dir, filename)
+                self.figure.savefig(self.saved_img_path, dpi=150)
+
+                self.note_label.setText(
+                    f"{self.note_label.text()}\n\n[Plot saved to:\n{self.saved_img_path}]"
+                )
+
+                log_event("Ferromagnetism Helper", f"TC={tc}, M0={m0}, Tmax={tmax}", f"Plot saved: {self.saved_img_path}")
+
+            except Exception as e:
+                self.note_label.setText(f"Error: {e}")
+                log_event("Ferromagnetism Helper", "Error", str(e))
+
+        def export_plot(self):
+            path, _ = QFileDialog.getSaveFileName(self, "Export Magnetization Plot", "", "PNG Files (*.png)")
+            if path:
+                try:
+                    self.figure.savefig(path, dpi=150)
+                    self.note_label.setText(self.note_label.text() + f"\n[Plot exported to:\n{path}]")
+                    log_event("Ferromagnetism Helper", "Export Plot", path)
+                except Exception as e:
+                    self.note_label.setText(f"Error exporting plot: {e}")
+                    log_event("Ferromagnetism Helper", "Export Error", str(e))
+
+    dlg = FerroDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

@@ -5,25 +5,25 @@ from PyQt6.QtWidgets import (
     QTableWidget, QTableWidgetItem,
 )
 from data_utils import _open_dialogs, log_event
-import os, datetime, json
+import os, datetime, json, matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path, library_file, load_settings, load_element_data
 )
-
-minerals_df = pd.read_csv(mineral_db_path)
-minerals_df.drop(columns=[col for col in minerals_df.columns if ".ru" in col], inplace=True)
-
 def open_mineral_id_tool():
     class MineralIdDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Mineral Identifier (Fuzzy Matching)")
+            self.setMinimumWidth(700)
             layout = QVBoxLayout(self)
+
             self.hard = QLineEdit()
             self.sg = QLineEdit()
             self.cs = QLineEdit()
+
             for label, widget in [
                 ("Hardness (Mohs):", self.hard),
                 ("Specific Gravity:", self.sg),
@@ -33,37 +33,129 @@ def open_mineral_id_tool():
                 row.addWidget(QLabel(label))
                 row.addWidget(widget)
                 layout.addLayout(row)
+
+            btn_layout = QHBoxLayout()
+            self.identify_btn = QPushButton("Identify")
+            self.copy_btn = QPushButton("Copy Results")
+            self.export_btn = QPushButton("Export Results CSV")
+            btn_layout.addWidget(self.identify_btn)
+            btn_layout.addWidget(self.copy_btn)
+            btn_layout.addWidget(self.export_btn)
+            layout.addLayout(btn_layout)
+
             self.result = QTextEdit()
             self.result.setReadOnly(True)
             layout.addWidget(self.result)
-            btn = QPushButton("Identify")
-            btn.clicked.connect(self.identify)
-            layout.addWidget(btn)
-            self.setMinimumWidth(620)
+
+            # Matplotlib figure and canvas for hardness vs SG plot
+            self.figure, self.ax = plt.subplots(figsize=(6, 4), dpi=100)
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            self.saved_img_path = None
+            self.matches_df = None
+
+            self.identify_btn.clicked.connect(self.identify)
+            self.copy_btn.clicked.connect(self.copy_results)
+            self.export_btn.clicked.connect(self.export_csv)
+
         def identify(self):
             try:
-                h = float(self.hard.text())
-                sg = float(self.sg.text())
-                cs = float(self.cs.text())
-                matches = minerals_df[
-                    (minerals_df['Mohs Hardness'].between(h - 0.5, h + 0.5)) &
-                    (minerals_df['Specific Gravity'].between(sg - 0.5, sg + 0.5)) &
-                    (minerals_df['Crystal Structure'] == cs)
-                ]
+                # Parse inputs safely, allow empty
+                h = self.try_parse_float(self.hard.text())
+                sg = self.try_parse_float(self.sg.text())
+                cs = self.try_parse_float(self.cs.text())
+
+                df = minerals_df.copy()
+
+                if h is not None:
+                    df = df[df['Mohs Hardness'].between(h - 0.5, h + 0.5)]
+                if sg is not None:
+                    df = df[df['Specific Gravity'].between(sg - 0.5, sg + 0.5)]
+                if cs is not None:
+                    df = df[df['Crystal Structure'] == cs]
+
                 self.result.clear()
-                if not matches.empty:
-                    for _, row in matches.iterrows():
-                        line = f"Name: {row['Name']} | Hardness: {row['Mohs Hardness']} | SG: {row['Specific Gravity']} | Structure: {row['Crystal Structure']}\n"
-                        self.result.append(line)
-                    log_event("Mineral Identifier", f"H={h}, SG={sg}, CS={cs}", f"Matches found: {len(matches)}")
-                else:
+
+                if df.empty:
                     msg = "No matching minerals found."
                     self.result.setText(msg)
-                    log_event("Mineral Identifier", f"H={h}, SG={sg}, CS={cs}", msg)
-            except Exception:
+                    self.matches_df = None
+                else:
+                    lines = []
+                    for _, row in df.iterrows():
+                        line = (f"Name: {row['Name']} | Hardness: {row['Mohs Hardness']} | "
+                                f"SG: {row['Specific Gravity']} | Structure: {row['Crystal Structure']}")
+                        lines.append(line)
+                    self.result.setPlainText('\n'.join(lines))
+                    self.matches_df = df
+                    self.plot_matches(df)
+
+                    # Save plot image
+                    self.saved_img_path = self.save_plot_image()
+                    self.result.append(f"\n[Plot saved to:\n{self.saved_img_path}]")
+
+                log_event("Mineral Identifier",
+                          f"H={h}, SG={sg}, CS={cs}",
+                          f"Matches found: {len(df) if df is not None else 0}")
+
+            except Exception as e:
                 msg = "Invalid input."
                 self.result.setText(msg)
-                log_event("Mineral Identifier", f"H={self.hard.text()}, SG={self.sg.text()}, CS={self.cs.text()}", msg)
+                log_event("Mineral Identifier",
+                          f"H={self.hard.text()}, SG={self.sg.text()}, CS={self.cs.text()}",
+                          f"Error: {e}")
+
+        def try_parse_float(self, text):
+            try:
+                return float(text)
+            except Exception:
+                return None
+
+        def plot_matches(self, df):
+            self.ax.clear()
+            self.ax.scatter(minerals_df['Mohs Hardness'], minerals_df['Specific Gravity'], 
+                            c='lightgray', label='All Minerals', alpha=0.5)
+            self.ax.scatter(df['Mohs Hardness'], df['Specific Gravity'], 
+                            c='blue', label='Matches')
+            self.ax.set_xlabel("Mohs Hardness")
+            self.ax.set_ylabel("Specific Gravity")
+            self.ax.set_title("Minerals: Hardness vs Specific Gravity")
+            self.ax.legend()
+            self.ax.grid(True)
+            self.figure.tight_layout()
+            self.canvas.draw()
+
+        def save_plot_image(self):
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"mineral_id_plot_{timestamp}.png"
+            path = os.path.join(results_dir, filename)
+            self.figure.savefig(path, dpi=150)
+            return path
+
+        def copy_results(self):
+            if self.result.toPlainText():
+                self.clipboard().setText(self.result.toPlainText())
+                log_event("Mineral Identifier", "Copy Results", "User copied mineral matches")
+            else:
+                self.result.setText("Nothing to copy.")
+
+        def export_csv(self):
+            if self.matches_df is None or self.matches_df.empty:
+                self.result.setText("No data to export.")
+                return
+            path, _ = QFileDialog.getSaveFileName(self, "Export Matches as CSV", "mineral_matches.csv", "CSV Files (*.csv)")
+            if path:
+                try:
+                    self.matches_df.to_csv(path, index=False)
+                    self.result.append(f"\n[Results exported to:\n{path}]")
+                    log_event("Mineral Identifier", "Export CSV", path)
+                except Exception as e:
+                    self.result.setText(f"Failed to export CSV: {e}")
+                    log_event("Mineral Identifier", "Export CSV Error", str(e))
+
     dlg = MineralIdDialog()
     dlg.show()
     _open_dialogs.append(dlg)

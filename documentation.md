@@ -505,7 +505,8 @@ Enter unbalanced reaction(s) in the input box, one per line, then click "Balance
 
 ---
 
-![Reaction Algebra](screenshots/screenshot_react_bal.png)
+
+![Reaction Balancer](screenshots/screenshot_react_bal.png)
 
 ## Element Property Grapher
 

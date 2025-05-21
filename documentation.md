@@ -1,10 +1,10 @@
-# Overview of Science Hub
-![Science Hub Main Window](images/Main.png)
+# Overview of The Science Hub
+![The Science Hub Main Window](images/Main.png)
 
-Science Hub is a modular, desktop-based software platform designed to unify scientific tools, data management, and AI assistance into a single environment for scientific workflows spanning physics, chemistry, biology, geology, mathematics, and programming. It supports independent tool operation and chaining for complex tasks. The platform emphasizes modularity, expandability, and user control.
+The Science Hub is a modular, desktop-based software platform designed to unify scientific tools, data management, and AI assistance into a single environment for scientific workflows spanning physics, chemistry, biology, geology, mathematics, and programming. It supports independent tool operation and chaining for complex tasks. The platform emphasizes modularity, expandability, and user control.
 
 ## Purpose and Scope
-Science Hub provides users with tools to perform scientific calculations, organize formulas, manage experimental results and images, search scientific literature, and write and execute Python code. It aims to reduce reliance on multiple separate applications or web services by integrating these functions cohesively.
+The Science Hub provides users with tools to perform scientific calculations, organize formulas, manage experimental results and images, search scientific literature, and write and execute Python code. It aims to reduce reliance on multiple separate applications or web services by integrating these functions cohesively.
 
 ## User Interface and Experience
 The interface features a dark theme with a clean, structured layout designed for efficiency and minimal distraction. Tools open in separate windows with consistent UI elements. Users can customize workflows by chaining outputs between tools. User actions are logged, and session histories can be exported for reproducibility.
@@ -17,14 +17,14 @@ The interface features a dark theme with a clean, structured layout designed for
 - **Mathematics & Programming**: Equation solvers, function plotters, code editor with embedded terminal.
 
 ## Extensibility and Licensing
-The platform is designed for easy expansion. Users can add new tools or extend existing ones, with Python scripting supported via the integrated code editor. Science Hub is MIT licensed, allowing free personal and research use with attribution required for commercial applications.
+The platform is designed for easy expansion. Users can add new tools or extend existing ones, with Python scripting supported via the integrated code editor. The Science Hub is MIT licensed, allowing free personal and research use with attribution required for commercial applications.
 
 # Chapter 1: Tools
 **In the following chapter is every tool explained.**
 
 ## Unit Converter
 
-The Unit Converter is a tool designed to perform conversions between a wide variety of scientific and everyday units across multiple categories. It provides precise and flexible unit conversion functionality as part of the Science Hub’s modular toolset.
+The Unit Converter is a tool designed to perform conversions between a wide variety of scientific and everyday units across multiple categories. It provides precise and flexible unit conversion functionality as part of The Science Hub’s modular toolset.
 
 ### Supported Categories and Units
 
@@ -65,7 +65,7 @@ The converter supports a broad range of unit categories including but not limite
 
 ### Integration
 
-- The Unit Converter supports chaining with other tools in Science Hub, allowing its output to feed into subsequent calculations or analyses.  
+- The Unit Converter supports chaining with other tools in The Science Hub, allowing its output to feed into subsequent calculations or analyses.  
 - Conversion logs can be saved or exported along with session data for reproducibility.  
 - The tool is implemented using PyQt and follows the platform’s consistent UI style and theme.
 

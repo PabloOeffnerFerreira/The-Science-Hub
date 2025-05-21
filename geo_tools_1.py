@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import (
     QTableWidget, QTableWidgetItem,
 )
 from data_utils import _open_dialogs, log_event
-import json
+import os, datetime, json
 from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
@@ -119,29 +119,131 @@ def open_plate_boundary_tool():
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Plate Boundary Types")
+            self.setMinimumWidth(600)
             layout = QVBoxLayout(self)
-            layout.addWidget(QLabel("Choose a boundary type:"))
+
+            layout.addWidget(QLabel("Choose a plate boundary type:"))
             self.box = QComboBox()
             self.box.addItems(["Select Type", "Convergent", "Divergent", "Transform"])
             layout.addWidget(self.box)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-            btn = QPushButton("Explain")
-            btn.clicked.connect(self.explain)
-            layout.addWidget(btn)
-            self.setMinimumWidth(400)
-        def explain(self):
-            selected = self.box.currentText()
-            if selected == "Convergent":
-                msg = "Plates move toward each other. Mountains, trenches, and volcanoes form."
-            elif selected == "Divergent":
-                msg = "Plates move apart. Mid-ocean ridges and new crust form."
-            elif selected == "Transform":
-                msg = "Plates slide past each other. Earthquakes are common."
+
+            self.explanation_label = QLabel("")
+            self.explanation_label.setWordWrap(True)
+            layout.addWidget(self.explanation_label)
+
+            btn_layout = QHBoxLayout()
+            self.explain_btn = QPushButton("Show Diagram")
+            self.export_btn = QPushButton("Export Diagram")
+            btn_layout.addWidget(self.explain_btn)
+            btn_layout.addWidget(self.export_btn)
+            layout.addLayout(btn_layout)
+
+            from matplotlib.figure import Figure
+            from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+
+            self.figure = Figure(figsize=(8, 4), dpi=100)
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            self.explain_btn.clicked.connect(self.update_diagram)
+            self.export_btn.clicked.connect(self.export_diagram)
+
+            self.saved_img_path = None
+
+        def update_diagram(self):
+            boundary_type = self.box.currentText()
+            self.figure.clf()
+            ax = self.figure.add_subplot(111)
+            ax.axis('off')
+
+            if boundary_type == "Convergent":
+                self.draw_convergent(ax)
+                explanation = ("Convergent boundaries occur where plates move toward each other. "
+                               "This creates trenches, volcanic arcs, and mountain ranges.")
+            elif boundary_type == "Divergent":
+                self.draw_divergent(ax)
+                explanation = ("Divergent boundaries occur where plates move apart. "
+                               "This leads to mid-ocean ridges and the creation of new crust.")
+            elif boundary_type == "Transform":
+                self.draw_transform(ax)
+                explanation = ("Transform boundaries occur where plates slide past one another, "
+                               "often causing earthquakes along the fault lines.")
             else:
-                msg = "No boundary type selected."
-            self.result.setText(msg)
-            log_event("Plate Boundaries", selected, msg)
+                explanation = "Please select a plate boundary type to display."
+
+            self.explanation_label.setText(explanation)
+            self.canvas.draw()
+
+            # Save image only if valid boundary selected
+            if boundary_type in ["Convergent", "Divergent", "Transform"]:
+                self.saved_img_path = self.save_diagram_image()
+                self.explanation_label.setText(explanation + f"\n\n[Diagram saved to:\n{self.saved_img_path}]")
+
+            log_event("Plate Boundary Tool", boundary_type, explanation)
+
+        def draw_convergent(self, ax):
+            # Draw plates moving toward each other with arrows, trench, volcano
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 5)
+            # Plates
+            ax.fill_between([0, 4], 0, 3, color='sienna', alpha=0.7, label="Oceanic Plate")
+            ax.fill_between([6, 10], 0, 3, color='peru', alpha=0.7, label="Continental Plate")
+            # Arrows indicating movement
+            ax.arrow(3.8, 1.5, 1, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+            ax.arrow(6.2, 1.5, -1, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+            # Trench
+            ax.plot([4.9, 5.1], [0, 1], color='navy', linewidth=5)
+            # Volcano (simple triangle)
+            ax.plot([6.5, 7, 7.5], [3, 4, 3], color='firebrick', linewidth=2)
+            ax.fill_between([6.5, 7.5], [3,3], [4,4], color='firebrick', alpha=0.8)
+            ax.text(7, 4.2, "Volcano", ha='center')
+
+        def draw_divergent(self, ax):
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 5)
+            # Plates
+            ax.fill_between([0, 4.5], 0, 3, color='darkcyan', alpha=0.7, label="Plate 1")
+            ax.fill_between([5.5, 10], 0, 3, color='teal', alpha=0.7, label="Plate 2")
+            # Arrows indicating movement apart
+            ax.arrow(4.5, 1.5, -1, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+            ax.arrow(5.5, 1.5, 1, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+            # Mid-ocean ridge (elevated center)
+            ax.plot([4.8, 5.2], [3, 4], color='yellowgreen', linewidth=7)
+            ax.text(5, 4.2, "Mid-ocean Ridge", ha='center')
+
+        def draw_transform(self, ax):
+            ax.set_xlim(0, 10)
+            ax.set_ylim(0, 5)
+            # Plates
+            ax.fill_between([0, 5], 0, 3, color='lightgray', alpha=0.7, label="Plate A")
+            ax.fill_between([5, 10], 0, 3, color='darkgray', alpha=0.7, label="Plate B")
+            # Arrows sliding past
+            ax.arrow(4, 1.5, 1, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+            ax.arrow(6, 1.5, -1, 0, head_width=0.3, head_length=0.3, fc='black', ec='black')
+            # Fault line
+            ax.plot([5, 5], [0, 3], color='red', linewidth=4)
+            ax.text(5, 3.2, "Fault Line", ha='center', color='red')
+
+        def save_diagram_image(self):
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"plate_boundary_{timestamp}.png"
+            path = os.path.join(results_dir, filename)
+            self.figure.savefig(path, dpi=150)
+            return path
+
+        def export_diagram(self):
+            path, _ = QFileDialog.getSaveFileName(self, "Export Plate Boundary Diagram", "", "PNG Files (*.png)")
+            if path:
+                try:
+                    self.figure.savefig(path, dpi=150)
+                    self.explanation_label.setText(self.explanation_label.text() + f"\n\n[Diagram exported to:\n{path}]")
+                    log_event("Plate Boundary Tool", "Export Diagram", path)
+                except Exception as e:
+                    self.explanation_label.setText(f"Error exporting diagram: {e}")
+                    log_event("Plate Boundary Tool", "Export Error", str(e))
+
     dlg = BoundaryDialog()
     dlg.show()
     _open_dialogs.append(dlg)

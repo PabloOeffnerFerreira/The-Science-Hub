@@ -541,3 +541,35 @@ The Element Property Grapher visualizes various numeric properties of chemical e
 ![Element Property Grapher Main Window](screenshots/screenshot_element_property_grapher.png)
 
 ---
+
+## DNA Transcription & Translation Tool
+
+A tool to transcribe a DNA sequence into mRNA and translate it into a protein sequence with visualization of codon usage.
+
+### Features
+
+- Validates input DNA sequences to contain only A, T, C, G characters.
+- Auto-capitalizes and cleans input sequences.
+- Transcribes DNA to mRNA (T → U).
+- Translates mRNA codons to protein sequences using a codon table.
+- Displays transcription and translation results clearly in the UI.
+- Visualizes codon usage frequency in a horizontal bar chart embedded in the interface.
+- Automatically saves codon frequency plots with timestamped filenames in the results directory.
+- Displays saved chart image path in the output area after autosave.
+- Allows manual export of the codon frequency chart via file dialog.
+- Copy transcription and translation results to clipboard with a button.
+- Error handling with messages displayed in the output area.
+- Logs all significant user actions for traceability.
+- Clean, accessible UI layout with buttons for Translate, Copy Result, and Export Chart.
+
+### User Interface
+
+- Input field for DNA sequence with placeholder and input validation.
+- Output text area showing mRNA and protein sequences.
+- Embedded matplotlib chart displaying codon frequency.
+- Buttons for translating, copying results, and exporting the chart.
+- Informative status messages including saved image paths.
+
+---
+
+![DNA Transcription Tool Screenshot](screenshots/screenshot_dna_transcription_tool.png)

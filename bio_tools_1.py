@@ -1,9 +1,13 @@
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QFileDialog
 )
 from data_utils import _open_dialogs, log_event
+from data_utils import (settings_path, results_dir, ptable_path, element_favs_path, load_element_data)
 import math
-
+import os
+import datetime
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
@@ -33,32 +37,131 @@ def open_transcription_tool():
         def __init__(self):
             super().__init__()
             self.setWindowTitle("DNA Transcription & Translation")
+            self.setMinimumWidth(600)
+
             layout = QVBoxLayout(self)
+
             layout.addWidget(QLabel("Enter DNA sequence:"))
             self.entry = QLineEdit()
+            self.entry.setPlaceholderText("Enter DNA sequence using A, T, C, G only")
             layout.addWidget(self.entry)
+
+            btn_layout = QHBoxLayout()
+            self.translate_btn = QPushButton("Translate")
+            self.copy_btn = QPushButton("Copy Result")
+            self.export_btn = QPushButton("Export Chart")
+            btn_layout.addWidget(self.translate_btn)
+            btn_layout.addWidget(self.copy_btn)
+            btn_layout.addWidget(self.export_btn)
+            layout.addLayout(btn_layout)
+
             self.output = QTextEdit()
             self.output.setReadOnly(True)
             layout.addWidget(self.output)
-            btn = QPushButton("Translate")
-            btn.clicked.connect(self.transcribe)
-            layout.addWidget(btn)
-            self.setMinimumWidth(500)
-        def transcribe(self):
-            dna = self.entry.text().upper().replace("T", "U")
+
+            # Matplotlib figure and canvas for codon frequency chart
+            self.figure, self.ax = plt.subplots(figsize=(8, 3), dpi=100)
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            self.saved_img_path = None
+
+            # Connect buttons
+            self.translate_btn.clicked.connect(self.transcribe_and_translate)
+            self.copy_btn.clicked.connect(self.copy_result)
+            self.export_btn.clicked.connect(self.export_chart)
+
+        def transcribe_and_translate(self):
+            raw_seq = self.entry.text().strip().upper()
+            # Validate DNA sequence
+            if not raw_seq:
+                self.show_error("Please enter a DNA sequence.")
+                return
+            if any(ch not in "ATCG" for ch in raw_seq):
+                self.show_error("DNA sequence can contain only A, T, C, and G.")
+                return
+
+            # Transcription: T -> U
+            mrna_seq = raw_seq.replace("T", "U")
+
+            # Translate using global CODON_TABLE, group by 3
             protein = []
-            for i in range(0, len(dna) - 2, 3):
-                codon = dna[i:i + 3]
+            codons = []
+            for i in range(0, len(mrna_seq) - 2, 3):
+                codon = mrna_seq[i:i+3]
+                codons.append(codon)
                 amino = CODON_TABLE.get(codon, '?')
                 protein.append(amino)
-            mrna_line = f"mRNA: {dna}"
-            protein_line = f"Protein: {'-'.join(protein)}"
-            self.output.setText(mrna_line + "\n" + protein_line)
-            log_event("DNA Transcription", dna, protein_line)
+
+            protein_str = '-'.join(protein)
+
+            # Output text
+            output_text = f"mRNA:\n{mrna_seq}\n\nProtein:\n{protein_str}"
+            self.output.setPlainText(output_text)
+
+            # Plot codon frequency
+            self.plot_codon_frequency(codons)
+
+            # Save chart image if codons exist
+            if codons:
+                self.saved_img_path = self.save_chart_image()
+                self.output.append(f"\n[Chart saved to:\n{self.saved_img_path}]")
+
+            # Log event
+            log_event("DNA Transcription & Translation", raw_seq, protein_str)
+
+        def plot_codon_frequency(self, codons):
+            self.ax.clear()
+            if not codons:
+                self.canvas.draw()
+                return
+
+            from collections import Counter
+            counts = Counter(codons)
+            codon_labels = sorted(counts.keys())
+            freqs = [counts[c] for c in codon_labels]
+
+            self.ax.barh(codon_labels, freqs, color="#4682B4")
+            self.ax.set_xlabel("Frequency")
+            self.ax.set_title("Codon Usage Frequency")
+            self.ax.grid(axis="x", linestyle='--', alpha=0.7)
+
+            self.figure.tight_layout()
+            self.canvas.draw()
+
+        def save_chart_image(self):
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"codon_usage_{timestamp}.png"
+            path = os.path.join(results_dir, filename)
+            self.figure.savefig(path, dpi=150)
+            return path
+
+        def copy_result(self):
+            clipboard = self.clipboard()
+            clipboard.setText(self.output.toPlainText())
+            log_event("DNA Transcription & Translation", "Copy Result", "User copied result text")
+
+        def export_chart(self):
+            path, _ = QFileDialog.getSaveFileName(self, "Export Codon Usage Chart", "", "PNG Files (*.png)")
+            if path:
+                try:
+                    self.figure.savefig(path, dpi=150)
+                    self.output.append(f"\n[Chart manually exported to:\n{path}]")
+                    log_event("DNA Transcription & Translation", "Export Chart", f"Exported to {path}")
+                except Exception as e:
+                    self.show_error(f"Failed to save chart image: {e}")
+
+        def show_error(self, msg):
+            self.output.setPlainText(f"Error: {msg}")
+            log_event("DNA Transcription & Translation", "Error", msg)
+
     dlg = TranscribeDialog()
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
 
 def open_codon_lookup_tool():
     class CodonDialog(QDialog):

@@ -173,6 +173,15 @@ def open_codon_lookup_tool():
         'Glu': 'Charged', 'Cys': 'Polar', 'Trp': 'Hydrophobic', 'Arg': 'Charged',
         'Gly': 'Hydrophobic'
     }
+def open_codon_lookup_tool():
+    AMINO_ACID_GROUPS = {
+        'Phe': 'Hydrophobic', 'Leu': 'Hydrophobic', 'Ile': 'Hydrophobic', 'Met': 'Hydrophobic',
+        'Val': 'Hydrophobic', 'Ser': 'Polar', 'Pro': 'Hydrophobic', 'Thr': 'Polar',
+        'Ala': 'Hydrophobic', 'Tyr': 'Polar', 'STOP': 'Stop Codon', 'His': 'Charged',
+        'Gln': 'Polar', 'Asn': 'Polar', 'Lys': 'Charged', 'Asp': 'Charged',
+        'Glu': 'Charged', 'Cys': 'Polar', 'Trp': 'Hydrophobic', 'Arg': 'Charged',
+        'Gly': 'Hydrophobic'
+    }
 
     class CodonDialog(QDialog):
         def __init__(self):
@@ -199,7 +208,6 @@ def open_codon_lookup_tool():
             self.result_label = QLabel("")
             layout.addWidget(self.result_label)
 
-            # Matplotlib chart for amino acid group visualization
             self.figure, self.ax = plt.subplots(figsize=(4, 3), dpi=100)
             self.canvas = FigureCanvas(self.figure)
             layout.addWidget(self.canvas)
@@ -240,10 +248,16 @@ def open_codon_lookup_tool():
                 group = AMINO_ACID_GROUPS.get(aa, 'Unknown')
                 if group in counts:
                     counts[group] += 1
+
             sizes = [counts[g] for g in groups]
             colors = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3']
 
-            explode = [0.1 if g == AMINO_ACID_GROUPS.get(amino_acid, '') else 0 for g in groups]
+            # Find the group string for the amino acid:
+            aa_group = AMINO_ACID_GROUPS.get(amino_acid.upper(), None)
+            if aa_group not in groups:
+                aa_group = None
+
+            explode = [0.1 if g == aa_group else 0 for g in groups]
 
             self.ax.pie(sizes, labels=groups, colors=colors, explode=explode,
                         autopct='%1.1f%%', startangle=140)

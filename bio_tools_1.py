@@ -164,25 +164,121 @@ def open_transcription_tool():
 
 
 def open_codon_lookup_tool():
+    # Optional: Amino acid groups for visualization
+    AMINO_ACID_GROUPS = {
+        'Phe': 'Hydrophobic', 'Leu': 'Hydrophobic', 'Ile': 'Hydrophobic', 'Met': 'Hydrophobic',
+        'Val': 'Hydrophobic', 'Ser': 'Polar', 'Pro': 'Hydrophobic', 'Thr': 'Polar',
+        'Ala': 'Hydrophobic', 'Tyr': 'Polar', 'STOP': 'Stop Codon', 'His': 'Charged',
+        'Gln': 'Polar', 'Asn': 'Polar', 'Lys': 'Charged', 'Asp': 'Charged',
+        'Glu': 'Charged', 'Cys': 'Polar', 'Trp': 'Hydrophobic', 'Arg': 'Charged',
+        'Gly': 'Hydrophobic'
+    }
+
     class CodonDialog(QDialog):
         def __init__(self):
             super().__init__()
             self.setWindowTitle("Codon Lookup")
+            self.setMinimumWidth(400)
+
             layout = QVBoxLayout(self)
             layout.addWidget(QLabel("Enter RNA Codon (e.g. AUG):"))
+
             self.entry = QLineEdit()
+            self.entry.setPlaceholderText("Three-letter RNA codon (A, U, G, C only)")
             layout.addWidget(self.entry)
-            self.result = QLabel("")
-            layout.addWidget(self.result)
-            btn = QPushButton("Lookup")
-            btn.clicked.connect(self.lookup)
-            layout.addWidget(btn)
-            self.setMinimumWidth(280)
-        def lookup(self):
-            codon = self.entry.text().upper()
-            amino = CODON_TABLE.get(codon, 'Invalid')
-            self.result.setText(f"Amino Acid: {amino}")
+
+            btn_layout = QHBoxLayout()
+            self.lookup_btn = QPushButton("Lookup")
+            self.copy_btn = QPushButton("Copy Result")
+            self.export_btn = QPushButton("Export Chart")
+            btn_layout.addWidget(self.lookup_btn)
+            btn_layout.addWidget(self.copy_btn)
+            btn_layout.addWidget(self.export_btn)
+            layout.addLayout(btn_layout)
+
+            self.result_label = QLabel("")
+            layout.addWidget(self.result_label)
+
+            # Matplotlib chart for amino acid group visualization
+            self.figure, self.ax = plt.subplots(figsize=(4, 3), dpi=100)
+            self.canvas = FigureCanvas(self.figure)
+            layout.addWidget(self.canvas)
+
+            self.saved_img_path = None
+
+            self.lookup_btn.clicked.connect(self.lookup_codon)
+            self.copy_btn.clicked.connect(self.copy_result)
+            self.export_btn.clicked.connect(self.export_chart)
+
+        def lookup_codon(self):
+            codon = self.entry.text().strip().upper()
+            if len(codon) != 3 or any(ch not in 'AUGC' for ch in codon):
+                self.show_error("Invalid codon. Please enter exactly 3 characters of A, U, G, C.")
+                return
+
+            amino = CODON_TABLE.get(codon, None)
+            if amino is None:
+                self.show_error(f"Codon '{codon}' not found in codon table.")
+                return
+
+            self.result_label.setText(f"Amino Acid: {amino}")
+
+            # Plot amino acid group distribution highlighting this amino acid's group
+            self.plot_amino_acid_group(amino)
+
+            # Auto-save chart image
+            self.saved_img_path = self.save_chart_image()
+            self.result_label.setText(self.result_label.text() + f"\n[Chart saved to: {self.saved_img_path}]")
+
             log_event("Codon Lookup", codon, amino)
+
+        def plot_amino_acid_group(self, amino_acid):
+            self.ax.clear()
+            groups = ['Hydrophobic', 'Polar', 'Charged', 'Stop Codon']
+            counts = {g: 0 for g in groups}
+            for aa in CODON_TABLE.values():
+                group = AMINO_ACID_GROUPS.get(aa, 'Unknown')
+                if group in counts:
+                    counts[group] += 1
+            sizes = [counts[g] for g in groups]
+            colors = ['#66c2a5', '#fc8d62', '#8da0cb', '#e78ac3']
+
+            explode = [0.1 if g == AMINO_ACID_GROUPS.get(amino_acid, '') else 0 for g in groups]
+
+            self.ax.pie(sizes, labels=groups, colors=colors, explode=explode,
+                        autopct='%1.1f%%', startangle=140)
+            self.ax.set_title("Amino Acid Group Distribution")
+            self.canvas.draw()
+
+        def save_chart_image(self):
+            if not os.path.exists(results_dir):
+                os.makedirs(results_dir)
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"codon_lookup_group_{timestamp}.png"
+            path = os.path.join(results_dir, filename)
+            self.figure.savefig(path, dpi=150)
+            return path
+
+        def copy_result(self):
+            clipboard = self.clipboard()
+            text = self.result_label.text().replace('\n', ' ')
+            clipboard.setText(text)
+            log_event("Codon Lookup", "Copy Result", text)
+
+        def export_chart(self):
+            path, _ = QFileDialog.getSaveFileName(self, "Export Amino Acid Group Chart", "", "PNG Files (*.png)")
+            if path:
+                try:
+                    self.figure.savefig(path, dpi=150)
+                    self.result_label.setText(self.result_label.text() + f"\n[Chart exported to: {path}]")
+                    log_event("Codon Lookup", "Export Chart", path)
+                except Exception as e:
+                    self.show_error(f"Failed to export chart: {e}")
+
+        def show_error(self, msg):
+            self.result_label.setText(f"Error: {msg}")
+            log_event("Codon Lookup", "Error", msg)
+
     dlg = CodonDialog()
     dlg.show()
     _open_dialogs.append(dlg)

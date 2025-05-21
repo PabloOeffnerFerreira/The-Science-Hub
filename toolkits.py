@@ -21,7 +21,7 @@ from chemtools import (
     open_isotope_tool,
     open_phase_predictor,
     open_comparator,
-    open_unit_multiplier,
+    open_reaction_balancer,
 )
 from element_viewer import open_element_viewer
 from bio_tools_1 import (
@@ -113,7 +113,7 @@ def open_chemistry_tools_hub():
         ("Isotope Tool", open_isotope_tool),
         ("Phase Predictor", open_phase_predictor),
         ("Comparator", open_comparator),
-        ("Unit Multiplier", open_unit_multiplier),
+        ("Reaction Balancer", open_reaction_balancer),
         ("Element Viewer", open_element_viewer),
         ("Molecular Assembler", open_molecule_assembler)
     ]

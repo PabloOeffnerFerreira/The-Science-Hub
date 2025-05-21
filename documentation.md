@@ -483,3 +483,26 @@ Simple, clean UI with tabs for property categories, multiple element selectors, 
 ---
 
 ![Comparator](screenshots/screenshot_comparator.png)
+
+## Reaction Balancer
+
+Balances chemical equations by calculating stoichiometric coefficients for reactants and products.
+
+### Features
+
+- Input one or more unbalanced chemical reactions (one per line)  
+- Supports reaction arrows `->` or `=` and separates species by `+`  
+- Parses chemical formulas with nested parentheses and element counts  
+- Uses linear algebra (`sympy`) to find integer coefficients balancing the reaction  
+- Outputs balanced chemical equations with correct coefficients  
+- Shows error messages for invalid input or unsolvable reactions  
+- Copy balanced equations easily from the result list  
+- Logs all inputs and results for traceability
+
+### Usage
+
+Enter unbalanced reaction(s) in the input box, one per line, then click "Balance All". Select any balanced reaction and click "Copy Selected" to copy it to clipboard.
+
+---
+
+![Reaction Algebra](screenshots/screenshot_react_bal.png)

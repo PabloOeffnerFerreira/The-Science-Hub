@@ -1,22 +1,25 @@
 import datetime
+from collections import defaultdict
 import os
-import tkinter as tk
-from data_utils import _open_dialogs
 from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
+    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir, log_event
 )
-
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton
-from data_utils import load_element_data, parse_formula
-
-import re
-import os
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 import json
-from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QHBoxLayout
-from data_utils import _open_dialogs, log_event
-
+import re
+import matplotlib.pyplot as plt
+from PyQt6.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QFileDialog, QSizePolicy, QListWidget, QListWidgetItem
+)
+from PyQt6.QtGui import QRegularExpressionValidator
+from PyQt6.QtCore import QRegularExpression, Qt
+from data_utils import load_element_data, parse_formula, _open_dialogs
+from sympy import Matrix, lcm
+import math
+import numpy as np
+from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 class MolecularWeightCalculatorDialog(QDialog):
     def __init__(self, element_data):
         super().__init__()
@@ -139,19 +142,6 @@ def open_mass_calculator():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-import os
-import json
-import re
-import datetime
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QFileDialog
-)
-from PyQt6.QtGui import QRegularExpressionValidator
-from PyQt6.QtCore import QRegularExpression, Qt
-from data_utils import log_event, _open_dialogs
-
 
 def open_isotope_tool(preload=None):
     class IsotopeDialog(QDialog):
@@ -318,26 +308,6 @@ def open_isotope_tool(preload=None):
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-
-import math
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox
-)
-from data_utils import load_element_data, log_event
-import matplotlib.pyplot as plt
-import os
-import datetime
-import math
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QMessageBox, QHBoxLayout, QSizePolicy
-)
-from PyQt6.QtCore import Qt
-from data_utils import load_element_data, log_event, _open_dialogs
 
 results_dir = os.path.join(os.path.dirname(__file__), 'results')
 
@@ -854,120 +824,154 @@ def open_comparator(preload=None):
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
+def parse_formula(formula):
+    tokens = re.findall(r'([A-Z][a-z]?|\(|\)|\d+)', formula)
+    stack = [defaultdict(int)]
+    i = 0
+    while i < len(tokens):
+        token = tokens[i]
+        if token == '(':
+            stack.append(defaultdict(int))
+            i += 1
+        elif token == ')':
+            group = stack.pop()
+            i += 1
+            mult = 1
+            if i < len(tokens) and tokens[i].isdigit():
+                mult = int(tokens[i])
+                i += 1
+            for el, cnt in group.items():
+                stack[-1][el] += cnt * mult
+        elif re.match(r'[A-Z][a-z]?$', token):
+            el = token
+            i += 1
+            cnt = 1
+            if i < len(tokens) and tokens[i].isdigit():
+                cnt = int(tokens[i])
+                i += 1
+            stack[-1][el] += cnt
+        else:
+            raise ValueError(f"Unexpected token: {token}")
+    if len(stack) != 1:
+        raise ValueError("Unmatched parentheses")
+    return dict(stack[0])
 
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox
-)
+def parse_reaction(reaction):
+    sides = re.split(r'->|=', reaction)
+    if len(sides) != 2:
+        raise ValueError("Reaction must have exactly one '->' or '='")
+    reactants = [s.strip() for s in sides[0].split('+') if s.strip()]
+    products = [s.strip() for s in sides[1].split('+') if s.strip()]
+    return reactants, products
 
-def open_unit_multiplier(preload=None):
-    class UnitMultDialog(QDialog):
-        def __init__(self):
-            super().__init__()
-            self.setWindowTitle("Mole-Mass-Volume Calculator")
-            self.setMinimumWidth(350)
-            layout = QVBoxLayout(self)
+def build_matrix(reactants, products):
+    element_set = set()
+    all_formulas = reactants + products
+    parsed = [parse_formula(f) for f in all_formulas]
+    for d in parsed:
+        element_set.update(d.keys())
+    elements = sorted(element_set)
 
-            self.field_choice = QComboBox()
-            self.field_choice.addItems([
-                "Calculate Mass (g) from Moles and Molar Mass",
-                "Calculate Volume (L at STP) from Moles",
-                "Calculate Moles from Mass and Molar Mass",
-                "Calculate Moles from Volume at STP"
-            ])
-            layout.addWidget(QLabel("Mode:"))
-            layout.addWidget(self.field_choice)
+    matrix_rows = []
+    for el in elements:
+        row = []
+        for d in parsed[:len(reactants)]:
+            row.append(d.get(el, 0))
+        for d in parsed[len(reactants):]:
+            row.append(-d.get(el, 0))
+        matrix_rows.append(row)
+    return Matrix(matrix_rows), elements
 
-            self.mol_entry = QLineEdit()
-            self.mass_entry = QLineEdit()
-            self.mm_entry = QLineEdit()
-            self.vol_entry = QLineEdit()
+def balance_reaction(reaction):
+    reactants, products = parse_reaction(reaction)
+    M, elements = build_matrix(reactants, products)
+    nullspace = M.nullspace()
+    if not nullspace:
+        raise ValueError("No solution found")
+    vec = nullspace[0]
+    lcm_val = lcm([val.q for val in vec])  # LCM of denominators
+    coeffs = [abs(int(val * lcm_val)) for val in vec]
+    return coeffs, reactants, products
 
-            layout.addWidget(QLabel("Moles:"))
-            layout.addWidget(self.mol_entry)
-            layout.addWidget(QLabel("Mass (g):"))
-            layout.addWidget(self.mass_entry)
-            layout.addWidget(QLabel("Molar Mass (g/mol):"))
-            layout.addWidget(self.mm_entry)
-            layout.addWidget(QLabel("Volume (L at STP):"))
-            layout.addWidget(self.vol_entry)
+def format_balanced(coeffs, reactants, products):
+    def fmt_side(side, coefs):
+        parts = []
+        for c, f in zip(coefs, side):
+            if c == 1:
+                parts.append(f)
+            else:
+                parts.append(f"{c} {f}")
+        return ' + '.join(parts)
+    left = fmt_side(reactants, coeffs[:len(reactants)])
+    right = fmt_side(products, coeffs[len(reactants):])
+    return f"{left} -> {right}"
 
-            if preload and isinstance(preload, tuple):
-                # Try to preload in order: moles, mm, mass, vol
-                if len(preload) > 0:
-                    self.mol_entry.setText(str(preload[0]))
-                if len(preload) > 1:
-                    self.mm_entry.setText(str(preload[1]))
-                log_event("Mole-Mass Calculator (Chain)", f"{preload}", "Waiting for calculation")
+class ReactionBalancerDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Reaction Balancer")
+        self.setMinimumSize(600, 600)
+        layout = QVBoxLayout(self)
 
-            self.result = QLabel("")
-            layout.addWidget(self.result)
+        info_label = QLabel(
+            "Enter one or more unbalanced reactions, one per line.\n"
+            "Use '->' or '=' for reaction arrows, '+' to separate species.\n"
+            "Example:\nH2 + O2 -> H2O\nC3H8 + O2 = CO2 + H2O"
+        )
+        info_label.setWordWrap(True)
+        layout.addWidget(info_label)
 
-            btn = QPushButton("Calculate")
-            btn.clicked.connect(self.calculate)
-            layout.addWidget(btn)
+        self.input_edit = QTextEdit()
+        self.input_edit.setFont(QFont("Courier New", 10))
+        layout.addWidget(self.input_edit)
 
-            self.field_choice.currentIndexChanged.connect(self.update_fields)
-            self.update_fields()
+        btn_layout = QHBoxLayout()
+        self.balance_btn = QPushButton("Balance All")
+        self.copy_btn = QPushButton("Copy Selected")
+        btn_layout.addWidget(self.balance_btn)
+        btn_layout.addWidget(self.copy_btn)
+        layout.addLayout(btn_layout)
 
-        def update_fields(self):
-            mode = self.field_choice.currentIndex()
-            self.mol_entry.setReadOnly(False)
-            self.mm_entry.setReadOnly(False)
-            self.mass_entry.setReadOnly(False)
-            self.vol_entry.setReadOnly(False)
-            if mode == 0:  # Calculate Mass
-                self.mass_entry.setReadOnly(True)
-            elif mode == 1:  # Calculate Volume
-                self.vol_entry.setReadOnly(True)
-            elif mode == 2:  # Calculate Moles (from mass)
-                self.mol_entry.setReadOnly(True)
-            elif mode == 3:  # Calculate Moles (from volume)
-                self.mol_entry.setReadOnly(True)
+        self.result_list = QListWidget()
+        layout.addWidget(self.result_list)
 
-        def calculate(self):
-            mode = self.field_choice.currentIndex()
+        self.balance_btn.clicked.connect(self.balance_all)
+        self.copy_btn.clicked.connect(self.copy_selected)
+
+    def balance_all(self):
+        self.result_list.clear()
+        reactions = self.input_edit.toPlainText().strip().splitlines()
+        for reaction in reactions:
+            if not reaction.strip():
+                continue
             try:
-                if mode == 0:  # Calculate Mass
-                    mol = float(self.mol_entry.text())
-                    mm = float(self.mm_entry.text())
-                    mass = mol * mm
-                    volume = mol * 22.4
-                    output = f"Mass: {mass:.4f} g\nVolume (STP): {volume:.4f} L"
-                    self.result.setText(output)
-                    log_event("Mole-Mass Calculator", f"mol={mol}, mm={mm}", output.replace('\n', ' | '))
-                elif mode == 1:  # Calculate Volume at STP
-                    mol = float(self.mol_entry.text())
-                    volume = mol * 22.4
-                    output = f"Volume (STP): {volume:.4f} L"
-                    self.result.setText(output)
-                    log_event("Mole-Volume Calculator", f"mol={mol}", output)
-                elif mode == 2:  # Calculate Moles (from mass and mm)
-                    mass = float(self.mass_entry.text())
-                    mm = float(self.mm_entry.text())
-                    mol = mass / mm
-                    output = f"Moles: {mol:.4f} mol"
-                    self.result.setText(output)
-                    log_event("Mass-Mole Calculator", f"mass={mass}, mm={mm}", output)
-                elif mode == 3:  # Calculate Moles (from volume)
-                    vol = float(self.vol_entry.text())
-                    mol = vol / 22.4
-                    output = f"Moles: {mol:.4f} mol"
-                    self.result.setText(output)
-                    log_event("Volume-Mole Calculator", f"vol={vol}", output)
-            except Exception:
-                self.result.setText("Invalid input.")
-                log_event("Mole-Mass Calculator", f"mode={mode}", "Invalid input.")
+                coeffs, reactants, products = balance_reaction(reaction)
+                balanced = format_balanced(coeffs, reactants, products)
+                item = QListWidgetItem(balanced)
+                self.result_list.addItem(item)
+                log_event("Reaction Balancer", reaction, balanced)
+            except Exception as e:
+                item = QListWidgetItem(f"Error balancing '{reaction}': {e}")
+                item.setForeground(QColor(Qt.GlobalColor.red))
+                self.result_list.addItem(item)
+                log_event("Reaction Balancer", reaction, f"Error: {e}")
 
-    dlg = UnitMultDialog()
+    def copy_selected(self):
+        selected = self.result_list.selectedItems()
+        if not selected:
+            QMessageBox.information(self, "Copy", "Select an item to copy.")
+            return
+        text = "\n".join(item.text() for item in selected)
+        clipboard = self.clipboard()
+        clipboard.setText(text)
+
+def open_reaction_balancer(preload=None):
+    dlg = ReactionBalancerDialog()
+    if preload:
+        dlg.input_edit.setPlainText(preload)
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
-
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QLineEdit, QPushButton, QCheckBox
-)
-import matplotlib.pyplot as plt
-import json
 
 def open_property_grapher(preload=None):
     class GrapherDialog(QDialog):

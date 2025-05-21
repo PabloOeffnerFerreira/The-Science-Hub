@@ -27,7 +27,7 @@ from chemtools import (
     open_shell_visualizer,
     open_phase_predictor,
     open_comparator,
-    open_unit_multiplier,
+    open_reaction_balancer,
     open_property_grapher,
 )
 from element_viewer import open_element_viewer
@@ -376,7 +376,7 @@ TOOLS = [
     ("Shell Visualizer", open_shell_visualizer, True),
     ("Phase Predictor", open_phase_predictor, True),
     ("Element Comparator", open_comparator, True),
-    ("Unit Multiplier", open_unit_multiplier, True),
+    ("Reaction Balancer", open_reaction_balancer, True),
     ("Property Grapher", open_property_grapher, False),  # Visualization, not chainable
     ("Molecule Assembler", open_molecule_assembler, True),
     ("Element Viewer", open_element_viewer, False),  # Browsing tool

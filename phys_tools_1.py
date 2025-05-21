@@ -1869,3 +1869,9 @@ def open_kinetic_energy_calculator():
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
+
+
+def open_gas_law_calc
+    class GasDialog(QDialog):
+        def __init__(self):
+            super().__init__()

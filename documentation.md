@@ -506,3 +506,37 @@ Enter unbalanced reaction(s) in the input box, one per line, then click "Balance
 ---
 
 ![Reaction Algebra](screenshots/screenshot_react_bal.png)
+
+## Element Property Grapher
+
+The Element Property Grapher visualizes various numeric properties of chemical elements plotted against atomic number using an interactive scatter plot.
+
+### Features
+
+- Loads element data from the periodic table JSON file and user settings from configurable paths.
+- Reads favorite elements from a JSON file and highlights them distinctly.
+- Select from all available numeric properties with an editable, searchable dropdown.
+- Filter the property list dynamically via text input.
+- Plot points colored by element category, with favorites shown in gold.
+- Toggle logarithmic scaling for X (atomic number) and Y (property) axes.
+- Show or hide element symbol labels on the plot.
+- Interactive hover tooltips displaying element name, symbol, atomic number, and property value.
+- Save plots automatically as timestamped PNG files in the results directory.
+- Export displayed data as CSV files via a save dialog.
+- PyQt interface featuring buttons for Plot, Save Plot, and Export CSV.
+- Embedded matplotlib canvas with navigation toolbar.
+- Comprehensive event logging for plotting, saving, and exporting actions.
+
+### User Interface
+
+- Editable combo box for property selection.
+- Text box to filter property dropdown dynamically.
+- Checkboxes for logarithmic scale toggling and label visibility.
+- Buttons to plot the data, save the current plot image, and export data to CSV.
+- Interactive matplotlib plot embedded in the window with hover annotations.
+
+---
+
+![Element Property Grapher Main Window](screenshots/screenshot_element_property_grapher.png)
+
+---

@@ -973,130 +973,254 @@ def open_reaction_balancer(preload=None):
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
+from data_utils import (settings_path, results_dir, ptable_path, element_favs_path, load_element_data)
+
+settings_path = settings_path
+results_dir = results_dir
+ptable_path = ptable_path
+element_favs_path = element_favs_path
+
+class ElementPropertyGrapher(QDialog):
+    def __init__(self, preload=None):
+        super().__init__()
+        self.setWindowTitle("Element Property Grapher")
+        self.resize(900, 600)
+        self.data = load_element_data()  # No args here, uses internal ptable_path
+        self.settings = {}
+        try:
+            with open(settings_path, "r", encoding="utf-8") as f:
+                self.settings = json.load(f)
+        except Exception:
+            pass
+        self.favs = self.load_favorites()
+
+        self.all_props = sorted(
+            k for k, v in next(iter(self.data.values())).items()
+            if k.lower() != "symbol" and not isinstance(v, list)
+        )
+
+        self.category_colors = self.get_category_colors()
+
+        self.init_ui()
+        if preload:
+            self.prop_dd.setCurrentText(str(preload))
+            log_event("Property Grapher (Chain)", preload, "Waiting for plot")
+        else:
+            default_prop = self.settings.get("default_property", "Electronegativity")
+            if default_prop in self.all_props:
+                self.prop_dd.setCurrentText(default_prop)
+
+    def load_favorites(self):
+        try:
+            with open(element_favs_path, "r", encoding="utf-8") as f:
+                return set(json.load(f))
+        except Exception:
+            return set()
+        
+    def get_category_colors(self):
+        color_map = {
+            "alkali metal": "#FF6666",
+            "alkaline earth metal": "#FFDEAD",
+            "transition metal": "#FFB347",
+            "post-transition metal": "#FFD700",
+            "metalloid": "#ADFF2F",
+            "nonmetal": "#90EE90",
+            "halogen": "#87CEFA",
+            "noble gas": "#D8BFD8",
+            "lanthanide": "#FF69B4",
+            "actinide": "#BA55D3",
+        }
+        return color_map
+
+    def init_ui(self):
+        layout = QVBoxLayout(self)
+
+        top_row = QHBoxLayout()
+        top_row.addWidget(QLabel("Property to Graph:"))
+
+        self.prop_dd = QComboBox()
+        self.prop_dd.setEditable(True)
+        self.prop_dd.addItems(self.all_props)
+        self.prop_dd.setMinimumWidth(300)
+        top_row.addWidget(self.prop_dd)
+
+        self.filter_input = QLineEdit()
+        self.filter_input.setPlaceholderText("Filter properties...")
+        top_row.addWidget(self.filter_input)
+
+        self.log_x_cb = QCheckBox("Logarithmic X scale")
+        top_row.addWidget(self.log_x_cb)
+
+        self.log_y_cb = QCheckBox("Logarithmic Y scale")
+        top_row.addWidget(self.log_y_cb)
+
+        self.show_labels_cb = QCheckBox("Show element symbols")
+        self.show_labels_cb.setChecked(True)
+        top_row.addWidget(self.show_labels_cb)
+
+        layout.addLayout(top_row)
+
+        btn_row = QHBoxLayout()
+        self.plot_btn = QPushButton("Plot")
+        self.save_btn = QPushButton("Save Plot")
+        self.export_btn = QPushButton("Export CSV")
+        btn_row.addWidget(self.plot_btn)
+        btn_row.addWidget(self.save_btn)
+        btn_row.addWidget(self.export_btn)
+        layout.addLayout(btn_row)
+
+        self.fig, self.ax = plt.subplots(figsize=(10, 5), dpi=100)
+        self.canvas = FigureCanvas(self.fig)
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        layout.addWidget(self.toolbar)
+        layout.addWidget(self.canvas)
+
+        self.plot_btn.clicked.connect(self.plot)
+        self.save_btn.clicked.connect(self.save_plot)
+        self.export_btn.clicked.connect(self.export_csv)
+        self.filter_input.textChanged.connect(self.filter_properties)
+
+    def filter_properties(self, text):
+        text = text.lower()
+        self.prop_dd.clear()
+        filtered = [p for p in self.all_props if text in p.lower()]
+        self.prop_dd.addItems(filtered)
+        if filtered:
+            self.prop_dd.setCurrentIndex(0)
+
+    def plot(self):
+        prop = self.prop_dd.currentText()
+        if not prop:
+            QMessageBox.warning(self, "Input Error", "Select a property to graph.")
+            return
+
+        self.ax.clear()
+
+        xs, ys, symbols, names, colors = [], [], [], [], []
+
+        for el in self.data.values():
+            x = el.get("AtomicNumber") or el.get("number")
+            y = el.get(prop)
+            if x is None or y is None:
+                continue
+            xs.append(x)
+            ys.append(y)
+            symbols.append(el["symbol"])
+            names.append(el.get("name", ""))
+            etype = el.get("Type", "").lower()
+            color = self.category_colors.get(etype, "#1f77b4")
+            if el["symbol"] in self.favs:
+                color = "#FFD700"
+            colors.append(color)
+
+        if not xs:
+            QMessageBox.information(self, "No Data", f"No data points available for property '{prop}'.")
+            return
+
+        order = np.argsort(xs)
+        xs = np.array(xs)[order]
+        ys = np.array(ys)[order]
+        symbols = np.array(symbols)[order]
+        names = np.array(names)[order]
+        colors = np.array(colors)[order]
+
+        scatter = self.ax.scatter(xs, ys, s=60, c=colors, edgecolors='black', picker=5, zorder=3)
+
+        if self.show_labels_cb.isChecked():
+            for i, (x_, y_, sym) in enumerate(zip(xs, ys, symbols)):
+                dx = 0.5 if i % 2 == 0 else -0.5
+                dy = 0.3 if i % 3 == 0 else -0.3
+                self.ax.text(x_ + dx, y_ + dy, sym, fontsize=8, ha='center', va='center', zorder=5)
+
+        self.ax.set_xlabel("Atomic Number")
+        self.ax.set_ylabel(prop)
+        self.ax.set_title(f"{prop} vs Atomic Number")
+        self.ax.grid(True)
+
+        self.ax.set_xscale("log" if self.log_x_cb.isChecked() else "linear")
+        self.ax.set_yscale("log" if self.log_y_cb.isChecked() else "linear")
+
+        self.annot = self.ax.annotate(
+            "",
+            xy=(0, 0), xytext=(15, 15),
+            textcoords="offset points",
+            bbox=dict(boxstyle="round", fc="w"),
+            arrowprops=dict(arrowstyle="->"),
+            fontsize=9
+        )
+        self.annot.set_visible(False)
+
+        def update_annot(ind):
+            idx = ind["ind"][0]
+            pos = scatter.get_offsets()[idx]
+            self.annot.xy = pos
+            text = f"{names[idx]} ({symbols[idx]})\nAtomic Number: {xs[idx]}\n{prop}: {ys[idx]}"
+            self.annot.set_text(text)
+            self.annot.get_bbox_patch().set_facecolor('#FFFFE0')
+            self.annot.get_bbox_patch().set_alpha(0.9)
+
+        def hover(event):
+            vis = self.annot.get_visible()
+            if event.inaxes == self.ax:
+                cont, ind = scatter.contains(event)
+                if cont:
+                    update_annot(ind)
+                    self.annot.set_visible(True)
+                    self.canvas.draw_idle()
+                elif vis:
+                    self.annot.set_visible(False)
+                    self.canvas.draw_idle()
+
+        self.canvas.mpl_disconnect(getattr(self, '_hover_cid', None))
+        self._hover_cid = self.canvas.mpl_connect("motion_notify_event", hover)
+
+        self.canvas.draw()
+
+        log_event("Property Grapher", prop, f"Plotted {len(xs)} elements")
+
+    def save_plot(self):
+        if not os.path.exists(results_dir):
+            os.makedirs(results_dir)
+        prop = self.prop_dd.currentText()
+        filename = f"{prop}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+        path = os.path.join(results_dir, filename)
+        self.fig.savefig(path)
+        QMessageBox.information(self, "Saved", f"Plot saved to:\n{path}")
+        log_event("Property Grapher", prop, f"Plot saved: {path}")
+
+    def export_csv(self):
+        prop = self.prop_dd.currentText()
+        xs, ys, symbols, names = [], [], [], []
+        for el in self.data.values():
+            x = el.get("AtomicNumber") or el.get("number")
+            y = el.get(prop)
+            if x is None or y is None:
+                continue
+            xs.append(x)
+            ys.append(y)
+            symbols.append(el["symbol"])
+            names.append(el.get("name", ""))
+        if not xs:
+            QMessageBox.information(self, "No Data", "No data to export.")
+            return
+
+        path, _ = QFileDialog.getSaveFileName(self, "Export CSV", f"{prop}.csv", "CSV Files (*.csv)")
+        if not path:
+            return
+        try:
+            import csv
+            with open(path, "w", newline="", encoding="utf-8") as f:
+                writer = csv.writer(f)
+                writer.writerow(["AtomicNumber", "Symbol", "Name", prop])
+                for x, sym, name, y in zip(xs, symbols, names, ys):
+                    writer.writerow([x, sym, name, y])
+            QMessageBox.information(self, "Exported", f"Data exported to:\n{path}")
+            log_event("Property Grapher", prop, f"Exported CSV: {path}")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Failed to export CSV: {e}")
+
 def open_property_grapher(preload=None):
-    class GrapherDialog(QDialog):
-        def __init__(self):
-            super().__init__()
-            self.setWindowTitle("Element Property Grapher")
-            self.setMinimumWidth(440)
-            layout = QVBoxLayout(self)
-
-            self.data = load_element_data()
-            # Gather all possible property keys
-            any_el = next(iter(self.data.values()))
-            self.all_props = sorted(k for k in any_el.keys() if k.lower() != "symbol" and not isinstance(any_el[k], list))
-            # Favorite element symbols
-            try:
-                with open(element_favs_path, "r") as f:
-                    self.favs = set(json.load(f))
-            except:
-                self.favs = set()
-
-            layout.addWidget(QLabel("Property to Graph:"))
-            prop_box = QHBoxLayout()
-            self.prop_dd = QComboBox()
-            self.prop_dd.addItems(self.all_props)
-            self.prop_dd.setEditable(True)
-            if preload:
-                self.prop_dd.setCurrentText(str(preload))
-                log_event("Property Grapher (Chain)", preload, "Waiting for plot")
-            else:
-                self.prop_dd.setCurrentText("Electronegativity")
-            prop_box.addWidget(self.prop_dd)
-
-            self.logscale_cb = QCheckBox("Logarithmic Y scale")
-            prop_box.addWidget(self.logscale_cb)
-            layout.addLayout(prop_box)
-
-            btn = QPushButton("Plot")
-            btn.clicked.connect(self.plot)
-            layout.addWidget(btn)
-
-            self.setLayout(layout)
-
-        def plot(self):
-            prop = self.prop_dd.currentText()
-            symbols, xs, ys, names = [], [], [], []
-            for el in self.data.values():
-                x = el.get("AtomicNumber") or el.get("number")
-                y = el.get(prop)
-                if x is not None and y is not None:
-                    xs.append(x)
-                    ys.append(y)
-                    symbols.append(el["symbol"])
-                    names.append(el.get("name", ""))
-
-            if not xs or not ys:
-                log_event("Property Grapher", prop, "No data points available")
-                return
-
-            points = sorted(zip(xs, ys, symbols, names), key=lambda p: p[0])
-            xs_sorted, ys_sorted, symbols_sorted, names_sorted = zip(*points)
-
-            fig, ax = plt.subplots(figsize=(10, 5))
-            # Favorite points: gold, rest: blue
-            colors = ['#FFD700' if s in self.favs else '#1f77b4' for s in symbols_sorted]
-            sc = ax.scatter(xs_sorted, ys_sorted, color=colors, s=60, zorder=3, picker=True)
-
-            # Add symbol as text
-            for i, symbol in enumerate(symbols_sorted):
-                ax.text(xs_sorted[i], ys_sorted[i], symbol, fontsize=8, ha='center', zorder=5)
-
-            ax.set_xlabel("Atomic Number")
-            ax.set_ylabel(prop)
-            ax.set_title(f"{prop} vs Atomic Number")
-            ax.grid(True)
-            if self.logscale_cb.isChecked():
-                ax.set_yscale("log")
-            fig.tight_layout()
-
-            # Save to results folder
-            if not os.path.exists(results_dir):
-                os.makedirs(results_dir)
-            filename = f"{prop}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
-            fig.savefig(filename)
-
-            # Interactive hover
-            annot = ax.annotate(
-                "",
-                xy=(0,0), xytext=(15,15), textcoords="offset points",
-                bbox=dict(boxstyle="round", fc="w"),
-                arrowprops=dict(arrowstyle="->"),
-            )
-            annot.set_visible(False)
-
-            def update_annot(ind):
-                idx = ind["ind"][0]
-                annot.xy = (xs_sorted[idx], ys_sorted[idx])
-                text = (f"{names_sorted[idx]} ({symbols_sorted[idx]})\n"
-                        f"Z = {xs_sorted[idx]}\n{prop} = {ys_sorted[idx]}")
-                annot.set_text(text)
-                annot.get_bbox_patch().set_facecolor('#FFFFE0')
-                annot.get_bbox_patch().set_alpha(0.9)
-
-            def hover(event):
-                vis = annot.get_visible()
-                if event.inaxes == ax:
-                    cont, ind = sc.contains(event)
-                    if cont:
-                        update_annot(ind)
-                        annot.set_visible(True)
-                        fig.canvas.draw_idle()
-                    elif vis:
-                        annot.set_visible(False)
-                        fig.canvas.draw_idle()
-
-            fig.canvas.mpl_connect("motion_notify_event", hover)
-
-            plt.show()
-            full_path = os.path.join(results_dir, filename)
-            fig.savefig(full_path)
-
-            summary = f"Plotted {len(xs_sorted)} elements ({symbols_sorted[0]} to {symbols_sorted[-1]})"
-            log_event("Property Grapher", prop, f"{summary} [IMG:{full_path}]")
-
-
-    dlg = GrapherDialog()
+    dlg = ElementPropertyGrapher(preload)
     dlg.show()
     _open_dialogs.append(dlg)
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))

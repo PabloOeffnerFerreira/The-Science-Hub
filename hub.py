@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QLabel, QListWidget, QFrame, QSizePolicy
+    QLabel, QListWidget, QListWidgetItem, QFrame, QSizePolicy
 )
 from PyQt6.QtCore import Qt
 
@@ -10,15 +10,139 @@ import utilities
 import toolkits
 from coder import open_coder
 
-from data_utils import (
-    results_dir, mineral_favs_path, element_favs_path, ptable_path,
-    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir, register_window
-)
+# Panels for integrated central area:
 
-import tkinter as tk
-_hidden_tk_root = tk.Tk()
-_hidden_tk_root.withdraw()
+class LastUsedPanel(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Last Used Tool"))
+
+        self.msg_label = QLabel("Loading...")
+        self.msg_label.setWordWrap(True)
+        layout.addWidget(self.msg_label)
+
+        self.refresh()
+
+    def refresh(self):
+        try:
+            with open(data_utils.log_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+            msg = lines[-1].strip() if lines else "No entries found."
+        except Exception:
+            msg = "No log available."
+        self.msg_label.setText(msg)
+
+
+class FavoritesPanel(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Favorites"))
+
+        self.fav_list = QListWidget()
+        layout.addWidget(self.fav_list)
+
+        self.load_favorites()
+
+    def load_favorites(self):
+        self.fav_list.clear()
+        import json
+
+        # Mineral favorites
+        try:
+            with open(data_utils.mineral_favs_path, "r") as f:
+                mineral_favs = json.load(f)
+        except Exception:
+            mineral_favs = []
+
+        if mineral_favs:
+            self.fav_list.addItem("★ Mineral Favorites:")
+            for item in mineral_favs:
+                self.fav_list.addItem(f"  {item}")
+        else:
+            self.fav_list.addItem("No mineral favorites.")
+
+        # Element favorites (optional, add similarly)
+        try:
+            with open(data_utils.element_favs_path, "r") as f:
+                elem_favs = json.load(f)
+        except Exception:
+            elem_favs = []
+
+        if elem_favs:
+            self.fav_list.addItem("★ Element Favorites:")
+            for sym in elem_favs:
+                self.fav_list.addItem(f"  {sym}")
+        else:
+            self.fav_list.addItem("No element favorites.")
+
+        # Could add science library favorites here similarly
+
+from PyQt6.QtCore import QTimer
+
+class WindowManagerPanel(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Window Manager"))
+
+        self.list_widget = QListWidget()
+        layout.addWidget(self.list_widget)
+
+        btn_layout = QHBoxLayout()
+        self.focus_btn = QPushButton("Focus")
+        self.close_btn = QPushButton("Close")
+        self.refresh_btn = QPushButton("Refresh")
+        btn_layout.addWidget(self.focus_btn)
+        btn_layout.addWidget(self.close_btn)
+        btn_layout.addWidget(self.refresh_btn)
+        layout.addLayout(btn_layout)
+
+        self.focus_btn.clicked.connect(self.focus_selected)
+        self.close_btn.clicked.connect(self.close_selected)
+        self.refresh_btn.clicked.connect(self.refresh_windows)
+
+        self.refresh_windows()
+
+        # Optional: auto-refresh every 5 seconds
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.refresh_windows)
+        self.timer.start(5000)
+
+    def refresh_windows(self):
+        self.list_widget.clear()
+        app = QApplication.instance()
+        windows = [
+            w for w in app.topLevelWidgets()
+            if w.isVisible()
+            and w.objectName() != "main_science_hub"
+        ]
+        for w in windows:
+            title = w.windowTitle() or "(Untitled)"
+            item = QListWidgetItem(title)
+            item.setData(Qt.ItemDataRole.UserRole, w)
+            self.list_widget.addItem(item)
+
+
+    def selected_window(self):
+        item = self.list_widget.currentItem()
+        if item:
+            return item.data(Qt.ItemDataRole.UserRole)
+        return None
+
+    def focus_selected(self):
+        w = self.selected_window()
+        if w:
+            w.raise_()
+            w.activateWindow()
+
+    def close_selected(self):
+        w = self.selected_window()
+        if w:
+            w.close()
+            self.refresh_windows()
+
 
 TOOLKIT_LAUNCHERS = {
     "Math": toolkits.open_math_tools_hub,
@@ -27,6 +151,7 @@ TOOLKIT_LAUNCHERS = {
     "Biology": toolkits.open_biology_tools_hub,
     "Geology": toolkits.open_geology_tools_hub,
 }
+
 
 class ScienceHub(QMainWindow):
     def __init__(self):
@@ -80,7 +205,7 @@ class ScienceHub(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
-        # Sidebar
+        # Sidebar (unchanged)
         sidebar = QVBoxLayout()
         sidebar.addWidget(QLabel("Categories"))
         self.category_list = QListWidget()
@@ -99,34 +224,42 @@ class ScienceHub(QMainWindow):
         sidebar_frame.setLayout(sidebar)
         sidebar_frame.setFixedWidth(200)
 
-        # Central panel
+        # Central panel with headline, integrated tools, and credits
         central_panel = QVBoxLayout()
+
         headline = QLabel("Welcome to Science Hub")
         headline.setStyleSheet("font-size: 28px; font-weight: bold;")
         central_panel.addWidget(headline)
+
         central_panel.addSpacing(16)
-        central_panel.addWidget(QLabel("Your personal modular science environment."))
-        central_panel.addSpacing(24)
+
+        # Add your integrated panels here
+        self.last_used_panel = LastUsedPanel()
+        self.favorites_panel = FavoritesPanel()
+        self.window_manager_panel = WindowManagerPanel()
+
+        central_panel.addWidget(self.last_used_panel)
+        central_panel.addWidget(self.favorites_panel)
+        central_panel.addWidget(self.window_manager_panel)
+
+        central_panel.addStretch()
+
         credits = QLabel("Science Hub by Pablo Oeffner Ferreira")
         credits.setStyleSheet("color: #bbb; font-size: 12px; margin-top: 40px;")
         central_panel.addWidget(credits)
-        central_panel.addStretch()
 
         central_panel_frame = QFrame()
         central_panel_frame.setLayout(central_panel)
         central_panel_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
-        # Utility panel
+        # Utility panel - remove buttons for "Last Used Tool", "View Favorites", "Window Manager"
         utility_panel = QVBoxLayout()
         utility_panel.addWidget(QLabel("Utility Panel"))
 
         util_buttons = [
             ("Simple Calculator", utilities.open_simple_calculator),
             ("View Log", utilities.open_log),
-            ("Last Used Tool", utilities.show_last_used),
-            ("View Favorites", utilities.show_favorites),
             ("Export Log", utilities.export_log_to_md),
-            ("Window Manager", utilities.show_window_manager),
             ("Chain Mode", utilities.open_chain_mode),
             ("Gallery", utilities.launch_gallery),
             ("AI Assistant", utilities.launch_ai_assistant_subprocess),
@@ -153,9 +286,9 @@ class ScienceHub(QMainWindow):
         main_layout.addWidget(utility_panel_frame)
 
 
-if load_settings().get("clear_log_on_startup", False):
+if data_utils.load_settings().get("clear_log_on_startup", False):
     try:
-        with open(log_path, "w", encoding="utf-8") as f:
+        with open(data_utils.log_path, "w", encoding="utf-8") as f:
             f.write("")
     except Exception:
         pass

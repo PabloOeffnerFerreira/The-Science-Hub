@@ -1,23 +1,24 @@
 import sys
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QLabel, QListWidget, QFrame, QSizePolicy, QMessageBox
+    QLabel, QListWidget, QFrame, QSizePolicy
 )
 from PyQt6.QtCore import Qt
+
 import data_utils
 import utilities
+import toolkits
+from coder import open_coder
+
 from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
     exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir, register_window
 )
+
 import tkinter as tk
 _hidden_tk_root = tk.Tk()
 _hidden_tk_root.withdraw()
-
-import toolkits
-from coder import open_coder
-
 
 TOOLKIT_LAUNCHERS = {
     "Math": toolkits.open_math_tools_hub,
@@ -26,6 +27,7 @@ TOOLKIT_LAUNCHERS = {
     "Biology": toolkits.open_biology_tools_hub,
     "Geology": toolkits.open_geology_tools_hub,
 }
+
 class ScienceHub(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -63,17 +65,14 @@ class ScienceHub(QMainWindow):
     def update_launch_btn_state(self):
         self.launch_btn.setEnabled(self.category_list.currentItem() is not None)
 
-
     def launch_toolkit(self):
-        self.launch_btn.setEnabled(False)  # prevent accidental double launch
+        self.launch_btn.setEnabled(False)
         item = self.category_list.currentItem()
         if not item:
             return
-        category = item.text()
-        launcher = TOOLKIT_LAUNCHERS.get(category)
+        launcher = TOOLKIT_LAUNCHERS.get(item.text())
         if launcher:
             launcher()
-
 
     def initUI(self):
         central_widget = QWidget()
@@ -81,13 +80,11 @@ class ScienceHub(QMainWindow):
         central_widget.setLayout(main_layout)
         self.setCentralWidget(central_widget)
 
+        # Sidebar
         sidebar = QVBoxLayout()
         sidebar.addWidget(QLabel("Categories"))
-
         self.category_list = QListWidget()
-        self.category_list.addItems([
-            "Chemistry", "Biology", "Physics", "Geology", "Math"
-        ])
+        self.category_list.addItems(["Chemistry", "Biology", "Physics", "Geology", "Math"])
         sidebar.addWidget(self.category_list)
 
         self.launch_btn = QPushButton("Launch Toolkit")
@@ -96,22 +93,19 @@ class ScienceHub(QMainWindow):
 
         self.category_list.itemSelectionChanged.connect(self.update_launch_btn_state)
         self.launch_btn.clicked.connect(self.launch_toolkit)
-
         sidebar.addStretch()
 
         sidebar_frame = QFrame()
         sidebar_frame.setLayout(sidebar)
         sidebar_frame.setFixedWidth(200)
 
-
+        # Central panel
         central_panel = QVBoxLayout()
         headline = QLabel("Welcome to Science Hub")
         headline.setStyleSheet("font-size: 28px; font-weight: bold;")
         central_panel.addWidget(headline)
         central_panel.addSpacing(16)
-        subtext = QLabel("Your personal modular science environment.")
-        central_panel.addWidget(subtext)
-        # You can add screenshots, images, or embed widgets here
+        central_panel.addWidget(QLabel("Your personal modular science environment."))
         central_panel.addSpacing(24)
         credits = QLabel("Science Hub by Pablo Oeffner Ferreira")
         credits.setStyleSheet("color: #bbb; font-size: 12px; margin-top: 40px;")
@@ -122,6 +116,7 @@ class ScienceHub(QMainWindow):
         central_panel_frame.setLayout(central_panel)
         central_panel_frame.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
+        # Utility panel
         utility_panel = QVBoxLayout()
         utility_panel.addWidget(QLabel("Utility Panel"))
 
@@ -139,7 +134,7 @@ class ScienceHub(QMainWindow):
             ("Molecule Library", utilities.launch_molecule_library),
             ("Science Library", utilities.launch_library),
             ("Settings", data_utils.open_settings),
-            ("Code Editor", open_coder)
+            ("Code Editor", open_coder),
         ]
 
         for label, func in util_buttons:
@@ -157,11 +152,6 @@ class ScienceHub(QMainWindow):
         main_layout.addWidget(central_panel_frame)
         main_layout.addWidget(utility_panel_frame)
 
-from data_utils import (
-    results_dir, mineral_favs_path, element_favs_path, ptable_path,
-    mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
-)
 
 if load_settings().get("clear_log_on_startup", False):
     try:
@@ -170,11 +160,13 @@ if load_settings().get("clear_log_on_startup", False):
     except Exception:
         pass
 
+
 def main():
     app = QApplication(sys.argv)
     win = ScienceHub()
     win.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

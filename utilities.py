@@ -9,7 +9,7 @@ import subprocess
 import sys
 import os
 import datetime
-
+from magnolinetool import open_magnoline_tool
 from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
@@ -407,6 +407,7 @@ TOOLS = [
     ("Kinetic Energy Calculator", open_kinetic_energy_calculator, True),
     ("Speed Calculator", open_speed_calculator, True),
     ("Ferromagnetism Helper", open_ferromagnetism_helper, False),
+    ("Magnet Line Tool", open_magnoline_tool, False),
 
     # Math
     ("Function Plotter", open_function_plotter, False),  # Graph only

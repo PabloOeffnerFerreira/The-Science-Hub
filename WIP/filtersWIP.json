@@ -1,0 +1,200 @@
+[
+  {
+    "label": "Label",
+    "property": "rdfs:label",
+    "input_type": "text",
+    "operators": ["equals", "contains", "starts with"]
+  },
+  {
+    "label": "Instance of",
+    "property": "wdt:P31",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Subclass of",
+    "property": "wdt:P279",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Discovery Year",
+    "property": "wdt:P575",
+    "input_type": "year",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Discovered by",
+    "property": "wdt:P61",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Element Symbol",
+    "property": "wdt:P246",
+    "input_type": "text",
+    "operators": ["equals", "starts with"]
+  },
+  {
+    "label": "Atomic Number",
+    "property": "wdt:P1086",
+    "input_type": "number",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Mass",
+    "property": "wdt:P2067",
+    "input_type": "number",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Charge",
+    "property": "wdt:P1121",
+    "input_type": "number",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Image",
+    "property": "wdt:P18",
+    "input_type": "bool",
+    "operators": ["exists", "not exists"]
+  },
+  {
+    "label": "Country of Origin",
+    "property": "wdt:P495",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Sex or Gender",
+    "property": "wdt:P21",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Date of Birth",
+    "property": "wdt:P569",
+    "input_type": "date",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Date of Death",
+    "property": "wdt:P570",
+    "input_type": "date",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Part of",
+    "property": "wdt:P361",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Has Part",
+    "property": "wdt:P527",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Color",
+    "property": "wdt:P462",
+    "input_type": "text",
+    "operators": ["equals", "contains"]
+  },
+  {
+    "label": "Shape",
+    "property": "wdt:P1419",
+    "input_type": "text",
+    "operators": ["equals", "contains"]
+  },
+  {
+    "label": "Molar Mass",
+    "property": "wdt:P2067",
+    "input_type": "number",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Melting Point",
+    "property": "wdt:P2101",
+    "input_type": "number",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Boiling Point",
+    "property": "wdt:P2102",
+    "input_type": "number",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Density",
+    "property": "wdt:P2054",
+    "input_type": "number",
+    "operators": [">", "<", "equals"]
+  },
+  {
+    "label": "Chemical Formula",
+    "property": "wdt:P274",
+    "input_type": "text",
+    "operators": ["equals", "contains"]
+  },
+  {
+    "label": "CAS Registry Number",
+    "property": "wdt:P231",
+    "input_type": "text",
+    "operators": ["equals"]
+  },
+  {
+    "label": "PubChem CID",
+    "property": "wdt:P662",
+    "input_type": "text",
+    "operators": ["equals"]
+  },
+  {
+    "label": "DOI",
+    "property": "wdt:P356",
+    "input_type": "text",
+    "operators": ["equals", "contains"]
+  },
+  {
+    "label": "Described by Source",
+    "property": "wdt:P1343",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Academic Degree",
+    "property": "wdt:P512",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Occupation",
+    "property": "wdt:P106",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Field of Work",
+    "property": "wdt:P101",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Employer",
+    "property": "wdt:P108",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Affiliation",
+    "property": "wdt:P1416",
+    "input_type": "qid",
+    "operators": ["equals"]
+  },
+  {
+    "label": "Award Received",
+    "property": "wdt:P166",
+    "input_type": "qid",
+    "operators": ["equals"]
+  }
+]

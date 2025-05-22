@@ -9,9 +9,8 @@ import utilities
 from data_utils import (
     results_dir, mineral_favs_path, element_favs_path, ptable_path,
     mineral_db_path, gallery_dir, gallery_meta_path, log_path, chain_log_path,
-    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir
+    exports_dir, settings_path, library_file, load_settings, load_element_data, ai_chatlogs_dir, register_window
 )
-
 import tkinter as tk
 _hidden_tk_root = tk.Tk()
 _hidden_tk_root.withdraw()
@@ -140,7 +139,7 @@ class ScienceHub(QMainWindow):
             ("Molecule Library", utilities.launch_molecule_library),
             ("Science Library", utilities.launch_library),
             ("Settings", data_utils.open_settings),
-            ("Code Editor", open_coder),
+            ("Code Editor", open_coder)
         ]
 
         for label, func in util_buttons:

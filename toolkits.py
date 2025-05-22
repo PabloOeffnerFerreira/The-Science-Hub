@@ -6,6 +6,7 @@ from data_utils import (
     exports_dir, settings_path, library_file, load_settings, load_element_data
 )
 from mol_assembler import open_molecule_assembler
+from magnolinetool import open_magnoline_tool
 from math_tools_1 import (
     open_function_plotter,
     open_quadratic_solver,
@@ -59,7 +60,7 @@ from phys_tools_1 import(
     open_speed_calculator,
     open_terminal_velocity_calculator,
     open_unit_converter,
-    open_ferromagnetism_helper
+    open_ferromagnetism_helper,
 )
 
 class ToolkitHub(QDialog):
@@ -100,7 +101,8 @@ def open_physics_tools_hub():
         ("Force Calculator", open_force_calculator),
         ("Kinetic Energy Calculator", open_kinetic_energy_calculator),
         ("Speed Calculator", open_speed_calculator),
-        ("Ferromagnetism Tool", open_ferromagnetism_helper)
+        ("Ferromagnetism Tool", open_ferromagnetism_helper),
+        ("Magnet Line Tool", open_magnoline_tool),
     ]
     dlg = ToolkitHub("Physics", tools)
     dlg.show()

@@ -197,7 +197,7 @@ def show_favorites():
             try:
                 with open(mineral_favs_path, "r") as f:
                     mineral_favs = json.load(f)
-            except FileNotFoundError:
+            except (FileNotFoundError, json.JSONDecodeError):
                 mineral_favs = []
             if mineral_favs:
                 vbox.addWidget(QLabel("★ Mineral Favorites"))
@@ -210,9 +210,8 @@ def show_favorites():
             try:
                 with open(element_favs_path, "r") as f:
                     elem_syms = json.load(f)
-            except FileNotFoundError:
+            except (FileNotFoundError, json.JSONDecodeError):
                 elem_syms = []
-            # Map from symbol to full element name, using your element data
             if elem_syms:
                 try:
                     with open(ptable_path, encoding="utf-8") as f:
@@ -228,17 +227,17 @@ def show_favorites():
                 vbox.addWidget(QLabel("No starred elements."))
 
             # Science Library favorites
-            library_path = library_file
             library_favs = []
-            if os.path.exists(library_path):
-                for file in os.listdir(library_path):
+            library_dir = os.path.dirname(library_file)
+            if os.path.exists(library_dir) and os.path.isdir(library_dir):
+                for file in os.listdir(library_dir):
                     if file.endswith(".json"):
                         try:
-                            with open(os.path.join(library_path, file), "r", encoding="utf-8") as f:
+                            with open(os.path.join(library_dir, file), "r", encoding="utf-8") as f:
                                 data = json.load(f)
-                                if data.get("favorite"):
-                                    library_favs.append(data["title"])
-                        except:
+                                if isinstance(data, dict) and data.get("favorite"):
+                                    library_favs.append(data.get("title", "Untitled"))
+                        except (FileNotFoundError, json.JSONDecodeError, OSError):
                             continue
             if library_favs:
                 vbox.addWidget(QLabel("★ Science Library Favorites"))
@@ -250,6 +249,7 @@ def show_favorites():
     dlg = FavoritesDialog()
     dlg.show()
     register_window("Favorites", dlg)
+
 
 def export_log_to_md():
 

@@ -116,6 +116,62 @@ Available models include:
 You can switch models at any time, track token usage live, and load previous conversations.
 
 ---
+## How to Install
+
+**Science Hub** is distributed as a standalone Windows executable (`.exe`).  
+Follow these steps to set up and run the program.
+
+---
+
+### 1. Install Ollama (Required for AI Assistant)
+
+Science Hub’s AI features rely on [Ollama](https://ollama.com/).  
+Ollama must be installed and running before you launch Science Hub.
+
+- Download and install Ollama for Windows from:  
+  [https://ollama.com/download](https://ollama.com/download)
+
+- After installation, run Ollama. It should stay active in the background.
+
+---
+
+### 2. Download Science Hub
+
+- Download the latest Science Hub release ZIP (or EXE) from the [releases page](https://github.com/PabloOeffnerFerreira/The-Science-Hub/releases).
+
+- Extract the ZIP file to any folder on your computer.
+
+- The extracted folder must contain:
+    - The main `ScienceHub.exe` (or similar)
+    - All required folders:  
+      `results`, `exports`, `codes`, `logs`, `interndatabases`, `databases`, `screenshots`, `images`, `gallery`
+    - All `.md` and `.py` files in the root (even if just for reference).
+
+---
+
+### 3. Run Science Hub
+
+- **Double-click** the `ScienceHub.exe` file in the extracted folder.
+
+- On first launch, the app may take a few seconds to start as it sets up.
+
+- **Important:** Ollama must be running before you open Science Hub, otherwise AI features will not work.
+
+---
+
+### 4. Troubleshooting
+
+- If the program fails to start or you get errors about missing files, make sure all the required folders and files are present in the same folder as the EXE.
+
+- If you see errors related to Ollama, confirm that the Ollama service is running (you can check in Task Manager, or by visiting [http://localhost:11434/](http://localhost:11434/) in your browser).
+
+---
+
+### 5. Updates
+
+- Check for new versions or bug fixes on the [Science Hub GitHub releases page](https://github.com/PabloOeffnerFerreira/The-Science-Hub/releases).
+
+---
 
 ## Screenshots
 

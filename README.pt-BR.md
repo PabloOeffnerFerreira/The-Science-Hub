@@ -113,6 +113,62 @@ Modelos disponíveis incluem:
 Você pode trocar de modelo a qualquer momento, acompanhar uso de tokens em tempo real e carregar conversas antigas.
 
 ---
+## Como Instalar
+
+O **Science Hub** é distribuído como um executável standalone para Windows (`.exe`).  
+Siga estes passos para configurar e rodar o programa.
+
+---
+
+### 1. Instale o Ollama (Necessário para a IA)
+
+Os recursos de IA do Science Hub dependem do [Ollama](https://ollama.com/).  
+Você precisa instalar e iniciar o Ollama antes de abrir o Science Hub.
+
+- Baixe e instale o Ollama para Windows em:  
+  [https://ollama.com/download](https://ollama.com/download)
+
+- Após a instalação, execute o Ollama. Ele deve permanecer ativo em segundo plano.
+
+---
+
+### 2. Baixe o Science Hub
+
+- Baixe o ZIP da última versão do Science Hub (ou EXE) na [página de releases](https://github.com/PabloOeffnerFerreira/The-Science-Hub/releases).
+
+- Extraia o arquivo ZIP em qualquer pasta do seu computador.
+
+- A pasta extraída deve conter:
+    - O executável principal `ScienceHub.exe` (ou nome similar)
+    - Todas as pastas necessárias:  
+      `results`, `exports`, `codes`, `logs`, `interndatabases`, `databases`, `screenshots`, `images`, `gallery`
+    - Todos os arquivos `.md` e `.py` na raiz (mesmo que só para referência).
+
+---
+
+### 3. Execute o Science Hub
+
+- **Dê duplo clique** no arquivo `ScienceHub.exe` na pasta extraída.
+
+- No primeiro uso, pode levar alguns segundos para o programa abrir.
+
+- **Importante:** O Ollama precisa estar rodando antes de abrir o Science Hub, caso contrário, os recursos de IA não funcionarão.
+
+---
+
+### 4. Solução de Problemas
+
+- Se o programa não iniciar ou mostrar erros de arquivos ausentes, verifique se todas as pastas e arquivos necessários estão na mesma pasta do executável.
+
+- Se aparecerem erros relacionados ao Ollama, confirme que o serviço do Ollama está ativo (você pode conferir no Gerenciador de Tarefas ou acessando [http://localhost:11434/](http://localhost:11434/) no navegador).
+
+---
+
+### 5. Atualizações
+
+- Verifique novas versões ou correções de bugs na [página de releases do Science Hub](https://github.com/PabloOeffnerFerreira/The-Science-Hub/releases).
+
+---
 
 ## Capturas de Tela
 

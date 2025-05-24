@@ -371,22 +371,25 @@ def open_chain_mode():
     dlg.finished.connect(lambda _: _open_dialogs.remove(dlg))
 
 
+def launch_tool(exe_name, py_name):
+    exe_path = os.path.join(os.path.dirname(__file__), exe_name)
+    if os.path.exists(exe_path):
+        subprocess.Popen([exe_path])
+    else:
+        script_path = os.path.join(os.path.dirname(__file__), py_name)
+        subprocess.Popen([sys.executable, script_path])
+
 def launch_gallery():
-    script_path = os.path.join(os.path.dirname(__file__), "gallery.py")
-    subprocess.Popen([sys.executable, script_path])
+    launch_tool("launch_gallery.exe", "launch_gallery.py")
 
 def launch_ai_assistant_subprocess():
-    script_path = os.path.join(os.path.dirname(__file__), "launch_ai_assistant.py")
-    subprocess.Popen([sys.executable, script_path])
+    launch_tool("launch_ai_assistant.exe", "launch_ai_assistant.py")
 
 def launch_openalex_browser():
-    script_path = os.path.join(os.path.dirname(__file__), "openalex_browser.py")
-    subprocess.Popen([sys.executable, script_path])
+    launch_tool("launch_openalex_browser.exe", "openalex_browser.py")
 
 def launch_molecule_library():
-    script_path = os.path.join(os.path.dirname(__file__), "molecule_library.py")
-    subprocess.Popen([sys.executable, script_path])
+    launch_tool("launch_molecule_library.exe", "molecule_library.py")
 
 def launch_library():
-    script_path = os.path.join(os.path.dirname(__file__), "library.py")
-    subprocess.Popen([sys.executable, script_path])
+    launch_tool("launch_library.exe", "library.py")
